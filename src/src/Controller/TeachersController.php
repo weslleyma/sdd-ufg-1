@@ -32,7 +32,7 @@ class TeachersController extends AppController
     public function view($id = null)
     {
         $teacher = $this->Teachers->get($id, [
-            'contain' => []
+            'contain' => ['']
         ]);
         $this->set('teacher', $teacher);
         $this->set('_serialize', ['teacher']);
@@ -45,12 +45,20 @@ class TeachersController extends AppController
      */
     public function add()
     {
-        $teacher = $this->Teachers->newEntity();
-        if ($this->request->is('post')) {
-            $teacher = $this->Teachers->patchEntity($teacher, $this->request->data);
+		$teacher = $this->Teachers->newEntity();
+		
+		if ($this->request->is('post')) {
+			
+			$data = $this->request->data;
+			$data['user']['is_admin'] = isset($this->request->data['user']['is_admin']) ? 1 : 0;
+
+			$teacher = $this->Teachers->newEntity($data, [
+				'associated' => ['Users' => ['validate' => 'default']]
+			]);
+			
             if ($this->Teachers->save($teacher)) {
                 $this->Flash->success(__('The teacher has been saved.'));
-                return $this->redirect(['action' => 'index']);
+                return $this->redirect(['action' => 'edit', $teacher->id]);
             } else {
                 $this->Flash->error(__('The teacher could not be saved. Please, try again.'));
             }
@@ -69,10 +77,18 @@ class TeachersController extends AppController
     public function edit($id = null)
     {
         $teacher = $this->Teachers->get($id, [
-            'contain' => []
+            'contain' => ['Users']
         ]);
         if ($this->request->is(['patch', 'post', 'put'])) {
-            $teacher = $this->Teachers->patchEntity($teacher, $this->request->data);
+            
+			
+			$data = $this->request->data;
+			$data['user']['is_admin'] = isset($this->request->data['user']['is_admin']) ? 1 : 0;
+			
+			$teacher = $this->Teachers->patchEntity($teacher, $data, [
+				'associated' => ['Users' => ['validate' => 'default']]
+			]);
+			
             if ($this->Teachers->save($teacher)) {
                 $this->Flash->success(__('The teacher has been saved.'));
                 return $this->redirect(['action' => 'index']);
