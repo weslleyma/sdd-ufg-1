@@ -87,8 +87,8 @@ class TeachersController extends AppController
 		
 		$clazzes = $this->getClazzes();
 		
-        if ($this->request->is(['patch', 'post', 'put'])) {
-            
+        if ($this->request->is(['patch', 'post', 'put'])) {				
+			
 			$data = $this->request->data;
 			$data['user']['is_admin'] = isset($this->request->data['user']['is_admin']) ? 1 : 0;
 			
@@ -108,6 +108,8 @@ class TeachersController extends AppController
                 $this->Flash->error(__('The teacher could not be saved. Please, try again.'));
             }
         }
+		
+		
         $this->set(compact('teacher'));
         $this->set('_serialize', ['teacher']);
 		$this->set('clazzes', $clazzes);
@@ -133,7 +135,86 @@ class TeachersController extends AppController
         return $this->redirect(['action' => 'index']);
     }
 	
+	/**
+     * Allocate Knowledges method
+     *
+     * @param string|null $id Teacher id.
+     * @return \Cake\Network\Response|null Redirects to index.
+     * @throws \Cake\Network\Exception\NotFoundException When record not found.
+     */
+	public function allocateKnowledges($id = null) 
+	{
+		$teacher = $this->Teachers->get($id, [
+            'contain' => ['Users'
+				, 'Clazzes'
+				, 'Clazzes.Subjects'
+				, 'Clazzes.Subjects.Knowledges'
+				, 'Clazzes.Subjects.Courses'
+			]
+        ]);
+		
+		$knowledges = $this->getKnowledges();
+		
+        if ($this->request->is(['patch', 'post', 'put'])) {				
+			
+			$data = $this->request->data;
+			
+        }
 
+		$this->set(compact('teacher'));
+        $this->set('_serialize', ['teacher']);
+		$this->set('knowledges', $knowledges);
+        $this->set('_serialize', ['knowledges']);
+	}
+	
+	/**
+     * Allocate Clazzes method
+     *
+     * @param string|null $id Teacher id.
+     * @return \Cake\Network\Response|null Redirects to index.
+     * @throws \Cake\Network\Exception\NotFoundException When record not found.
+     */
+	public function allocateClazzes($id = null) 
+	{
+		$teacher = $this->Teachers->get($id, [
+            'contain' => ['Users'
+				, 'Clazzes'
+				, 'Clazzes.Subjects'
+				, 'Clazzes.Subjects.Knowledges'
+				, 'Clazzes.Subjects.Courses'
+			]
+        ]);
+		
+		$clazzes = $this->getClazzes();
+		
+        if ($this->request->is(['patch', 'post', 'put'])) {				
+			
+			$data = $this->request->data;
+			
+        }
+		$this->set(compact('teacher'));
+        $this->set('_serialize', ['teacher']);
+		$this->set('clazzes', $clazzes);
+        $this->set('_serialize', ['clazzes']);
+	}
+
+	/**
+     * Get Knowledges method
+     *
+     * @param array|null $params Filters.
+     * @return paginated data.
+     */
+	private function getKnowledges($params = null) 
+    {
+		return null;
+	}
+	
+	/**
+     * Get Clazzes method
+     *
+     * @param array|null $params Filters.
+     * @return paginated data.
+     */
     private function getClazzes($params = null) 
     {	
 		$this->loadModel('ClazzesSchedulesLocals');
@@ -150,7 +231,7 @@ class TeachersController extends AppController
 
 		if ($params == null) {
 			return $this->paginate($this->ClazzesSchedulesLocals->find()
-					->contain(['Clazzes', 'Clazzes.Subjects', 'Locals', 'Schedules']));
+					->contain(['Clazzes', 'Clazzes.Subjects', 'Clazzes.Subjects.Knowledges', 'Clazzes.Subjects.Courses', 'Locals', 'Schedules']));
 					//->where(['process_id' => $params['process_id']])
 		
 		} else {
