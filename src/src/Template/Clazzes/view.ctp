@@ -29,14 +29,6 @@
             <td><?= $clazze->has('subject') ? $this->Html->link($clazze->subject->name, ['controller' => 'Subjects', 'action' => 'view', $clazze->subject->id]) : '' ?></td>
         </tr>
         <tr>
-            <th><?= __('Schedule') ?></th>
-            <td><?= $clazze->has('schedule') ? $this->Html->link($clazze->schedule->id, ['controller' => 'Schedules', 'action' => 'view', $clazze->schedule->id]) : '' ?></td>
-        </tr>
-        <tr>
-            <th><?= __('Local') ?></th>
-            <td><?= $clazze->has('local') ? $this->Html->link($clazze->local->name, ['controller' => 'Locals', 'action' => 'view', $clazze->local->id]) : '' ?></td>
-        </tr>
-        <tr>
             <th><?= __('Process') ?></th>
             <td><?= $clazze->has('process') ? $this->Html->link($clazze->process->id, ['controller' => 'Processes', 'action' => 'view', $clazze->process->id]) : '' ?></td>
         </tr>
