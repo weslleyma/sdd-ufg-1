@@ -118,4 +118,36 @@ class TeachersController extends AppController
         }
         return $this->redirect(['action' => 'index']);
     }
+	
+	/**
+     * Delete method
+     *
+     * @param string|null $id Teacher id.
+     * @return \Cake\Network\Response|null Redirects to index.
+     * @throws \Cake\Network\Exception\NotFoundException When record not found.
+     */
+    public function search($params = array())
+    {
+        $query = $this->Teachers->find([
+			'conditions' => ['Clazzes.name LIKE ' => '%' . $params['clazz_name'] . '%'
+			]
+		])->matching('Subjects', function ($q) {
+			return $q->where([
+				'Subjects.name LIKE ' => '%' . $params['subject_name'] . '%'
+				, 'Subjects.Courses.name LIKE ' => '%' . $params['course_name'] . '%'
+				, 'Subjects.Knowleges.name LIKE ' => '%' . $params['knowledge_name'] . '%'
+			]);
+		})->matching('ClazzesSchedulesLocals', function ($q) {
+			return $q->where([
+				'ClazzesSchedulesLocals.Subjects.week_day LIKE ' =>'%' . $params['week_day'] . '%'
+				, 'ClazzesSchedulesLocals.Subjects.start_time LIKE' => '%' . $params['start_time'] . '%'
+				, 'ClazzesSchedulesLocals.Subjects.end_time LIKE' => '%' . $params['end_time'] . '%'
+				, 'ClazzesSchedulesLocals.Locals.address LIKE' => '%' . $params['address'] . '%'
+			]);
+		});
+
+
+        $this->set('teachers', $this->paginate($query));
+        $this->set('_serialize', ['teachers']);
+    }
 }
