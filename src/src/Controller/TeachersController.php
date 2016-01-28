@@ -81,9 +81,13 @@ class TeachersController extends AppController
         ]);
         if ($this->request->is(['patch', 'post', 'put'])) {
             
-			
 			$data = $this->request->data;
 			$data['user']['is_admin'] = isset($this->request->data['user']['is_admin']) ? 1 : 0;
+			
+			if (!empty($this->request->data['pwd'])) {
+				$data['user']['password'] = $data['pwd'];
+				unset($data['pwd']);
+			}
 			
 			$teacher = $this->Teachers->patchEntity($teacher, $data, [
 				'associated' => ['Users' => ['validate' => 'default']]
