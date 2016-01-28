@@ -26,17 +26,6 @@ class UsersController extends AppController
     }
 
     /**
-     * Defines the authorization to access the controller pages.
-     *
-     * @param $user User authenticated.
-     * @return bool True if the user has permission or false otherwise.
-     */
-    public function isAuthorized($user)
-    {
-        return parent::isAuthorized($user);
-    }
-
-    /**
      * Index method
      *
      * @return void
@@ -93,20 +82,9 @@ class UsersController extends AppController
     {
         $this->viewBuilder()->layout('logged-out');
 
-        $userKeys = $this->Users->schema()->columns();
-        $teacherKeys = $this->Users->Teachers->schema()->columns();
-        $userData = [];
-        foreach($this->request->data() as $formData => $value) {
-            if(in_array($formData, $userKeys)) {
-                $userData[$formData] = $value;
-            } else if(in_array($formData, $teacherKeys)) {
-                $userData['teacher'][$formData] = $value;
-            }
-        }
-
         $user = $this->Users->newEntity();
         if ($this->request->is('post')) {
-            $user = $this->Users->patchEntity($user, $userData, [
+            $user = $this->Users->patchEntity($user, $this->request->data(), [
                 'associated' => ['Teachers']
             ]);
 
@@ -136,7 +114,7 @@ class UsersController extends AppController
                 $this->Auth->setUser($user);
                 return $this->redirect($this->Auth->redirectUrl());
             }
-            $this->Flash->error(__('Invalid username or password, try again'));
+            $this->Flash->error(__('Usuário e/ou senha inválidos, tente novamente.'));
         }
     }
 

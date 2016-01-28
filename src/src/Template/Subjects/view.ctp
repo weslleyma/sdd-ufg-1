@@ -43,7 +43,7 @@
                     </tr>
                     <tr>
                         <th><?= __('Carga horária teórica') ?></th>
-                        <td><?= $this->Number->format($subject->teoric_workload) ?> hora(s)</td>
+                        <td><?= $this->Number->format($subject->theoretical_workload) ?> hora(s)</td>
                     </tr>
                     <tr>
                         <th><?= __('Carga horária prática') ?></th>
@@ -68,7 +68,6 @@
                         <th><?= __('#ID') ?></th>
                         <th><?= __('Nome') ?></th>
                         <th><?= __('Vagas') ?></th>
-                        <th><?= __('Local/Hora') ?></th>
                         <th><?= __('Processo de distribuição') ?></th>
                         <th width="200px"><?= __('Ações') ?></th>
                     </tr>
@@ -84,7 +83,6 @@
                             <td><?= h($clazz->id) ?></td>
                             <td><?= h($clazz->name) ?></td>
                             <td><?= h($clazz->vacancies) ?></td>
-                            <td><?= h($clazz->local->name) ?>/<?= h($clazz->schedule->week_day) ?></td>
                             <td><?= h($clazz->process->name) ?></td>
                             <td>
                                 <?= $this->Html->link(

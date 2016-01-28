@@ -61,9 +61,9 @@ class SubjectsTable extends Table
             ->notEmpty('name');
 
         $validator
-            ->add('teoric_workload', 'valid', ['rule' => 'numeric'])
-            ->requirePresence('teoric_workload', 'create')
-            ->notEmpty('teoric_workload');
+            ->add('theoretical_workload', 'valid', ['rule' => 'numeric'])
+            ->requirePresence('theoretical_workload', 'create')
+            ->notEmpty('theoretical_workload');
 
         $validator
             ->add('practical_workload', 'valid', ['rule' => 'numeric'])
