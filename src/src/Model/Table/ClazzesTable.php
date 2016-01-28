@@ -11,6 +11,8 @@ use Cake\Validation\Validator;
  * Clazzes Model
  *
  * @property \Cake\ORM\Association\BelongsTo $Subjects
+ * @property \Cake\ORM\Association\BelongsTo $Schedules
+ * @property \Cake\ORM\Association\BelongsTo $Locals
  * @property \Cake\ORM\Association\BelongsTo $Processes
  * @property \Cake\ORM\Association\BelongsToMany $Teachers
  */

@@ -18,9 +18,6 @@ class ClazzesController extends AppController
      */
     public function index()
     {
-        $this->paginate = [
-            'contain' => ['Subjects', 'Processes']
-        ];
         $this->set('clazzes', $this->paginate($this->Clazzes));
         $this->set('_serialize', ['clazzes']);
     }
@@ -35,7 +32,7 @@ class ClazzesController extends AppController
     public function view($id = null)
     {
         $clazze = $this->Clazzes->get($id, [
-            'contain' => ['Subjects', 'Processes', 'Teachers']
+            'contain' => []
         ]);
         $this->set('clazze', $clazze);
         $this->set('_serialize', ['clazze']);
@@ -58,10 +55,7 @@ class ClazzesController extends AppController
                 $this->Flash->error(__('The clazze could not be saved. Please, try again.'));
             }
         }
-        $subjects = $this->Clazzes->Subjects->find('list', ['limit' => 200]);
-        $processes = $this->Clazzes->Processes->find('list', ['limit' => 200]);
-        $teachers = $this->Clazzes->Teachers->find('list', ['limit' => 200]);
-        $this->set(compact('clazze', 'subjects', 'processes', 'teachers'));
+        $this->set(compact('clazze'));
         $this->set('_serialize', ['clazze']);
     }
 
@@ -75,7 +69,7 @@ class ClazzesController extends AppController
     public function edit($id = null)
     {
         $clazze = $this->Clazzes->get($id, [
-            'contain' => ['Teachers']
+            'contain' => []
         ]);
         if ($this->request->is(['patch', 'post', 'put'])) {
             $clazze = $this->Clazzes->patchEntity($clazze, $this->request->data);
@@ -86,10 +80,7 @@ class ClazzesController extends AppController
                 $this->Flash->error(__('The clazze could not be saved. Please, try again.'));
             }
         }
-        $subjects = $this->Clazzes->Subjects->find('list', ['limit' => 200]);
-        $processes = $this->Clazzes->Processes->find('list', ['limit' => 200]);
-        $teachers = $this->Clazzes->Teachers->find('list', ['limit' => 200]);
-        $this->set(compact('clazze', 'subjects', 'processes', 'teachers'));
+        $this->set(compact('clazze'));
         $this->set('_serialize', ['clazze']);
     }
 

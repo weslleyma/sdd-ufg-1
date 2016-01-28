@@ -10,8 +10,8 @@ use Cake\Validation\Validator;
 /**
  * Teachers Model
  *
- * @property \Cake\ORM\Association\BelongsTo $Users
  * @property \Cake\ORM\Association\HasMany $Roles
+ * @property \Cake\ORM\Association\HasMany $Users
  * @property \Cake\ORM\Association\BelongsToMany $Clazzes
  * @property \Cake\ORM\Association\BelongsToMany $Knowledges
  */
@@ -32,21 +32,25 @@ class TeachersTable extends Table
         $this->displayField('id');
         $this->primaryKey('id');
 
-        $this->belongsTo('Users', [
-            'foreignKey' => 'user_id'
-        ]);
         $this->hasMany('Roles', [
+            'foreignKey' => 'teacher_id'
+        ]);
+        $this->hasMany('Users', [
             'foreignKey' => 'teacher_id'
         ]);
         $this->belongsToMany('Clazzes', [
             'foreignKey' => 'teacher_id',
-            'targetForeignKey' => 'clazz_id',
+            'targetForeignKey' => 'clazze_id',
             'joinTable' => 'clazzes_teachers'
         ]);
         $this->belongsToMany('Knowledges', [
             'foreignKey' => 'teacher_id',
             'targetForeignKey' => 'knowledge_id',
             'joinTable' => 'knowledges_teachers'
+        ]);
+
+        $this->belongsTo('Users', [
+            'foreignKey' => 'user_id'
         ]);
     }
 
@@ -116,9 +120,5 @@ class TeachersTable extends Table
         $rules->add($rules->existsIn(['user_id'], 'Users'));
         return $rules;
     }
-	
 
-	public function beforeDelete() {
-		
-	}
 }

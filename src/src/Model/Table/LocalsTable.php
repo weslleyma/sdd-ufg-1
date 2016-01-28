@@ -10,6 +10,7 @@ use Cake\Validation\Validator;
 /**
  * Locals Model
  *
+ * @property \Cake\ORM\Association\HasMany $Clazzes
  */
 class LocalsTable extends Table
 {
@@ -28,6 +29,9 @@ class LocalsTable extends Table
         $this->displayField('name');
         $this->primaryKey('id');
 
+        $this->hasMany('Clazzes', [
+            'foreignKey' => 'local_id'
+        ]);
     }
 
     /**
@@ -47,7 +51,8 @@ class LocalsTable extends Table
             ->notEmpty('name');
 
         $validator
-            ->allowEmpty('address');
+            ->requirePresence('address', 'create')
+            ->notEmpty('address');
 
         $validator
             ->add('capacity', 'valid', ['rule' => 'numeric'])

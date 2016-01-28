@@ -10,6 +10,7 @@ use Cake\ORM\Entity;
  * @property string $name
  * @property string $address
  * @property int $capacity
+ * @property \App\Model\Entity\Clazze[] $clazzes
  */
 class Local extends Entity
 {

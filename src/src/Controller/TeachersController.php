@@ -32,7 +32,7 @@ class TeachersController extends AppController
     public function view($id = null)
     {
         $teacher = $this->Teachers->get($id, [
-            'contain' => ['Users']
+            'contain' => ['']
         ]);
         $this->set('teacher', $teacher);
         $this->set('_serialize', ['teacher']);
@@ -77,25 +77,13 @@ class TeachersController extends AppController
     public function edit($id = null)
     {
         $teacher = $this->Teachers->get($id, [
-            'contain' => ['Users'
-				, 'Clazzes'
-				, 'Clazzes.Subjects'
-				, 'Clazzes.Subjects.Knowledges'
-				, 'Clazzes.Subjects.Courses'
-			]
+            'contain' => ['Users']
         ]);
-		
-		$clazzes = $this->getClazzes();
-		
         if ($this->request->is(['patch', 'post', 'put'])) {
             
+			
 			$data = $this->request->data;
 			$data['user']['is_admin'] = isset($this->request->data['user']['is_admin']) ? 1 : 0;
-			
-			if (!empty($this->request->data['pwd'])) {
-				$data['user']['password'] = $data['pwd'];
-				unset($data['pwd']);
-			}
 			
 			$teacher = $this->Teachers->patchEntity($teacher, $data, [
 				'associated' => ['Users' => ['validate' => 'default']]
@@ -110,8 +98,6 @@ class TeachersController extends AppController
         }
         $this->set(compact('teacher'));
         $this->set('_serialize', ['teacher']);
-		$this->set('clazzes', $clazzes);
-        $this->set('_serialize', ['clazzes']);
     }
 
     /**
@@ -131,54 +117,5 @@ class TeachersController extends AppController
             $this->Flash->error(__('The teacher could not be deleted. Please, try again.'));
         }
         return $this->redirect(['action' => 'index']);
-    }
-	
-
-    private function getClazzes($params = null) 
-    {	
-		$this->loadModel('ClazzesSchedulesLocals');
-		$this->loadModel('Clazzes');
-		
-		/*array('clazz_name' => ''
-					, 'subject_name' => ''
-					, 'course_name' => ''
-					, 'knowledge_name' => ''
-					, 'week_day' => ''
-					, 'start_time' => ''
-					, 'end_time' => ''
-					, 'address' => ''*/
-
-		if ($params == null) {
-			return $this->paginate($this->ClazzesSchedulesLocals->find()
-					->contain(['Clazzes', 'Clazzes.Subjects', 'Locals', 'Schedules']));
-					//->where(['process_id' => $params['process_id']])
-		
-		} else {
-		
-			$query = $this->ClazzesSchedulesLocals->find()->matching('Clazzes', function ($q) {
-				return $q->where([
-					'Clazzes.name LIKE ' => (!empty($params['clazz_name']) ? '%' . $params['clazz_name'] . '%' : '')
-				]);
-			})->matching('Clazzes.Subjects', function ($q) {
-				return $q->where([
-					'Clazzes.Subjects.name LIKE ' => (!empty($params['subject_name']) ? '%' . $params['subject_name'] . '%' : '')
-					, 'Clazzes.Subjects.Courses.name LIKE ' => (!empty($params['course_name']) ? '%' . $params['course_name'] . '%' : '')
-					, 'Clazzes.Subjects.Knowleges.name LIKE ' => (!empty($params['knowledge_name']) ? '%' . $params['knowledge_name'] . '%' : '')
-				]);
-			})->matching('Locals', function ($q) {
-				return $q->where([
-					'Locals.address LIKE' => (!empty($params['address']) ? '%' . $params['address'] . '%' : '')
-				]);
-			})->matching('Schedules', function ($q) {
-				return $q->where([
-					'Schedules.week_day LIKE ' =>(!empty($params['week_day']) ? '%' . $params['week_day'] . '%' : '')
-					, 'Schedules.start_time LIKE' => (!empty($params['start_time']) ? '%' . $params['start_time'] . '%' : '')
-					, 'Schedules.end_time LIKE' => (!empty($params['end_time']) ? '%' . $params['end_time'] . '%' : '')
-				]);
-			});
-
-			return $this->paginate($query);
-		}
-
     }
 }
