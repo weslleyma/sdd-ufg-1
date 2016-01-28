@@ -230,7 +230,10 @@ class TeachersController extends AppController
 					, 'address' => ''*/
 
 		if ($params == null) {
-			return $this->paginate($this->ClazzesSchedulesLocals->find()
+			// return $this->paginate($this->Clazzes->find()
+					// ->contain(['Subjects', 'Subjects.Knowledges', 'Subjects.Courses']));
+					
+					return $this->paginate($this->ClazzesSchedulesLocals->find()
 					->contain(['Clazzes', 'Clazzes.Subjects', 'Clazzes.Subjects.Knowledges', 'Clazzes.Subjects.Courses', 'Locals', 'Schedules']));
 					//->where(['process_id' => $params['process_id']])
 		
@@ -257,6 +260,26 @@ class TeachersController extends AppController
 					, 'Schedules.end_time LIKE' => (!empty($params['end_time']) ? '%' . $params['end_time'] . '%' : '')
 				]);
 			});
+			
+			// $query = $this->Clazzes->find()->matching('Subjects', function ($q) {
+				// return $q->where([
+					// 'Subjects.name LIKE ' => (!empty($params['subject_name']) ? '%' . $params['subject_name'] . '%' : '')
+					// , 'Subjects.Courses.name LIKE ' => (!empty($params['course_name']) ? '%' . $params['course_name'] . '%' : '')
+					// , 'Subjects.Knowleges.name LIKE ' => (!empty($params['knowledge_name']) ? '%' . $params['knowledge_name'] . '%' : '')
+				// ]);
+			// })->matching('Locals', function ($q) {
+				// return $q->where([
+					// 'Locals.address LIKE' => (!empty($params['address']) ? '%' . $params['address'] . '%' : '')
+				// ]);
+			// })->matching('Schedules', function ($q) {
+				// return $q->where([
+					// 'Schedules.week_day LIKE ' =>(!empty($params['week_day']) ? '%' . $params['week_day'] . '%' : '')
+					// , 'Schedules.start_time LIKE' => (!empty($params['start_time']) ? '%' . $params['start_time'] . '%' : '')
+					// , 'Schedules.end_time LIKE' => (!empty($params['end_time']) ? '%' . $params['end_time'] . '%' : '')
+				// ]);
+			// })->where([
+					// 'name LIKE ' => (!empty($params['clazz_name']) ? '%' . $params['clazz_name'] . '%' : '')
+				// ]);
 
 			return $this->paginate($query);
 		}
