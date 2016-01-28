@@ -72,11 +72,13 @@
 								<tr>												
 									<th><?= $this->Paginator->sort('clazz_id',__('#ID')) ?></th>
 									<th><?= $this->Paginator->sort('clazze.subject.name',__('Disciplina')) ?></th>
-									<th colspan="3" class="text-center"><?= __('Horário') ?></th>
-									<th><?= $this->Paginator->sort(__('local.address', 'Local')) ?></th>
-									<th><?= $this->Paginator->sort(__('clazze.subject.knowledge.name', 'Núcleo')) ?></th>
-									<th><?= $this->Paginator->sort(__('clazze.subject.course.name', 'Curso')) ?></th>
-									<th><?= $this->Paginator->sort(__('name', 'Name')) ?></th>
+									<th><?= $this->Paginator->sort('schedule.week_day', __('Dia da Semana')) ?></th>
+									<th><?= $this->Paginator->sort('schedule.start_time', __('Horário Início')) ?></th>
+									<th><?= $this->Paginator->sort('schedule.end_time', __('Horário Término')) ?></th>
+									<th><?= $this->Paginator->sort('local.address', __('Local')) ?></th>
+									<th><?= $this->Paginator->sort('clazze.subject.knowledge.name', __('Núcleo')) ?></th>
+									<th><?= $this->Paginator->sort('clazze.subject.course.name', __('Curso')) ?></th>
+									<th><?= $this->Paginator->sort('name', __('Name')) ?></th>
 									<th width="200px"><?= __('Ações') ?></th>
 								</tr>
 								</thead>
@@ -116,13 +118,14 @@
 															'',
 															['controller' => 'Teachers', 'action' => 'allocateClazzes', $teacher->id, $clazz->clazz_id, false],
 															[
+																'confirm' => __('Tem certeza que deseja cancelar a inscrição?'),
 																'title' => __('Cancelar Inscrição'),
 																'class' => 'btn btn-sm btn-danger glyphicon glyphicon-remove',
 																'data-toggle' => 'tooltip',
 																'data-original-title' => __('Cancelar inscrição no processo de distribuição dessa turma'),
-															],
-															['confirm' => 'Tem certeza que deseja cancelar a inscrição?']
+															]
 														) ?>
+														Inscrito
 														<?php 
 																$has_clazz = true;
 																break;
@@ -135,13 +138,15 @@
 																'',
 																['controller' => 'Teachers', 'action' => 'allocateClazzes', $teacher->id, $clazz->clazz_id, true],
 																[
+																	'confirm' => __('Tem certeza que deseja efetivar a inscrição?'),
 																	'title' => __('Efetuar Inscrição'),
 																	'class' => 'btn btn-sm btn-success glyphicon glyphicon-ok',
 																	'data-toggle' => 'tooltip',
 																	'data-original-title' => __('Efetuar inscrição no processo de distribuição dessa turma'),
-																],
-																['confirm' => 'Tem certeza que deseja efetivar a inscrição?']
+																]
+																
 															) ?>
+															Não Inscrito
 														<?php
 														}
 											?>
