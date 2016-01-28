@@ -4,14 +4,15 @@ namespace App\Model\Entity;
 use Cake\ORM\Entity;
 
 /**
- * Local Entity.
+ * KnowledgesTeacher Entity.
  *
- * @property int $id
- * @property string $name
- * @property string $address
- * @property int $capacity
+ * @property int $teacher_id
+ * @property \App\Model\Entity\Teacher $teacher
+ * @property int $knowledge_id
+ * @property \App\Model\Entity\Knowledge $knowledge
+ * @property int $level
  */
-class Local extends Entity
+class KnowledgesTeacher extends Entity
 {
 
     /**
@@ -25,6 +26,7 @@ class Local extends Entity
      */
     protected $_accessible = [
         '*' => true,
-        'id' => false,
+        'teacher_id' => false,
+        'knowledge_id' => false,
     ];
 }

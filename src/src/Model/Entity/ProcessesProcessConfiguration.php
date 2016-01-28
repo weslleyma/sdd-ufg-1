@@ -4,14 +4,14 @@ namespace App\Model\Entity;
 use Cake\ORM\Entity;
 
 /**
- * Local Entity.
+ * ProcessesProcessConfiguration Entity.
  *
- * @property int $id
- * @property string $name
- * @property string $address
- * @property int $capacity
+ * @property int $process_id
+ * @property \App\Model\Entity\Process $process
+ * @property int $process_configuration_id
+ * @property \App\Model\Entity\ProcessConfiguration $process_configuration
  */
-class Local extends Entity
+class ProcessesProcessConfiguration extends Entity
 {
 
     /**
@@ -25,6 +25,7 @@ class Local extends Entity
      */
     protected $_accessible = [
         '*' => true,
-        'id' => false,
+        'process_id' => false,
+        'process_configuration_id' => false,
     ];
 }
