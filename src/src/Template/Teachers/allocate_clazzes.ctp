@@ -114,13 +114,14 @@
 											
 														<?= $this->Html->link(
 															'',
-															['controller' => 'Teachers', 'action' => 'allocateClazz', $clazz->clazz_id],
+															['controller' => 'Teachers', 'action' => 'allocateClazzes', $teacher->id, $clazz->clazz_id, false],
 															[
 																'title' => __('Cancelar Inscrição'),
 																'class' => 'btn btn-sm btn-danger glyphicon glyphicon-remove',
 																'data-toggle' => 'tooltip',
 																'data-original-title' => __('Cancelar inscrição no processo de distribuição dessa turma'),
-															]
+															],
+															['confirm' => 'Tem certeza que deseja cancelar a inscrição?']
 														) ?>
 														<?php 
 																$has_clazz = true;
@@ -132,13 +133,14 @@
 														?>
 															<?= $this->Html->link(
 																'',
-																['controller' => 'Teachers', 'action' => 'allocateClazz', $clazz->clazz_id],
+																['controller' => 'Teachers', 'action' => 'allocateClazzes', $teacher->id, $clazz->clazz_id, true],
 																[
 																	'title' => __('Efetuar Inscrição'),
 																	'class' => 'btn btn-sm btn-success glyphicon glyphicon-ok',
 																	'data-toggle' => 'tooltip',
 																	'data-original-title' => __('Efetuar inscrição no processo de distribuição dessa turma'),
-																]
+																],
+																['confirm' => 'Tem certeza que deseja efetivar a inscrição?']
 															) ?>
 														<?php
 														}

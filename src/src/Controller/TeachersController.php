@@ -2,6 +2,7 @@
 namespace App\Controller;
 
 use App\Controller\AppController;
+use Cake\ORM\TableRegistry;
 
 /**
  * Teachers Controller
@@ -174,7 +175,7 @@ class TeachersController extends AppController
      * @return \Cake\Network\Response|null Redirects to index.
      * @throws \Cake\Network\Exception\NotFoundException When record not found.
      */
-	public function allocateClazzes($id = null) 
+	public function allocateClazzes($id = null, $clazz_id = null, $allocate = false) 
 	{
 		$teacher = $this->Teachers->get($id, [
             'contain' => ['Users'
@@ -186,12 +187,46 @@ class TeachersController extends AppController
         ]);
 		
 		$clazzes = $this->getClazzes();
+		$table_clazzes_teachers = TableRegistry::get('ClazzesTeachers');
 		
-        if ($this->request->is(['patch', 'post', 'put'])) {				
+		if ($id != null && $clazz_id != null && $allocate) {
+
+			$query = $table_clazzes_teachers->query();
+			$query->delete()->where([
+					'clazz_id' => $clazz_id,
+					'teacher_id' => $id
+			])->execute();
 			
-			$data = $this->request->data;
+			$query = $table_clazzes_teachers->query();
+			$query->insert(['clazz_id', 'teacher_id'])->values([
+					'clazz_id' => $clazz_id,
+					'teacher_id' => $id
+				])->execute();
 			
-        }
+			if ($query) {
+				$this->Flash->success(__('Interesse em Turma/Disciplina salvo com sucesso.'));			
+			} else {
+				$this->Flash->error(__('O Interesse na disciplina não pôde ser salvo. Tente novamente.'));	
+			}
+			return $this->redirect(['action' => 'allocateClazzes', $teacher->id]);
+			
+		} else if ($id != null && $clazz_id != null && !$allocate) {
+			
+			$query = $table_clazzes_teachers->query();
+			$query->delete()->where([
+					'clazz_id' => $clazz_id,
+					'teacher_id' => $id
+			])->execute();
+			
+			if ($query) {
+				$this->Flash->warning(__('Interesse em Turma/Disciplina CANCELADO com sucesso.'));			
+			} else {
+				$this->Flash->error(__('O Interesse na disciplina não pôde ser CANCELADO. Tente novamente.'));	
+			}
+			return $this->redirect(['action' => 'allocateClazzes', $teacher->id]);
+						
+		}
+	   
 		$this->set(compact('teacher'));
         $this->set('_serialize', ['teacher']);
 		$this->set('clazzes', $clazzes);
