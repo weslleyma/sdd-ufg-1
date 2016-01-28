@@ -77,8 +77,16 @@ class TeachersController extends AppController
     public function edit($id = null)
     {
         $teacher = $this->Teachers->get($id, [
-            'contain' => ['Users']
+            'contain' => ['Users'
+				, 'Clazzes'
+				, 'Clazzes.Subjects'
+				, 'Clazzes.Subjects.Knowledges'
+				, 'Clazzes.Subjects.Courses'
+			]
         ]);
+		
+		$clazzes = $this->getClazzes();
+		
         if ($this->request->is(['patch', 'post', 'put'])) {
             
 			$data = $this->request->data;
@@ -102,6 +110,8 @@ class TeachersController extends AppController
         }
         $this->set(compact('teacher'));
         $this->set('_serialize', ['teacher']);
+		$this->set('clazzes', $clazzes);
+        $this->set('_serialize', ['clazzes']);
     }
 
     /**
@@ -123,35 +133,52 @@ class TeachersController extends AppController
         return $this->redirect(['action' => 'index']);
     }
 	
-	/**
-     * Delete method
-     *
-     * @param string|null $id Teacher id.
-     * @return \Cake\Network\Response|null Redirects to index.
-     * @throws \Cake\Network\Exception\NotFoundException When record not found.
-     */
-    public function search($params = array())
-    {
-        $query = $this->Teachers->find([
-			'conditions' => ['Clazzes.name LIKE ' => '%' . $params['clazz_name'] . '%'
-			]
-		])->matching('Subjects', function ($q) {
-			return $q->where([
-				'Subjects.name LIKE ' => '%' . $params['subject_name'] . '%'
-				, 'Subjects.Courses.name LIKE ' => '%' . $params['course_name'] . '%'
-				, 'Subjects.Knowleges.name LIKE ' => '%' . $params['knowledge_name'] . '%'
-			]);
-		})->matching('ClazzesSchedulesLocals', function ($q) {
-			return $q->where([
-				'ClazzesSchedulesLocals.Subjects.week_day LIKE ' =>'%' . $params['week_day'] . '%'
-				, 'ClazzesSchedulesLocals.Subjects.start_time LIKE' => '%' . $params['start_time'] . '%'
-				, 'ClazzesSchedulesLocals.Subjects.end_time LIKE' => '%' . $params['end_time'] . '%'
-				, 'ClazzesSchedulesLocals.Locals.address LIKE' => '%' . $params['address'] . '%'
-			]);
-		});
 
+    private function getClazzes($params = null) 
+    {	
+		$this->loadModel('ClazzesSchedulesLocals');
+		$this->loadModel('Clazzes');
+		
+		/*array('clazz_name' => ''
+					, 'subject_name' => ''
+					, 'course_name' => ''
+					, 'knowledge_name' => ''
+					, 'week_day' => ''
+					, 'start_time' => ''
+					, 'end_time' => ''
+					, 'address' => ''*/
 
-        $this->set('teachers', $this->paginate($query));
-        $this->set('_serialize', ['teachers']);
+		if ($params == null) {
+			return $this->paginate($this->ClazzesSchedulesLocals->find()
+					->contain(['Clazzes', 'Clazzes.Subjects', 'Locals', 'Schedules']));
+					//->where(['process_id' => $params['process_id']])
+		
+		} else {
+		
+			$query = $this->ClazzesSchedulesLocals->find()->matching('Clazzes', function ($q) {
+				return $q->where([
+					'Clazzes.name LIKE ' => (!empty($params['clazz_name']) ? '%' . $params['clazz_name'] . '%' : '')
+				]);
+			})->matching('Clazzes.Subjects', function ($q) {
+				return $q->where([
+					'Clazzes.Subjects.name LIKE ' => (!empty($params['subject_name']) ? '%' . $params['subject_name'] . '%' : '')
+					, 'Clazzes.Subjects.Courses.name LIKE ' => (!empty($params['course_name']) ? '%' . $params['course_name'] . '%' : '')
+					, 'Clazzes.Subjects.Knowleges.name LIKE ' => (!empty($params['knowledge_name']) ? '%' . $params['knowledge_name'] . '%' : '')
+				]);
+			})->matching('Locals', function ($q) {
+				return $q->where([
+					'Locals.address LIKE' => (!empty($params['address']) ? '%' . $params['address'] . '%' : '')
+				]);
+			})->matching('Schedules', function ($q) {
+				return $q->where([
+					'Schedules.week_day LIKE ' =>(!empty($params['week_day']) ? '%' . $params['week_day'] . '%' : '')
+					, 'Schedules.start_time LIKE' => (!empty($params['start_time']) ? '%' . $params['start_time'] . '%' : '')
+					, 'Schedules.end_time LIKE' => (!empty($params['end_time']) ? '%' . $params['end_time'] . '%' : '')
+				]);
+			});
+
+			return $this->paginate($query);
+		}
+
     }
 }

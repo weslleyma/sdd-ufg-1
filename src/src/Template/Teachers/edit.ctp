@@ -67,47 +67,94 @@
 						</div>
 						<div class="tab-pane" id="disciplinas">
 							<div class="row">
-							<div class="col-xs-12">
-								<fieldset>
-									<legend>Filtros</legend>
-									<div class="row">
-										<div class="col-xs-3">
-											<?php
-												echo $this->Form->input('course_name', ['label' => 'Nome do Curso', 'placeholder' => 'Nome do Curso', 'class' => 'col-xs-3']);
-											?>
+								<div class="col-xs-12" id="filtros">
+									<fieldset>
+										<legend>Filtros</legend>
+										<div class="row">
+											<div class="col-xs-3">
+												<?php
+													echo $this->Form->input('filtros.course_name', ['label' => 'Nome do Curso', 'placeholder' => 'Nome do Curso', 'class' => 'col-xs-3']);
+												?>
+											</div>
+											<div class="col-xs-3">
+												<?php
+													echo $this->Form->input('filtros.knowledge_name', ['label' => 'Nome do Núcleo', 'placeholder' => 'Nome do Núcleo', 'class' => 'col-xs-3']);
+												?>
+											</div>
+											<div class="col-xs-3">
+												<?php
+													echo $this->Form->input('filtros.subject_name', ['label' => 'Nome da Disciplina', 'placeholder' => 'Nome da Disciplina', 'class' => 'col-xs-3']);
+												?>
+											</div>
+											<div class="col-xs-3">
+												<?php
+													echo $this->Form->input('filtros.clazz_name', ['label' => 'Nome da Turma', 'placeholder' => 'Nome da Turma', 'class' => 'col-xs-3']);
+												?>
+											</div>
+											<div class="col-xs-3">
+												<?php
+													echo $this->Form->input('filtros.week_day', ['label' => 'Dia da Semana', 'placeholder' => 'Dia da Semana', 'class' => 'col-xs-3']);
+												?>
+											</div>
+											<div class="col-xs-3">
+												<?php
+													echo $this->Form->input('filtros.start_time', ['label' => 'Horário de Início', 'placeholder' => 'Horário de Início', 'class' => 'col-xs-3']);
+												?>
+											</div>
+											<div class="col-xs-3">
+												<?php
+													echo $this->Form->input('filtros.end_time', ['label' => 'Horário de Término', 'placeholder' => 'Horário de Término', 'class' => 'col-xs-3']);
+												?>
+											</div>
 										</div>
-										<div class="col-xs-3">
-											<?php
-												echo $this->Form->input('knowledge_name', ['label' => 'Nome do Núcleo', 'placeholder' => 'Nome do Núcleo', 'class' => 'col-xs-3']);
-											?>
-										</div>
-										<div class="col-xs-3">
-											<?php
-												echo $this->Form->input('subject_name', ['label' => 'Nome da Disciplina', 'placeholder' => 'Nome da Disciplina', 'class' => 'col-xs-3']);
-											?>
-										</div>
-										<div class="col-xs-3">
-											<?php
-												echo $this->Form->input('clazz_name', ['label' => 'Nome da Turma', 'placeholder' => 'Nome da Turma', 'class' => 'col-xs-3']);
-											?>
-										</div>
-										<div class="col-xs-3">
-											<?php
-												echo $this->Form->input('week_day', ['label' => 'Dia da Semana', 'placeholder' => 'Dia da Semana', 'class' => 'col-xs-3']);
-											?>
-										</div>
-										<div class="col-xs-3">
-											<?php
-												echo $this->Form->input('start_time', ['label' => 'Horário de Início', 'placeholder' => 'Horário de Início', 'class' => 'col-xs-3']);
-											?>
-										</div>
-										<div class="col-xs-3">
-											<?php
-												echo $this->Form->input('end_time', ['label' => 'Horário de Término', 'placeholder' => 'Horário de Término', 'class' => 'col-xs-3']);
-											?>
-										</div>
-									</div>
-								</fieldset>
+									</fieldset>
+									<fieldset>
+										<legend>Turmas em Aberto</legend>
+										<table class="table table-striped table-valign-middle">
+											<thead>
+											<tr>										
+												<th><?= __('#ID') ?></th>
+												<th><?= __('Disciplina') ?></th>
+												<th colspan="3"><?= __('Horário') ?></th>
+												<th><?= __('Local') ?></th>
+												<th><?= __('Curso') ?></th>
+												<th><?= __('Name') ?></th>
+												<th width="200px"><?= __('Ações') ?></th>
+											</tr>
+											</thead>
+											<tbody>
+											<?php if(count($clazzes) < 1): ?>
+												<tr>
+													<td colspan="9" class="text-center">Ainda não existem turmas cadastradas no Processo</td>
+												</tr>
+											<?php endif; ?>
+											<?php foreach ($clazzes as $clazz): ?>
+												<tr>
+													<td><?= h($clazz->id) ?></td>
+													<td><?= h($clazz->subject->name) ?></td>
+													<td><?= h($clazz->schedule->week_day) ?></td>
+													<td><?= h($clazz->schedule->start_time) ?></td>
+													<td><?= h($clazz->schedule->end_time) ?></td>
+													<td><?= h($clazz->local->address) ?></td>
+													<td><?= h($clazz->subject->course) ?></td>
+													<td><?= h($clazz->name) ?></td>
+													<td>
+														<?= $this->Html->link(
+															'',
+															['controller' => 'Clazzes', 'action' => 'view', $clazz->id],
+															[
+																'title' => __('Visualizar'),
+																'class' => 'btn btn-sm btn-default glyphicon glyphicon-search',
+																'data-toggle' => 'tooltip',
+																'data-original-title' => __('Visualizar'),
+															]
+														) ?>
+													</td>
+												</tr>
+											<?php endforeach; ?>
+											</tbody>
+										</table>
+									</fieldset>
 								</div>
 							</div>
 						</div>
@@ -121,3 +168,24 @@
     </div> 
 </div>
 <?= $this->Form->end() ?>
+<?php 
+	$this->Html->scriptStart(['block' => true]);
+	echo "$(document).ready(function() {	";
+	echo "	$('#filtros').on('change', 'input', function() {";
+	echo "		var formdata = $('form').serialize();";
+	echo "		$.ajax({
+					type:'POST',
+					url:'" . $teacher->id . "/true',
+					dataType: 'json',
+					data : formdata,
+					success: function(tab){
+						alert('success');
+					},
+					error: function (tab) {
+						alert('error');
+					}
+				});";
+	echo "	});";
+	echo "});	";
+	$this->Html->scriptEnd();
+?>
