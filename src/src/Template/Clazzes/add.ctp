@@ -22,8 +22,6 @@
             echo $this->Form->input('name');
             echo $this->Form->input('vacancies');
             echo $this->Form->input('subject_id', ['options' => $subjects]);
-            echo $this->Form->input('schedule_id', ['options' => $schedules]);
-            echo $this->Form->input('local_id', ['options' => $locals]);
             echo $this->Form->input('process_id', ['options' => $processes]);
             echo $this->Form->input('teachers._ids', ['options' => $teachers]);
         ?>

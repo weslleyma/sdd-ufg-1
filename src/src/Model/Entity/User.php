@@ -1,5 +1,9 @@
 <?php
 namespace App\Model\Entity;
+<<<<<<< HEAD
+=======
+
+>>>>>>> refs/remotes/BrunoSoares-LABORA/developer
 use Cake\Auth\DefaultPasswordHasher;
 use Cake\ORM\Entity;
 /**
@@ -29,8 +33,16 @@ class User extends Entity
         '*' => true,
         'id' => false,
     ];
+<<<<<<< HEAD
+=======
+
+>>>>>>> refs/remotes/BrunoSoares-LABORA/developer
     protected function _setPassword($password)
     {
         return (new DefaultPasswordHasher)->hash($password);
     }
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> refs/remotes/BrunoSoares-LABORA/developer

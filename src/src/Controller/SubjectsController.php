@@ -37,7 +37,11 @@ class SubjectsController extends AppController
         $subject = $this->Subjects->get($id, [
             'contain' => [
                 'Knowledges', 'Courses',
+<<<<<<< HEAD
                 'Clazzes', 'Clazzes.Processes'
+=======
+                'Clazzes', 'Clazzes.Processes', 'Clazzes.Locals'
+>>>>>>> refs/remotes/BrunoSoares-LABORA/developer
             ]
         ]);
         $this->set('subject', $subject);
