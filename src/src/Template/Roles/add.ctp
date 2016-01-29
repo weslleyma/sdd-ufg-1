@@ -1,23 +1,43 @@
-<nav class="large-3 medium-4 columns" id="actions-sidebar">
-    <ul class="side-nav">
-        <li class="heading"><?= __('Actions') ?></li>
-        <li><?= $this->Html->link(__('List Roles'), ['action' => 'index']) ?></li>
-        <li><?= $this->Html->link(__('List Teachers'), ['controller' => 'Teachers', 'action' => 'index']) ?></li>
-        <li><?= $this->Html->link(__('New Teacher'), ['controller' => 'Teachers', 'action' => 'add']) ?></li>
-        <li><?= $this->Html->link(__('List Knowledges'), ['controller' => 'Knowledges', 'action' => 'index']) ?></li>
-        <li><?= $this->Html->link(__('New Knowledge'), ['controller' => 'Knowledges', 'action' => 'add']) ?></li>
-    </ul>
-</nav>
-<div class="roles form large-9 medium-8 columns content">
-    <?= $this->Form->create($role) ?>
-    <fieldset>
-        <legend><?= __('Add Role') ?></legend>
-        <?php
-            echo $this->Form->input('type');
-            echo $this->Form->input('teacher_id', ['options' => $teachers]);
-            echo $this->Form->input('knowledge_id', ['options' => $knowledges, 'empty' => true]);
-        ?>
-    </fieldset>
-    <?= $this->Form->button(__('Submit')) ?>
-    <?= $this->Form->end() ?>
-</div>
+<?php $this->assign('title', 'Disciplinas'); ?>
+<?php $this->start('breadcrumb'); ?>
+    <li><?= $this->Html->link('<i class="fa fa-dashboard"></i>' . __('Dashboard'), '/', ['escape' => false]) ?></li>
+    <li><?= $this->Html->link(__('Disciplinas'), ['action' => 'index']) ?></li>
+    <li class="active">Adicionar</li>
+<?php $this->end(); ?>
+
+<?= $this->Form->create($role) ?>
+    <div class="row">
+        <div class="col-xs-8">
+            <div class="box box-primary">
+                <div class="box-header with-border">
+                    <h3 class="box-title">Adicionar papel</h3>
+                </div>
+                <div class="box-body">
+                    <?php
+                        echo $this->Form->input('type', ['id' => 'roleType', 'label' => 'Tipo de papel', 'options' => $roleTypes]);
+                        echo $this->Form->input('teacher_id', ['label' => 'Docente', 'class' => 'select2 search__field', 'options' => $teachers]);
+                    ?>
+                    <?php
+                        echo $this->Form->input('knowledge_id', ['id' => 'knowledge', 'label' => 'Núcleo de conhecimento', 'options' => $knowledges]);
+                    ?>
+                </div>
+                <div class="box-footer clearfix">
+                    <?= $this->Form->button(__('Salvar'), ['class' => 'btn btn-success']) ?>
+                </div>
+            </div>
+        </div>
+    </div>
+    <?php $this->Html->scriptStart(['block' => true]); ?>
+        $(document).ready(function(){
+            $("#roleType").change(function(){
+                if ($("#roleType").val() == 'FACILITATOR') {
+                    $("#knowledge").parent().show();
+                } else {
+                    $("#knowledge").parent().hide();
+                    $("#knowledge").val(0);
+                }
+            });
+
+        });
+    <?php $this->Html->scriptEnd(); ?>
+<?= $this->Form->end() ?>
