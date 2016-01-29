@@ -13,6 +13,7 @@
         '/plugins/bootstrap/css/bootstrap.min.css',
         'https://maxcdn.bootstrapcdn.com/font-awesome/4.4.0/css/font-awesome.min.css',
         'https://code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css',
+        '/plugins/datepicker/datepicker3.css',
         '/plugins/adminLTE/css/AdminLTE.min.css',
         '/plugins/adminLTE/css/skin-blue.min.css',
         'sdd-ufg.css'
@@ -75,7 +76,10 @@
         <?= $this->Html->script([
             '/plugins/jQuery/jQuery-2.1.4.min.js',
             '/plugins/bootstrap/js/bootstrap.min.js',
-            '/plugins/adminLTE/js/app.min.js'
+            '/plugins/datepicker/bootstrap-datepicker.js',
+            '/plugins/datepicker/locales/bootstrap-datepicker.pt-BR.js',
+            '/plugins/adminLTE/js/app.min.js',
+            'sdd-ufg.js'
         ]) ?>
 
         <?= $this->fetch('script') ?>

@@ -71,4 +71,16 @@ class RolesTable extends Table
         $rules->add($rules->existsIn(['knowledge_id'], 'Knowledges'));
         return $rules;
     }
+
+    /**
+     * Finds facilitators
+     *
+     * @param Query $query
+     * @param array $options
+     * @return $this
+     */
+    public function findFacilitators(Query $query, array $options)
+    {
+        return $query->where(['Roles.type' => 'FACILITATOR']);
+    }
 }
