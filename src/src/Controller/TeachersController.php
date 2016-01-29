@@ -88,8 +88,6 @@ class TeachersController extends AppController
 			]
         ]);
 		
-		$clazzes = $this->getClazzes();
-		
         if ($this->request->is(['patch', 'post', 'put'])) {				
 			
 			$data = $this->request->data;
@@ -115,8 +113,6 @@ class TeachersController extends AppController
 		
         $this->set(compact('teacher'));
         $this->set('_serialize', ['teacher']);
-		$this->set('clazzes', $clazzes);
-        $this->set('_serialize', ['clazzes']);
     }
 
     /**
