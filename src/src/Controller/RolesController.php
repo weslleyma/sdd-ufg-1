@@ -18,24 +18,11 @@ class RolesController extends AppController
      */
     public function index()
     {
+        $this->paginate = [
+            'contain' => ['Knowledges', 'Teachers', 'Teachers.Users']
+        ];
         $this->set('roles', $this->paginate($this->Roles));
         $this->set('_serialize', ['roles']);
-    }
-
-    /**
-     * View method
-     *
-     * @param string|null $id Role id.
-     * @return void
-     * @throws \Cake\Network\Exception\NotFoundException When record not found.
-     */
-    public function view($id = null)
-    {
-        $role = $this->Roles->get($id, [
-            'contain' => []
-        ]);
-        $this->set('role', $role);
-        $this->set('_serialize', ['role']);
     }
 
     /**
@@ -49,37 +36,17 @@ class RolesController extends AppController
         if ($this->request->is('post')) {
             $role = $this->Roles->patchEntity($role, $this->request->data);
             if ($this->Roles->save($role)) {
-                $this->Flash->success(__('The role has been saved.'));
+                $this->Flash->success(__('O papel foi salvo.'));
                 return $this->redirect(['action' => 'index']);
             } else {
-                $this->Flash->error(__('The role could not be saved. Please, try again.'));
+                $this->Flash->error(__('O papel não pôde ser salvo. Por favor, tente novamente.'));
             }
         }
-        $this->set(compact('role'));
-        $this->set('_serialize', ['role']);
-    }
+        $this->set('knowledges', $this->Roles->Knowledges->find('list'));
+        $this->Roles->Teachers->displayField('display_field');
+        $this->set('teachers', $this->Roles->Teachers->find('list', array('contain' => ['Users'])));
+        $this->set('roleTypes', array('FACILITATOR' => 'Facilitador', 'COORDINATOR' => 'Coordenador'));
 
-    /**
-     * Edit method
-     *
-     * @param string|null $id Role id.
-     * @return void Redirects on successful edit, renders view otherwise.
-     * @throws \Cake\Network\Exception\NotFoundException When record not found.
-     */
-    public function edit($id = null)
-    {
-        $role = $this->Roles->get($id, [
-            'contain' => []
-        ]);
-        if ($this->request->is(['patch', 'post', 'put'])) {
-            $role = $this->Roles->patchEntity($role, $this->request->data);
-            if ($this->Roles->save($role)) {
-                $this->Flash->success(__('The role has been saved.'));
-                return $this->redirect(['action' => 'index']);
-            } else {
-                $this->Flash->error(__('The role could not be saved. Please, try again.'));
-            }
-        }
         $this->set(compact('role'));
         $this->set('_serialize', ['role']);
     }
@@ -96,9 +63,9 @@ class RolesController extends AppController
         $this->request->allowMethod(['post', 'delete']);
         $role = $this->Roles->get($id);
         if ($this->Roles->delete($role)) {
-            $this->Flash->success(__('The role has been deleted.'));
+            $this->Flash->success(__('O papel foi deletado!'));
         } else {
-            $this->Flash->error(__('The role could not be deleted. Please, try again.'));
+            $this->Flash->error(__('O papel não pôde ser deletado. Por favor, tente novamente.'));
         }
         return $this->redirect(['action' => 'index']);
     }
