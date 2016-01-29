@@ -230,6 +230,12 @@ class TeachersController extends AppController
 			return $this->redirect(['action' => 'allocateClazzes', $teacher->id]);
 						
 		}
+		
+		/* Filters */
+		if ($this->request->is('post')) {
+			$data = $this->request->data;
+			$clazzes = $this->getClazzes($data);
+		}
 	   
 		$this->set(compact('teacher'));
         $this->set('_serialize', ['teacher']);
@@ -262,7 +268,7 @@ class TeachersController extends AppController
 		$this->loadModel('Clazzes');
 		
 		/*array('clazz_name' => ''
-					, 'subject_name' => ''
+					, 'course_name' => ''
 					, 'course_name' => ''
 					, 'knowledge_name' => ''
 					, 'week_day' => ''
@@ -279,33 +285,39 @@ class TeachersController extends AppController
 					//->where(['process_id' => $params['process_id']])
 		
 		} else {
-		
+
 			$query = $this->ClazzesSchedulesLocals->find()->matching('Clazzes', function ($q) {
 				return $q->where([
-					'Clazzes.name LIKE ' => (!empty($params['clazz_name']) ? '%' . $params['clazz_name'] . '%' : ''),
-					'Clazzes.process_id' => $params['process_id']
-				]);
+					'(IF(LENGTH("' . $params['clazz_name'] . '") > 0, Clazzes.name LIKE "' . ((!empty($params['clazz_name']) ? '%' . $params['clazz_name'] . '%"' : '"') . ', "")'),
+					//'Clazzes.process_id' => $params['process_id']
+				]) . ')';
 			})->matching('Clazzes.Subjects', function ($q) {
 				return $q->where([
-					'Clazzes.Subjects.name LIKE ' => (!empty($params['subject_name']) ? '%' . $params['subject_name'] . '%' : '')
-					, 'Clazzes.Subjects.Courses.name LIKE ' => (!empty($params['course_name']) ? '%' . $params['course_name'] . '%' : '')
-					, 'Clazzes.Subjects.Knowleges.name LIKE ' => (!empty($params['knowledge_name']) ? '%' . $params['knowledge_name'] . '%' : '')
-				]);
+					'(IF(LENGTH("' . $params['subject_name'] . '") > 0, Clazzes.Subjects.name LIKE "' . ((!empty($params['course_name']) ? '%' . $params['course_name'] . '%"' : '"') . ', "")'),	
+				]) . ')';
+			})->matching('Clazzes.Subjects.Courses', function ($q) {
+				return $q->where([
+					'(IF(LENGTH("' . $params['course_name'] . '") > 0, Clazzes.Subjects.Courses.name LIKE "' . ((!empty($params['course_name']) ? '%' . $params['course_name'] . '%"' : '"') . ', "")'),
+				]) . ')';
+			})->matching('Clazzes.Subjects.Knowledges', function ($q) {
+				return $q->where([
+					'(IF(LENGTH("' . $params['knowledge_name'] . '") > 0, Clazzes.Subjects.Knowledges.name LIKE "' . ((!empty($params['knowledge_name']) ? '%' . $params['knowledge_name'] . '%"' : '"') . ', "")')
+				]) . ')';
 			})->matching('Locals', function ($q) {
 				return $q->where([
-					'Locals.address LIKE' => (!empty($params['address']) ? '%' . $params['address'] . '%' : '')
-				]);
+					'(IF(LENGTH("' . $params['address'] . '") > 0, Locals.address LIKE"' . ((!empty($params['address']) ? '%' . $params['address'] . '%"' : '"') . ', "")')
+				]) . ')';
 			})->matching('Schedules', function ($q) {
 				return $q->where([
-					'Schedules.week_day LIKE ' =>(!empty($params['week_day']) ? '%' . $params['week_day'] . '%' : '')
-					, 'Schedules.start_time LIKE' => (!empty($params['start_time']) ? '%' . $params['start_time'] . '%' : '')
-					, 'Schedules.end_time LIKE' => (!empty($params['end_time']) ? '%' . $params['end_time'] . '%' : '')
-				]);
+					'(IF(LENGTH("' . $params['week_day'] . '") > 0, Schedules.week_day LIKE "' . ((!empty($params['week_day']) ? '%' . $params['week_day'] . '%"' : '"') . ', "")'),
+					'(IF(LENGTH("' . $params['start_time'] . '") > 0, Schedules.start_time LIKE "' . ((!empty($params['start_time']) ? '%' . $params['start_time'] . '%"' : '"') . ', "")'),
+					'(IF(LENGTH("' . $params['end_time'] . '") > 0, Schedules.end_time LIKE "' . ((!empty($params['end_time']) ? '%' . $params['end_time'] . '%"' : '"') . ', "")'),
+				]) . ')';
 			});
 			
 			// $query = $this->Clazzes->find()->matching('Subjects', function ($q) {
 				// return $q->where([
-					// 'Subjects.name LIKE ' => (!empty($params['subject_name']) ? '%' . $params['subject_name'] . '%' : '')
+					// 'Subjects.name LIKE ' => (!empty($params['course_name']) ? '%' . $params['course_name'] . '%' : '')
 					// , 'Subjects.Courses.name LIKE ' => (!empty($params['course_name']) ? '%' . $params['course_name'] . '%' : '')
 					// , 'Subjects.Knowleges.name LIKE ' => (!empty($params['knowledge_name']) ? '%' . $params['knowledge_name'] . '%' : '')
 				// ]);

@@ -5,7 +5,7 @@
 <li class="active">Alocar Turmas para #<?= $teacher->id ?></li>
 <?php $this->end(); ?>
 
-<?= $this->Form->create($teacher) ?>
+<?= $this->Form->create('Filtros', array('action' => 'allocateClazzes/' . $teacher->id)) ?>
 <div class="row">
     <div class="col-xs-12">
         <div class="box box-primary">
@@ -67,16 +67,7 @@
 									?>
 								</div>
 								<div class="col-xs-3">
-									<?= $this->Html->link(
-										'',
-										['controller' => 'Teachers', 'action' => 'filterClazzes'],
-										[
-											'title' => __('Filtrar'),
-											'class' => 'btn btn-lg btn-success glyphicon glyphicon-search',
-											'data-toggle' => 'tooltip',
-											'data-original-title' => __('Filtrar')
-										]
-									) ?>
+									<?= $this->Form->button(__('Filtrar'), ['class' => 'btn btn-primary']) ?>
 								</div>
 							</div>
 						</fieldset>
@@ -182,9 +173,6 @@
 					Não existem Processos de Distribuição em Aberto.
 				<?php } ?>
 			</div>
-            <div class="box-footer clearfix">
-                <?= $this->Form->button(__('Salvar'), ['class' => 'btn btn-success']) ?>
-            </div>
         </div>
     </div> 
 </div>
