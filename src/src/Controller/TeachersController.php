@@ -116,6 +116,9 @@ class TeachersController extends AppController
             }
         }
 
+        $this->loadModel('Knowledges');
+        $knowledges = $this->Knowledges->find('list',array('fields'=>array('id','name')));
+        $this->set(compact('knowledges'));
 
         $this->set(compact('teacher'));
         $this->set('_serialize', ['teacher']);
