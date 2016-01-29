@@ -11,6 +11,29 @@
         <div class="box box-primary">
             <div class="box-header with-border">
                 <h3 class="box-title">Editar docente #<?= $teacher->id ?></h3>
+				<div class="pull-right box-tools">
+					<?= $this->Html->link(
+						'',
+						['action' => 'allocateKnowledges', $teacher->id],
+						[
+							'title' => __('Núcleos de Interesse'),
+							'class' => 'btn btn-sm btn-default glyphicon glyphicon-book',
+							'data-toggle' => 'tooltip',
+							'data-original-title' => __('Escolher núcleos de conhecimento para o docente'),
+						]
+					) ?>
+					<?= $this->Html->link(
+						'',
+						['action' => 'allocateClazzes', $teacher->id],
+						[
+							'title' => __('Turmas de Interesse'),
+							'class' => 'btn btn-sm btn-default glyphicon glyphicon-education',
+							'data-toggle' => 'tooltip',
+							'data-original-title' => __('Escolher turmas de interesse para concorrer em Processo de Distribuição'),
+						]
+					) ?>
+					
+				</div>
             </div>
             <div class="box-body">
 				<div class="row">

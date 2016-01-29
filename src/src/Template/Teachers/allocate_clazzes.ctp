@@ -11,8 +11,21 @@
         <div class="box box-primary">
             <div class="box-header with-border">
                 <h3 class="box-title">Alocar Turmas para docente #<?= $teacher->name ?></h3>
+				<div class="pull-right box-tools">
+					<?= $this->Html->link(
+						'',
+						['action' => 'edit', $teacher->id],
+						[
+							'title' => __('Ir para informações do docente'),
+							'class' => 'btn btn-sm btn-default glyphicon glyphicon-education',
+							'data-toggle' => 'tooltip',
+							'data-original-title' => __('Cadastro do Docente'),
+						]
+					) ?>
+				</div>
             </div>
             <div class="box-body">
+				<?php if (count($processes) >= 1) { ?>
 				<div class="row">
 					<div class="col-xs-12" id="filtros">
 						<fieldset>
@@ -165,6 +178,9 @@
 						</fieldset>
 					</div>
 				</div>
+				<?php } else { ?>
+					Não existem Processos de Distribuição em Aberto.
+				<?php } ?>
 			</div>
             <div class="box-footer clearfix">
                 <?= $this->Form->button(__('Salvar'), ['class' => 'btn btn-success']) ?>

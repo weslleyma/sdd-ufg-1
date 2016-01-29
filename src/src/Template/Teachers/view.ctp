@@ -9,7 +9,7 @@
         <div class="box box-primary">
 			<div class="box-header">
 				<h3 class="box-title">Informações do Docente</h3>
-					<div class="pull-right box-tools">
+				<div class="pull-right box-tools">
 					<?= $this->Html->link(
 						'<i class="fa "></i> ' . __('Editar'),
 						['action' => 'edit', $teacher->id],
