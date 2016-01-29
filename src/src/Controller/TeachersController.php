@@ -261,7 +261,7 @@ class TeachersController extends AppController
 			/* Filters */
 			if ($this->request->is('post')) {
 				$data = $this->request->data;
-				$clazzes = $this->getClazzes($this->request->data['process_id'], $data);
+				$clazzes = $this->getClazzes($this->request->data['process'], $data);
 			}
 		   
 			$this->set(compact('teacher'));
@@ -298,7 +298,7 @@ class TeachersController extends AppController
     {	
 		$this->loadModel('ClazzesSchedulesLocals');
 		$this->loadModel('Clazzes');
-		
+
 		if ($params === null) {
 
 			return $this->paginate($this->ClazzesSchedulesLocals->find()
