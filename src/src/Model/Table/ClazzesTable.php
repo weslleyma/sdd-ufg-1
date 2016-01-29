@@ -37,22 +37,20 @@ class ClazzesTable extends Table
             'foreignKey' => 'subject_id',
             'joinType' => 'INNER'
         ]);
-        $this->belongsTo('Schedules', [
-            'foreignKey' => 'schedule_id',
-            'joinType' => 'INNER'
-        ]);
-        $this->belongsTo('Locals', [
-            'foreignKey' => 'local_id',
-            'joinType' => 'INNER'
-        ]);
         $this->belongsTo('Processes', [
             'foreignKey' => 'process_id',
             'joinType' => 'INNER'
         ]);
+
         $this->belongsToMany('Teachers', [
-            'foreignKey' => 'clazze_id',
+            'foreignKey' => 'clazz_id',
             'targetForeignKey' => 'teacher_id',
             'joinTable' => 'clazzes_teachers'
+        ]);
+        $this->belongsToMany('Locals', [
+            'foreignKey' => 'clazz_id',
+            'targetForeignKey' => 'local_id',
+            'joinTable' => 'clazzes_schedules_locals'
         ]);
     }
 
@@ -90,8 +88,6 @@ class ClazzesTable extends Table
     public function buildRules(RulesChecker $rules)
     {
         $rules->add($rules->existsIn(['subject_id'], 'Subjects'));
-        $rules->add($rules->existsIn(['schedule_id'], 'Schedules'));
-        $rules->add($rules->existsIn(['local_id'], 'Locals'));
         $rules->add($rules->existsIn(['process_id'], 'Processes'));
         return $rules;
     }

@@ -2,6 +2,7 @@
 namespace App\Model\Entity;
 
 use Cake\ORM\Entity;
+use Cake\ORM\TableRegistry;
 
 /**
  * Clazze Entity.
@@ -35,4 +36,36 @@ class Clazze extends Entity
         '*' => true,
         'id' => false,
     ];
+
+    /**
+     * Gets the Scheduled locals of clazz
+     *
+     * @return array
+     */
+    public function _getScheduledLocals() {
+        if(!isset($this->locals) || empty($this->locals)) {
+            return [];
+        }
+
+        $scheduleIds = [];
+        foreach($this->locals as $local) {
+            if(!in_array($local->_joinData->schedule_id, $scheduleIds)) {
+                $scheduleIds[$local->_joinData->schedule_id][] = $local;
+            }
+        }
+
+        $scheduleModel = TableRegistry::get('Schedules');
+        $schedules = $scheduleModel->find('all')->where(['Schedules.id IN' => array_keys($scheduleIds)]);
+
+        $scheduledLocals = [];
+        foreach($schedules as $schedule) {
+
+            $scheduledLocals[] = [
+                'schedule' => $schedule,
+                'local' => $scheduleIds[$schedule->id]
+            ];
+        }
+
+        return $scheduledLocals;
+    }
 }

@@ -23,8 +23,6 @@
                 <th><?= $this->Paginator->sort('name') ?></th>
                 <th><?= $this->Paginator->sort('vacancies') ?></th>
                 <th><?= $this->Paginator->sort('subject_id') ?></th>
-                <th><?= $this->Paginator->sort('schedule_id') ?></th>
-                <th><?= $this->Paginator->sort('local_id') ?></th>
                 <th><?= $this->Paginator->sort('process_id') ?></th>
                 <th class="actions"><?= __('Actions') ?></th>
             </tr>
@@ -36,8 +34,6 @@
                 <td><?= h($clazze->name) ?></td>
                 <td><?= $this->Number->format($clazze->vacancies) ?></td>
                 <td><?= $clazze->has('subject') ? $this->Html->link($clazze->subject->name, ['controller' => 'Subjects', 'action' => 'view', $clazze->subject->id]) : '' ?></td>
-                <td><?= $clazze->has('schedule') ? $this->Html->link($clazze->schedule->id, ['controller' => 'Schedules', 'action' => 'view', $clazze->schedule->id]) : '' ?></td>
-                <td><?= $clazze->has('local') ? $this->Html->link($clazze->local->name, ['controller' => 'Locals', 'action' => 'view', $clazze->local->id]) : '' ?></td>
                 <td><?= $clazze->has('process') ? $this->Html->link($clazze->process->id, ['controller' => 'Processes', 'action' => 'view', $clazze->process->id]) : '' ?></td>
                 <td class="actions">
                     <?= $this->Html->link(__('View'), ['action' => 'view', $clazze->id]) ?>
