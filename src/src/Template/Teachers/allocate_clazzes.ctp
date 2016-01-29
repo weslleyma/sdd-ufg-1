@@ -5,7 +5,9 @@
 <li class="active">Alocar Turmas para #<?= $teacher->id ?></li>
 <?php $this->end(); ?>
 
-<?= $this->Form->create($teacher) ?>
+<?php $this->loadHelper('Utils'); ?>
+
+<?= $this->Form->create('Filtros', array('action' => 'allocateClazzes/' . $teacher->id)) ?>
 <div class="row">
     <div class="col-xs-12">
         <div class="box box-primary">
@@ -25,58 +27,59 @@
 				</div>
             </div>
             <div class="box-body">
-				<?php if (count($processes) >= 1) { ?>
+				<?php if ($process_exists) { ?>
 				<div class="row">
 					<div class="col-xs-12" id="filtros">
 						<fieldset>
 							<legend>Filtros</legend>
 							<div class="row">
-								<div class="col-xs-3">
+								<div class="col-xs-2">
 									<?php 
-										echo $this->Form->input('course_name', ['label' => 'Nome do Curso', 'placeholder' => 'Nome do Curso', 'class' => 'col-xs-3']);
+										echo $this->Form->input('process', ['label' => 'Processo de Distr.', 'placeholder' => 'Processo de Distribuição', 'class' => 'col-xs-2']);
 									?>
 								</div>
-								<div class="col-xs-3">
+								<div class="col-xs-2">
+									<?php 
+										echo $this->Form->input('course_name', ['label' => 'Nome do Curso', 'placeholder' => 'Nome do Curso', 'class' => 'col-xs-2']);
+									?>
+								</div>
+								<div class="col-xs-2">
 									<?php
-										echo $this->Form->input('knowledge_name', ['label' => 'Nome do Núcleo', 'placeholder' => 'Nome do Núcleo', 'class' => 'col-xs-3']);
+										echo $this->Form->input('knowledge_name', ['label' => 'Nome do Núcleo', 'placeholder' => 'Nome do Núcleo', 'class' => 'col-xs-2']);
 									?>
 								</div>
-								<div class="col-xs-3">
+								<div class="col-xs-2">
 									<?php
-										echo $this->Form->input('subject_name', ['label' => 'Nome da Disciplina', 'placeholder' => 'Nome da Disciplina', 'class' => 'col-xs-3']);
+										echo $this->Form->input('subject_name', ['label' => 'Nome da Disciplina', 'placeholder' => 'Nome da Disciplina', 'class' => 'col-xs-2']);
 									?>
 								</div>
-								<div class="col-xs-3">
+								<div class="col-xs-2">
 									<?php
-										echo $this->Form->input('clazz_name', ['label' => 'Nome da Turma', 'placeholder' => 'Nome da Turma', 'class' => 'col-xs-3']);
+										echo $this->Form->input('clazz_name', ['label' => 'Nome da Turma', 'placeholder' => 'Nome da Turma', 'class' => 'col-xs-2']);
 									?>
 								</div>
-								<div class="col-xs-3">
+								<div class="col-xs-2">
 									<?php
-										echo $this->Form->input('week_day', ['label' => 'Dia da Semana', 'placeholder' => 'Dia da Semana', 'class' => 'col-xs-3']);
+										echo $this->Form->input('address', ['label' => 'Local', 'placeholder' => 'Local', 'class' => 'col-xs-2']);
 									?>
 								</div>
-								<div class="col-xs-3">
+								<div class="col-xs-2">
 									<?php
-										echo $this->Form->input('start_time', ['label' => 'Horário de Início', 'placeholder' => 'Horário de Início', 'class' => 'col-xs-3']);
+										echo $this->Form->input('week_day', ['label' => 'Dia da Semana', 'placeholder' => 'Dia da Semana', 'class' => 'col-xs-2', 'options' => $this->Utils->daysOfWeek()]);
 									?>
 								</div>
-								<div class="col-xs-3">
+								<div class="col-xs-2">
 									<?php
-										echo $this->Form->input('end_time', ['label' => 'Horário de Término', 'placeholder' => 'Horário de Término', 'class' => 'col-xs-3']);
+										echo $this->Form->input('start_time', ['label' => 'Horário de Início', 'placeholder' => 'Horário de Início', 'class' => 'col-xs-2']);
 									?>
 								</div>
-								<div class="col-xs-3">
-									<?= $this->Html->link(
-										'',
-										['controller' => 'Teachers', 'action' => 'filterClazzes'],
-										[
-											'title' => __('Filtrar'),
-											'class' => 'btn btn-lg btn-success glyphicon glyphicon-search',
-											'data-toggle' => 'tooltip',
-											'data-original-title' => __('Filtrar')
-										]
-									) ?>
+								<div class="col-xs-2">
+									<?php
+										echo $this->Form->input('end_time', ['label' => 'Horário de Término', 'placeholder' => 'Horário de Término', 'class' => 'col-xs-2']);
+									?>
+								</div>
+								<div class="col-xs-2">
+									<?= $this->Form->button(__('Filtrar'), ['class' => 'btn btn-primary']) ?>
 								</div>
 							</div>
 						</fieldset>
@@ -182,9 +185,6 @@
 					Não existem Processos de Distribuição em Aberto.
 				<?php } ?>
 			</div>
-            <div class="box-footer clearfix">
-                <?= $this->Form->button(__('Salvar'), ['class' => 'btn btn-success']) ?>
-            </div>
         </div>
     </div> 
 </div>
