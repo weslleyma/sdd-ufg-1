@@ -1,30 +1,26 @@
-<nav class="large-3 medium-4 columns" id="actions-sidebar">
-    <ul class="side-nav">
-        <li class="heading"><?= __('Actions') ?></li>
-        <li><?= $this->Form->postLink(
-                __('Delete'),
-                ['action' => 'delete', $knowledge->id],
-                ['confirm' => __('Are you sure you want to delete # {0}?', $knowledge->id)]
-            )
-        ?></li>
-        <li><?= $this->Html->link(__('List Knowledges'), ['action' => 'index']) ?></li>
-        <li><?= $this->Html->link(__('List Roles'), ['controller' => 'Roles', 'action' => 'index']) ?></li>
-        <li><?= $this->Html->link(__('New Role'), ['controller' => 'Roles', 'action' => 'add']) ?></li>
-        <li><?= $this->Html->link(__('List Subjects'), ['controller' => 'Subjects', 'action' => 'index']) ?></li>
-        <li><?= $this->Html->link(__('New Subject'), ['controller' => 'Subjects', 'action' => 'add']) ?></li>
-        <li><?= $this->Html->link(__('List Teachers'), ['controller' => 'Teachers', 'action' => 'index']) ?></li>
-        <li><?= $this->Html->link(__('New Teacher'), ['controller' => 'Teachers', 'action' => 'add']) ?></li>
-    </ul>
-</nav>
-<div class="knowledges form large-9 medium-8 columns content">
-    <?= $this->Form->create($knowledge) ?>
-    <fieldset>
-        <legend><?= __('Edit Knowledge') ?></legend>
-        <?php
-            echo $this->Form->input('name');
-            echo $this->Form->input('teachers._ids', ['options' => $teachers]);
-        ?>
-    </fieldset>
-    <?= $this->Form->button(__('Submit')) ?>
-    <?= $this->Form->end() ?>
+<?php $this->assign('title', 'Núcleos de conhecimento'); ?>
+<?php $this->start('breadcrumb'); ?>
+<li><?= $this->Html->link('<i class="fa fa-dashboard"></i>' . __('Dashboard'), '/', ['escape' => false]) ?></li>
+<li><?= $this->Html->link(__('Núcleos de conhecimento'), ['action' => 'index']) ?></li>
+<li class="active">Editar #<?= $knowledge->id ?></li>
+<?php $this->end(); ?>
+
+<?= $this->Form->create($knowledge) ?>
+<div class="row">
+    <div class="col-xs-8">
+        <div class="box box-primary">
+            <div class="box-header with-border">
+                <h3 class="box-title">Editar núcleo de conhecimento #<?= $knowledge->id ?></h3>
+            </div>
+            <div class="box-body">
+                <?php
+                    echo $this->Form->input('name', ['label' => 'Nome do núcleo de conhecimento', 'placeholder' => 'Nome']);
+                ?>
+            </div>
+            <div class="box-footer clearfix">
+                <?= $this->Form->button(__('Salvar'), ['class' => 'btn btn-success']) ?>
+            </div>
+        </div>
+    </div>
 </div>
+<?= $this->Form->end() ?>
