@@ -3,6 +3,7 @@ namespace App\Controller;
 
 use App\Controller\AppController;
 use Cake\ORM\TableRegistry;
+use Cake\View\HelperRegistry;
 
 /**
  * Teachers Controller
@@ -87,8 +88,6 @@ class TeachersController extends AppController
 			]
         ]);
 		
-		$clazzes = $this->getClazzes();
-		
         if ($this->request->is(['patch', 'post', 'put'])) {				
 			
 			$data = $this->request->data;
@@ -114,8 +113,6 @@ class TeachersController extends AppController
 		
         $this->set(compact('teacher'));
         $this->set('_serialize', ['teacher']);
-		$this->set('clazzes', $clazzes);
-        $this->set('_serialize', ['clazzes']);
     }
 
     /**
@@ -180,7 +177,7 @@ class TeachersController extends AppController
 	{
 		$table_clazzes_teachers = TableRegistry::get('ClazzesTeachers');
 		$table_processes = TableRegistry::get('Processes');
-		
+
 		$teacher = $this->Teachers->get($id, [
             'contain' => ['Users'
 				, 'Clazzes'
@@ -189,54 +186,91 @@ class TeachersController extends AppController
 				, 'Clazzes.Subjects.Courses'
 			]
         ]);
-
-		$clazzes = $this->getClazzes();
-		$processes = $table_processes->find('list')->where(['initial_date <= ' => 'CURDATE()', ]);
 		
-		if ($id != null && $clazz_id != null && $allocate) {
+		$processes = $table_processes->find('all')->where(['initial_date <= ' => 'CURDATE()']); //, 'final_date >= ' => 'CURDATE()'
 
-			$query = $table_clazzes_teachers->query();
-			$query->delete()->where([
-					'clazz_id' => $clazz_id,
-					'teacher_id' => $id
-			])->execute();
+		$count = $processes->count();
+		
+		if ($count < 1) {
 			
-			$query = $table_clazzes_teachers->query();
-			$query->insert(['clazz_id', 'teacher_id'])->values([
-					'clazz_id' => $clazz_id,
-					'teacher_id' => $id
+			$this->Flash->info(__('Não existe nenhum Processo de Distribuição de Disciplinas aberto.'));
+			$this->set('process_exists', false);
+			$this->set('_serialize', ['process_exists']);
+			
+			$this->set(compact('teacher'));
+			$this->set('_serialize', ['teacher']);
+			$this->set('clazzes', array());
+			$this->set('_serialize', ['clazzes']);
+			$this->set('processes', array());
+			$this->set('_serialize', ['processes']);
+			
+			
+		} else {
+			
+			$process_options = array();
+		
+			foreach($processes as $p) {
+				$process_options[$p->id] = $p->name;
+			}
+			
+			$clazzes = $this->getClazzes(current(array_keys($process_options)));
+
+			
+			if ($id != null && $clazz_id != null && $allocate) {
+
+				$query = $table_clazzes_teachers->query();
+				$query->delete()->where([
+						'clazz_id' => $clazz_id,
+						'teacher_id' => $id
 				])->execute();
-			
-			if ($query) {
-				$this->Flash->success(__('Interesse em Turma/Disciplina salvo com sucesso.'));			
-			} else {
-				$this->Flash->error(__('O Interesse na disciplina não pôde ser salvo. Tente novamente.'));	
+				
+				$query = $table_clazzes_teachers->query();
+				$query->insert(['clazz_id', 'teacher_id'])->values([
+						'clazz_id' => $clazz_id,
+						'teacher_id' => $id
+					])->execute();
+				
+				if ($query) {
+					$this->Flash->success(__('Interesse em Turma/Disciplina salvo com sucesso.'));			
+				} else {
+					$this->Flash->error(__('O Interesse na disciplina não pôde ser salvo. Tente novamente.'));	
+				}
+				return $this->redirect(['action' => 'allocateClazzes', $teacher->id]);
+				
+			} else if ($id != null && $clazz_id != null && !$allocate) {
+				
+				$query = $table_clazzes_teachers->query();
+				$query->delete()->where([
+						'clazz_id' => $clazz_id,
+						'teacher_id' => $id
+				])->execute();
+				
+				if ($query) {
+					$this->Flash->warning(__('Interesse em Turma/Disciplina CANCELADO com sucesso.'));			
+				} else {
+					$this->Flash->error(__('O Interesse na disciplina não pôde ser CANCELADO. Tente novamente.'));	
+				}
+				return $this->redirect(['action' => 'allocateClazzes', $teacher->id]);
+							
 			}
-			return $this->redirect(['action' => 'allocateClazzes', $teacher->id]);
 			
-		} else if ($id != null && $clazz_id != null && !$allocate) {
-			
-			$query = $table_clazzes_teachers->query();
-			$query->delete()->where([
-					'clazz_id' => $clazz_id,
-					'teacher_id' => $id
-			])->execute();
-			
-			if ($query) {
-				$this->Flash->warning(__('Interesse em Turma/Disciplina CANCELADO com sucesso.'));			
-			} else {
-				$this->Flash->error(__('O Interesse na disciplina não pôde ser CANCELADO. Tente novamente.'));	
+			/* Filters */
+			if ($this->request->is('post')) {
+				$data = $this->request->data;
+				$clazzes = $this->getClazzes($this->request->data['process'], $data);
 			}
-			return $this->redirect(['action' => 'allocateClazzes', $teacher->id]);
-						
+		   
+			$this->set(compact('teacher'));
+			$this->set('_serialize', ['teacher']);
+			$this->set('clazzes', $clazzes);
+			$this->set('_serialize', ['clazzes']);
+			$this->set('processes', $process_options);
+			$this->set('_serialize', ['processes']);
+			$this->set('process_exists', true);
+			$this->set('_serialize', ['process_exists']);
 		}
-	   
-		$this->set(compact('teacher'));
-        $this->set('_serialize', ['teacher']);
-		$this->set('clazzes', $clazzes);
-        $this->set('_serialize', ['clazzes']);
-		$this->set('processes', $processes);
-        $this->set('_serialize', ['processes']);
+		
+		
 	}
 
 	/**
@@ -256,75 +290,65 @@ class TeachersController extends AppController
      * @param array|null $params Filters.
      * @return paginated data.
      */
-    private function getClazzes($params = null) 
+    private function getClazzes($process_id, $params = null) 
     {	
 		$this->loadModel('ClazzesSchedulesLocals');
 		$this->loadModel('Clazzes');
-		
-		/*array('clazz_name' => ''
-					, 'subject_name' => ''
-					, 'course_name' => ''
-					, 'knowledge_name' => ''
-					, 'week_day' => ''
-					, 'start_time' => ''
-					, 'end_time' => ''
-					, 'address' => ''*/
 
-		if ($params == null) {
-			// return $this->paginate($this->Clazzes->find()
-					// ->contain(['Subjects', 'Subjects.Knowledges', 'Subjects.Courses']));
-					
-					return $this->paginate($this->ClazzesSchedulesLocals->find()
-					->contain(['Clazzes', 'Clazzes.Subjects', 'Clazzes.Subjects.Knowledges', 'Clazzes.Subjects.Courses', 'Locals', 'Schedules']));
-					//->where(['process_id' => $params['process_id']])
+		if ($params === null) {
+
+			return $this->paginate($this->ClazzesSchedulesLocals->find()
+				->where(['process_id' => $process_id])
+				->contain(['Clazzes', 'Clazzes.Subjects', 'Clazzes.Subjects.Knowledges', 'Clazzes.Subjects.Courses', 'Locals', 'Schedules']));
+				
 		
 		} else {
-		
-			$query = $this->ClazzesSchedulesLocals->find()->matching('Clazzes', function ($q) {
+
+			$query = $this->ClazzesSchedulesLocals->find();
+			
+			$query->matching('Clazzes', function ($q) {
 				return $q->where([
-					'Clazzes.name LIKE ' => (!empty($params['clazz_name']) ? '%' . $params['clazz_name'] . '%' : ''),
-					'Clazzes.process_id' => $params['process_id']
+					'IF(LENGTH("' . $params['clazz_name'] . '") > 0, Clazzes.name LIKE "' . ((!empty($params['clazz_name']) ? '%' . $params['clazz_name'] . '%"' : '"') . ', "")'),
+					'Clazzes.process_id' => $params['process']
 				]);
-			})->matching('Clazzes.Subjects', function ($q) {
+			}); 
+			
+			$query->matching('Clazzes.Subjects', function ($q) {
 				return $q->where([
-					'Clazzes.Subjects.name LIKE ' => (!empty($params['subject_name']) ? '%' . $params['subject_name'] . '%' : '')
-					, 'Clazzes.Subjects.Courses.name LIKE ' => (!empty($params['course_name']) ? '%' . $params['course_name'] . '%' : '')
-					, 'Clazzes.Subjects.Knowleges.name LIKE ' => (!empty($params['knowledge_name']) ? '%' . $params['knowledge_name'] . '%' : '')
-				]);
-			})->matching('Locals', function ($q) {
-				return $q->where([
-					'Locals.address LIKE' => (!empty($params['address']) ? '%' . $params['address'] . '%' : '')
-				]);
-			})->matching('Schedules', function ($q) {
-				return $q->where([
-					'Schedules.week_day LIKE ' =>(!empty($params['week_day']) ? '%' . $params['week_day'] . '%' : '')
-					, 'Schedules.start_time LIKE' => (!empty($params['start_time']) ? '%' . $params['start_time'] . '%' : '')
-					, 'Schedules.end_time LIKE' => (!empty($params['end_time']) ? '%' . $params['end_time'] . '%' : '')
+					'IF(LENGTH("' . $params['subject_name'] . '") > 0, Subjects.name LIKE "' . ((!empty($params['subject_name']) ? '%' . $params['subject_name'] . '%"' : '"') . ', "")'),	
 				]);
 			});
 			
-			// $query = $this->Clazzes->find()->matching('Subjects', function ($q) {
-				// return $q->where([
-					// 'Subjects.name LIKE ' => (!empty($params['subject_name']) ? '%' . $params['subject_name'] . '%' : '')
-					// , 'Subjects.Courses.name LIKE ' => (!empty($params['course_name']) ? '%' . $params['course_name'] . '%' : '')
-					// , 'Subjects.Knowleges.name LIKE ' => (!empty($params['knowledge_name']) ? '%' . $params['knowledge_name'] . '%' : '')
-				// ]);
-			// })->matching('Locals', function ($q) {
-				// return $q->where([
-					// 'Locals.address LIKE' => (!empty($params['address']) ? '%' . $params['address'] . '%' : '')
-				// ]);
-			// })->matching('Schedules', function ($q) {
-				// return $q->where([
-					// 'Schedules.week_day LIKE ' =>(!empty($params['week_day']) ? '%' . $params['week_day'] . '%' : '')
-					// , 'Schedules.start_time LIKE' => (!empty($params['start_time']) ? '%' . $params['start_time'] . '%' : '')
-					// , 'Schedules.end_time LIKE' => (!empty($params['end_time']) ? '%' . $params['end_time'] . '%' : '')
-				// ]);
-			// })->where([
-					// 'name LIKE ' => (!empty($params['clazz_name']) ? '%' . $params['clazz_name'] . '%' : '')
-				// ]);
-
+			$query->matching('Clazzes.Subjects.Courses', function ($q) {
+				return $q->where([
+					'IF(LENGTH("' . $params['course_name'] . '") > 0, Courses.name LIKE "' . ((!empty($params['course_name']) ? '%' . $params['course_name'] . '%"' : '"') . ', "")'),
+				]);
+			});
+			
+			$query->matching('Clazzes.Subjects.Knowledges', function ($q) {
+				return $q->where([
+					'IF(LENGTH("' . $params['knowledge_name'] . '") > 0, Knowledges.name LIKE "' . ((!empty($params['knowledge_name']) ? '%' . $params['knowledge_name'] . '%"' : '"') . ', "")')
+				]);
+			});
+			
+			$query->matching('Locals', function ($q) {
+				return $q->where([
+					'IF(LENGTH("' . $params['address'] . '") > 0, Locals.address LIKE"' . ((!empty($params['address']) ? '%' . $params['address'] . '%"' : '"') . ', "")')
+				]);
+			});
+			
+			$query->matching('Schedules', function ($q) {
+				return $q->where([
+					'IF(LENGTH("' . $params['week_day'] . '") > 0, Schedules.week_day LIKE "' . ((!empty($params['week_day']) ? '%' . $params['week_day'] . '%"' : '"') . ', "")'),
+					'IF(LENGTH("' . $params['start_time'] . '") > 0, Schedules.start_time LIKE "' . ((!empty($params['start_time']) ? '%' . $params['start_time'] . '%"' : '"') . ', "")'),
+					'IF(LENGTH("' . $params['end_time'] . '") > 0, Schedules.end_time LIKE "' . ((!empty($params['end_time']) ? '%' . $params['end_time'] . '%"' : '"') . ', "")'),
+				]);
+			});
+		
 			return $this->paginate($query);
 		}
 
     }
+	
+	
 }
