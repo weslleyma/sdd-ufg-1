@@ -33,7 +33,8 @@ class TeachersController extends AppController
     public function view($id = null)
     {
         $teacher = $this->Teachers->get($id, [
-            'contain' => ['Users', 'Clazzes', 'Knowledges', 'Roles']
+            'contain' => ['Users', 'Clazzes', 'Clazzes.Subjects'
+			, 'Clazzes.Locals', 'Clazzes.Processes', 'Knowledges', 'Roles', 'Roles.Knowledges']
         ]);
         $this->set('teacher', $teacher);
         $this->set('_serialize', ['teacher']);

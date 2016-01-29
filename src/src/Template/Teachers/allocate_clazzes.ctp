@@ -54,9 +54,16 @@
 									?>
 								</div>
 								<div class="col-xs-3">
-									<?php
-										echo $this->Form->button(__('Filtrar'), ['class' => 'btn btn-primary', 'onclick' => 'filtrar()']);
-									?>
+									<?= $this->Html->link(
+										'',
+										['controller' => 'Teachers', 'action' => 'filterClazzes'],
+										[
+											'title' => __('Filtrar'),
+											'class' => 'btn btn-lg btn-success glyphicon glyphicon-search',
+											'data-toggle' => 'tooltip',
+											'data-original-title' => __('Filtrar')
+										]
+									) ?>
 								</div>
 							</div>
 						</fieldset>
@@ -166,22 +173,3 @@
     </div> 
 </div>
 <?= $this->Form->end() ?>
-<?php 
-	$this->Html->scriptStart(['block' => true]);
-	echo "function filtrar() {	";
-	echo "	var formdata = $('form').serialize();";
-	echo "	$.ajax({
-				type:'GET',
-				url:'" . $teacher->id . "',
-				dataType: 'json',
-				data : $('#filtros input'),
-				success: function(tab){
-					alert('success');
-				},
-				error: function (tab) {
-					alert('error');
-				}
-			});";
-	echo "};	";
-	$this->Html->scriptEnd();
-?>
