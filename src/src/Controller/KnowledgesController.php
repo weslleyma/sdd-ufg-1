@@ -32,7 +32,7 @@ class KnowledgesController extends AppController
     public function view($id = null)
     {
         $knowledge = $this->Knowledges->get($id, [
-            'contain' => []
+            'contain' => ['Roles.Teachers.Users', 'Subjects.Courses']
         ]);
         $this->set('knowledge', $knowledge);
         $this->set('_serialize', ['knowledge']);
@@ -49,12 +49,13 @@ class KnowledgesController extends AppController
         if ($this->request->is('post')) {
             $knowledge = $this->Knowledges->patchEntity($knowledge, $this->request->data);
             if ($this->Knowledges->save($knowledge)) {
-                $this->Flash->success(__('The knowledge has been saved.'));
+                $this->Flash->success(__('Núcleo de conhecimento adicionado com sucesso.'));
                 return $this->redirect(['action' => 'index']);
             } else {
-                $this->Flash->error(__('The knowledge could not be saved. Please, try again.'));
+                $this->Flash->error(__('Não foi possível adicionar núcleo de conhecimento, tente novamente.'));
             }
         }
+
         $this->set(compact('knowledge'));
         $this->set('_serialize', ['knowledge']);
     }
@@ -74,10 +75,10 @@ class KnowledgesController extends AppController
         if ($this->request->is(['patch', 'post', 'put'])) {
             $knowledge = $this->Knowledges->patchEntity($knowledge, $this->request->data);
             if ($this->Knowledges->save($knowledge)) {
-                $this->Flash->success(__('The knowledge has been saved.'));
+                $this->Flash->success(__('Núcleo de conhecimento modificado com sucesso.'));
                 return $this->redirect(['action' => 'index']);
             } else {
-                $this->Flash->error(__('The knowledge could not be saved. Please, try again.'));
+                $this->Flash->error(__('Não foi possível modificar o núcleo de conhecimento, tente novamente.'));
             }
         }
         $this->set(compact('knowledge'));
@@ -96,9 +97,9 @@ class KnowledgesController extends AppController
         $this->request->allowMethod(['post', 'delete']);
         $knowledge = $this->Knowledges->get($id);
         if ($this->Knowledges->delete($knowledge)) {
-            $this->Flash->success(__('The knowledge has been deleted.'));
+            $this->Flash->success(__('Núcleo de conhecimento removido com sucesso.'));
         } else {
-            $this->Flash->error(__('The knowledge could not be deleted. Please, try again.'));
+            $this->Flash->error(__('Não foi possível remover o núcleo de conhecimento, tente novamente.'));
         }
         return $this->redirect(['action' => 'index']);
     }

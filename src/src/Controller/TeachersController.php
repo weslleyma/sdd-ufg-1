@@ -33,7 +33,8 @@ class TeachersController extends AppController
     public function view($id = null)
     {
         $teacher = $this->Teachers->get($id, [
-            'contain' => ['Users']
+            'contain' => ['Users', 'Clazzes', 'Clazzes.Subjects'
+			, 'Clazzes.Locals', 'Clazzes.Processes', 'Knowledges', 'Roles', 'Roles.Knowledges']
         ]);
         $this->set('teacher', $teacher);
         $this->set('_serialize', ['teacher']);
@@ -177,6 +178,9 @@ class TeachersController extends AppController
      */
 	public function allocateClazzes($id = null, $clazz_id = null, $allocate = false) 
 	{
+		$table_clazzes_teachers = TableRegistry::get('ClazzesTeachers');
+		$table_processes = TableRegistry::get('Processes');
+		
 		$teacher = $this->Teachers->get($id, [
             'contain' => ['Users'
 				, 'Clazzes'
@@ -185,9 +189,9 @@ class TeachersController extends AppController
 				, 'Clazzes.Subjects.Courses'
 			]
         ]);
-		
+
 		$clazzes = $this->getClazzes();
-		$table_clazzes_teachers = TableRegistry::get('ClazzesTeachers');
+		$processes = $table_processes->find('list')->where(['initial_date <= ' => 'CURDATE()', ]);
 		
 		if ($id != null && $clazz_id != null && $allocate) {
 
@@ -231,6 +235,8 @@ class TeachersController extends AppController
         $this->set('_serialize', ['teacher']);
 		$this->set('clazzes', $clazzes);
         $this->set('_serialize', ['clazzes']);
+		$this->set('processes', $processes);
+        $this->set('_serialize', ['processes']);
 	}
 
 	/**
@@ -276,7 +282,8 @@ class TeachersController extends AppController
 		
 			$query = $this->ClazzesSchedulesLocals->find()->matching('Clazzes', function ($q) {
 				return $q->where([
-					'Clazzes.name LIKE ' => (!empty($params['clazz_name']) ? '%' . $params['clazz_name'] . '%' : '')
+					'Clazzes.name LIKE ' => (!empty($params['clazz_name']) ? '%' . $params['clazz_name'] . '%' : ''),
+					'Clazzes.process_id' => $params['process_id']
 				]);
 			})->matching('Clazzes.Subjects', function ($q) {
 				return $q->where([
