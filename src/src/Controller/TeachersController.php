@@ -96,7 +96,6 @@ class TeachersController extends AppController
 		$clazzes = $this->getClazzes();
 
         if ($this->request->is(['patch', 'post', 'put'])) {
-
 			$data = $this->request->data;
 			$data['user']['is_admin'] = isset($this->request->data['user']['is_admin']) ? 1 : 0;
 
@@ -120,8 +119,6 @@ class TeachersController extends AppController
 
         $this->set(compact('teacher'));
         $this->set('_serialize', ['teacher']);
-		$this->set('clazzes', $clazzes);
-        $this->set('_serialize', ['clazzes']);
     }
 
     /**
@@ -266,7 +263,7 @@ class TeachersController extends AppController
 			/* Filters */
 			if ($this->request->is('post')) {
 				$data = $this->request->data;
-				$clazzes = $this->getClazzes($this->request->data['process_id'], $data);
+				$clazzes = $this->getClazzes($this->request->data['process'], $data);
 			}
 
 			$this->set(compact('teacher'));
