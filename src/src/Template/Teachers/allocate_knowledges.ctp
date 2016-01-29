@@ -11,6 +11,18 @@
         <div class="box box-primary">
             <div class="box-header with-border">
                 <h3 class="box-title">Editar docente #<?= $teacher->id ?></h3>
+				<div class="pull-right box-tools">
+					<?= $this->Html->link(
+						'',
+						['action' => 'edit', $teacher->id],
+						[
+							'title' => __('Ir para informações do docente'),
+							'class' => 'btn btn-sm btn-default glyphicon glyphicon-education',
+							'data-toggle' => 'tooltip',
+							'data-original-title' => __('Cadastro do Docente'),
+						]
+					) ?>
+				</div>
             </div>
             <div class="box-body">
 				
