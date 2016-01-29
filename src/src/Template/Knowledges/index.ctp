@@ -1,14 +1,13 @@
-<?php $this->assign('title', 'Núcleos de Interesse'); ?>
+<?php $this->assign('title', 'Núcleos de conhecimento'); ?>
 <?php $this->start('breadcrumb'); ?>
-    <li><?= $this->Html->link('<i class="fa fa-dashboard"></i>' . __('Dashboard'), '/', ['escape' => false]) ?></li>
-    <li class="active">Lista de núcleos</li>
+<li><?= $this->Html->link('<i class="fa fa-dashboard"></i>' . __('Dashboard'), '/', ['escape' => false]) ?></li>
+<li class="active">Lista de núcleos de conhecimento</li>
 <?php $this->end(); ?>
 
 <div class="row">
     <div class="col-xs-12">
         <div class="box box-primary">
             <div class="box-header">
-                <h3 class="box-title">Lista de núcleos</h3>
                 <div class="pull-right box-tools">
                     <?= $this->Html->link(
                         '<i class="fa fa-plus-circle"></i> ' . __('Adicionar'),
@@ -26,63 +25,58 @@
             <div class="box-body table-responsive no-padding">
                 <table class="table table-striped table-valign-middle">
                     <thead>
-                        <tr>
-                            <th><?= $this->Paginator->sort('id', __('#ID')) ?></th>
-                            <th><?= $this->Paginator->sort('name', __('Nome')) ?></th>
-                            <th><?= $this->Paginator->sort('roles', __('Papéis')) ?></th>
-                            <th><?= $this->Paginator->sort('subjects', __('Disciplinas')) ?></th>
-                            <th><?= $this->Paginator->sort('teachers', __('Professores')) ?></th>
-                            <th width="200px"><?= __('Ações') ?></th>
-                        </tr>
+                    <tr>
+                        <th><?= $this->Paginator->sort('id', __('#ID')) ?></th>
+                        <th><?= $this->Paginator->sort('name', __('Nome')) ?></th>
+                        <th width="200px"><?= __('Ações') ?></th>
+                    </tr>
                     </thead>
                     <tbody>
-                        <?php if($subjects->isEmpty()): ?>
-                            <tr>
-                                <td colspan="5" class="text-center">Não existe nenhuma disciplina cadastrada</td>
-                            </tr>
-                        <?php endif; ?>
+                    <?php if($knowledges->isEmpty()): ?>
+                        <tr>
+                            <td colspan="3" class="text-center">Não existe nenhum núcleo de conhecimento cadastrado</td>
+                        </tr>
+                    <?php endif; ?>
 
-                        <?php foreach ($subjects as $subject): ?>
-                            <tr>
-                                <td><?= $this->Number->format($subject->id) ?></td>
-                                <td><?= h($subject->name) ?></td>
-                                <td><?= $subject->has('knowledge') ? $this->Html->link($subject->knowledge->name, ['controller' => 'Knowledges', 'action' => 'view', $subject->knowledge->id]) : '' ?></td>
-                                <td><?= $subject->has('course') ? $this->Html->link($subject->course->name, ['controller' => 'Courses', 'action' => 'view', $subject->course->id]) : '' ?></td>
-                                <td>
-                                    <?= $this->Html->link(
-                                        '',
-                                        ['action' => 'view', $subject->id],
-                                        [
-                                            'title' => __('Visualizar'),
-                                            'class' => 'btn btn-sm btn-default glyphicon glyphicon-search',
-                                            'data-toggle' => 'tooltip',
-                                            'data-original-title' => __('Visualizar'),
-                                        ]
-                                    ) ?>
-                                    <?= $this->Html->link(
-                                        '',
-                                        ['action' => 'edit', $subject->id],
-                                        [
-                                            'title' => __('Editar'),
-                                            'class' => 'btn btn-sm btn-primary glyphicon glyphicon-pencil',
-                                            'data-toggle' => 'tooltip',
-                                            'data-original-title' => __('Editar'),
-                                        ]
-                                    ) ?>
-                                    <?= $this->Form->postLink(
-                                        '',
-                                        ['action' => 'delete', $subject->id],
-                                        [
-                                            'confirm' => __('Você tem certeza de que deseja remover a disciplina "{0}"?', $subject->name),
-                                            'title' => __('Remover'),
-                                            'class' => 'btn btn-sm btn-danger glyphicon glyphicon-trash',
-                                            'data-toggle' => 'tooltip',
-                                            'data-original-title' => __('Remover'),
-                                        ]
-                                    ) ?>
-                                </td>
-                            </tr>
-                        <?php endforeach; ?>
+                    <?php foreach ($knowledges as $knowledge): ?>
+                        <tr>
+                            <td><?= $this->Number->format($knowledge->id) ?></td>
+                            <td><?= h($knowledge->name) ?></td>
+                            <td>
+                                <?= $this->Html->link(
+                                    '',
+                                    ['action' => 'view', $knowledge->id],
+                                    [
+                                        'title' => __('Visualizar'),
+                                        'class' => 'btn btn-sm btn-default glyphicon glyphicon-search',
+                                        'data-toggle' => 'tooltip',
+                                        'data-original-title' => __('Visualizar'),
+                                    ]
+                                ) ?>
+                                <?= $this->Html->link(
+                                    '',
+                                    ['action' => 'edit', $knowledge->id],
+                                    [
+                                        'title' => __('Editar'),
+                                        'class' => 'btn btn-sm btn-primary glyphicon glyphicon-pencil',
+                                        'data-toggle' => 'tooltip',
+                                        'data-original-title' => __('Editar'),
+                                    ]
+                                ) ?>
+                                <?= $this->Form->postLink(
+                                    '',
+                                    ['action' => 'delete', $knowledge->id],
+                                    [
+                                        'confirm' => __('Você tem certeza de que deseja remover o núcleo de conhecimento "{0}"?', $knowledge->name),
+                                        'title' => __('Remover'),
+                                        'class' => 'btn btn-sm btn-danger glyphicon glyphicon-trash',
+                                        'data-toggle' => 'tooltip',
+                                        'data-original-title' => __('Remover'),
+                                    ]
+                                ) ?>
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
                     </tbody>
                 </table>
             </div>

@@ -32,11 +32,14 @@ class KnowledgesTable extends Table
         $this->primaryKey('id');
 
         $this->hasMany('Roles', [
-            'foreignKey' => 'knowledge_id'
+            'foreignKey' => 'knowledge_id',
+            'propertyName' => 'facilitators',
+            'finder' => 'facilitators'
         ]);
         $this->hasMany('Subjects', [
             'foreignKey' => 'knowledge_id'
         ]);
+
         $this->belongsToMany('Teachers', [
             'foreignKey' => 'knowledge_id',
             'targetForeignKey' => 'teacher_id',

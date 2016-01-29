@@ -191,7 +191,7 @@ class TeachersController extends AppController
 			]
         ]);
 		
-		$processes = $table_processes->find('all')->where(['initial_date <= ' => 'CURDATE()', 'final_date >= ' => 'CURDATE()']);
+		$processes = $table_processes->find('all')->where(['initial_date <= ' => 'CURDATE()']); //, 'final_date >= ' => 'CURDATE()'
 
 		$count = $processes->count();
 		
@@ -270,6 +270,8 @@ class TeachersController extends AppController
 			$this->set('_serialize', ['clazzes']);
 			$this->set('processes', $process_options);
 			$this->set('_serialize', ['processes']);
+			$this->set('process_exists', true);
+			$this->set('_serialize', ['process_exists']);
 		}
 		
 		
