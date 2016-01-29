@@ -2,6 +2,10 @@
 namespace App\Controller;
 
 use App\Controller\AppController;
+use Cake\ORM\TableRegistry;
+use App\Lib\Distribution\PriorityIndex;
+use App\Lib\Distribution\Distribution;
+use Cake\Event\Event;
 
 /**
  * Processes Controller
@@ -10,6 +14,12 @@ use App\Controller\AppController;
  */
 class ProcessesController extends AppController
 {
+
+	public function beforeFilter(Event $event)
+    {
+        parent::beforeFilter($event);
+        $this->Auth->allow(['getClazzes']);
+    }
 
     /**
      * Index method
@@ -102,4 +112,14 @@ class ProcessesController extends AppController
         }
         return $this->redirect(['action' => 'index']);
     }
+	
+	public function getClazzes(){
+		$this->autoRender = false;
+		$this->response->type('json');
+		$clazzes = $this->Processes->Clazzes->getAllClazzesNotTeachers();
+		$teachers = TableRegistry::get('Teachers')->find("all");
+		$teachers = PriorityIndex::generatePriorityIndex($teachers);
+		$clazzes = Distribution::generateDistribution($clazzes, $teachers);
+		$this->response->body(json_encode($teachers, JSON_PRETTY_PRINT));
+	}
 }
