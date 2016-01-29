@@ -18,7 +18,7 @@ class ProcessesController extends AppController
 	public function beforeFilter(Event $event)
     {
         parent::beforeFilter($event);
-        $this->Auth->allow(['getClazzes']);
+        $this->Auth->allow(['getClazzes', 'distribution', 'simulation', 'reversion']);
     }
 
     /**
@@ -121,5 +121,17 @@ class ProcessesController extends AppController
 		$teachers = PriorityIndex::generatePriorityIndex($teachers);
 		$clazzes = Distribution::generateDistribution($clazzes, $teachers);
 		$this->response->body(json_encode($teachers, JSON_PRETTY_PRINT));
+	}
+	
+	public function distribution(){
+	
+	}
+	
+	public function simulation(){
+	
+	}
+	
+	public function reversion(){
+	
 	}
 }
