@@ -1,6 +1,6 @@
 {
     "name": "ufg/sdd-ufg",
-    "description": "Class distribution system of Federal University of the Goias",
+    "description": "Class distribution system of Federal University of Goias",
     "type": "project",
     "license": "MIT",
     "require": {
