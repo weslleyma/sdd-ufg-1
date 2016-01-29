@@ -32,7 +32,7 @@ class CoursesController extends AppController
     public function view($id = null)
     {
         $course = $this->Courses->get($id, [
-            'contain' => []
+            'contain' => ['Subjects.Knowledges']
         ]);
         $this->set('course', $course);
         $this->set('_serialize', ['course']);
@@ -49,10 +49,10 @@ class CoursesController extends AppController
         if ($this->request->is('post')) {
             $course = $this->Courses->patchEntity($course, $this->request->data);
             if ($this->Courses->save($course)) {
-                $this->Flash->success(__('The course has been saved.'));
+                $this->Flash->success(__('Curso adicionado com sucesso.'));
                 return $this->redirect(['action' => 'index']);
             } else {
-                $this->Flash->error(__('The course could not be saved. Please, try again.'));
+                $this->Flash->error(__('Não foi possível adicionar o curso, tente novamente.'));
             }
         }
         $this->set(compact('course'));
@@ -74,10 +74,10 @@ class CoursesController extends AppController
         if ($this->request->is(['patch', 'post', 'put'])) {
             $course = $this->Courses->patchEntity($course, $this->request->data);
             if ($this->Courses->save($course)) {
-                $this->Flash->success(__('The course has been saved.'));
+                $this->Flash->success(__('Curso modificado com sucesso.'));
                 return $this->redirect(['action' => 'index']);
             } else {
-                $this->Flash->error(__('The course could not be saved. Please, try again.'));
+                $this->Flash->error(__('Não foi possível modificar o curso, tente novamente.'));
             }
         }
         $this->set(compact('course'));
@@ -96,9 +96,9 @@ class CoursesController extends AppController
         $this->request->allowMethod(['post', 'delete']);
         $course = $this->Courses->get($id);
         if ($this->Courses->delete($course)) {
-            $this->Flash->success(__('The course has been deleted.'));
+            $this->Flash->success(__('Curso removido com sucesso.'));
         } else {
-            $this->Flash->error(__('The course could not be deleted. Please, try again.'));
+            $this->Flash->error(__('Não foi possível remover o curso, tente novamente.'));
         }
         return $this->redirect(['action' => 'index']);
     }
