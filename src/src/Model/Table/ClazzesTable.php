@@ -91,25 +91,7 @@ class ClazzesTable extends Table
         $rules->add($rules->existsIn(['process_id'], 'Processes'));
         return $rules;
     }
-	
-	public function getAllClazzesRecursive(){
-		return $this
-			->find('all')
-			->contain([
-				'Teachers' => function($q) {
-					return $q->select(['id', 'registry', 'url_lattes', 'entry_date', 'formation', 'workload', 'about', 'rg', 'cpf', 'birth_date', 'situation']);
-				},
-				'Schedules' => function($q) {
-					return $q->select(['id', 'week_day', 'start_time', 'end_time']);
-				},
-				'Subjects' => function($q) {
-					return $q->select(['id', 'name', 'teoric_workload', 'practical_workload', 'knowledge_id', 'course_id']);
-				},
-				'Locals' => function($q) {
-					return $q->select(['id', 'name', 'address', 'capacity']);
-				}
-			])->hydrate(false)->toArray();
-	}
+
 	
 	public function getAllClazzesNotTeachers(){
 		$clazzesTemp = $this

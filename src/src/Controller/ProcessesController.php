@@ -15,12 +15,6 @@ use Cake\Event\Event;
 class ProcessesController extends AppController
 {
 
-	public function beforeFilter(Event $event)
-    {
-        parent::beforeFilter($event);
-        $this->Auth->allow(['getClazzes', 'distribution', 'simulation', 'reversion']);
-    }
-
     /**
      * Index method
      *
@@ -131,15 +125,17 @@ class ProcessesController extends AppController
 		$this->response->body(json_encode($teachers, JSON_PRETTY_PRINT));
 	}
 	
-	public function distribution(){
+	public function distribute(){
+	   $clazzes = $this->Processes->Clazzes->find('all')->contain(['Teachers.Users', 'Locals', 'Subjects']);
+        $clazzes = $this->paginate($clazzes);
+       $this->set('clazzes', $clazzes);
+	}
+	
+	public function simulate(){
 	
 	}
 	
-	public function simulation(){
-	
-	}
-	
-	public function reversion(){
+	public function revert(){
 	
 	}
 
