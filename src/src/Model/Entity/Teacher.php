@@ -38,4 +38,8 @@ class Teacher extends Entity
         '*' => true,
         'id' => false,
     ];
+
+    public function _getDisplayField() {
+        return $this->user->name;
+    }
 }
