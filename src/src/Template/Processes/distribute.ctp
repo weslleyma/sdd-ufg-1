@@ -26,24 +26,28 @@
                     <tbody>
                         <?php foreach ($clazzes as $clazz): ?>
                             <tr>
-                                <td><?= $this->Number->format($clazz->subject->id) ?></td>
-                                <td><?= h($clazz->subject->name) ?></td>
-                                <td>
-                                	<?php foreach($clazz->effectiveTeachers as $teacher): ?>
-                                		<?= h($teacher->registry) ?><br>
-                                	<?php endforeach; ?>
-                                </td>
-								<td><?= $clazz->displayEffectiveTeachers ?></td>
-								<td>
-									<?php foreach($clazz->locals as $local): ?>
-                                		<?php echo ($local->name .' ['. $local->address .']') ?><br>
-                                	<?php endforeach; ?>
-								</td>
-								<td>
-									<?php foreach($clazz->locals as $local): ?>
-                                		<?php echo ($local->_joinData->schedule_id) ?><br>
-                                	<?php endforeach; ?>
-								</td>
+                            	<?php foreach($clazz->teachers as $teacher): ?>
+                            		<?php if($teacher->_joinData->status == 'APPROVED'): ?>
+		                                <td><?= $this->Number->format($clazz->subject->id) ?></td>
+		                                <td><?= h($clazz->subject->name) ?></td>
+		                                <td>
+		                                	<?php foreach($clazz->effectiveTeachers as $teacher): ?>
+		                                		<?= h($teacher->registry) ?><br>
+		                                	<?php endforeach; ?>
+		                                </td>
+										<td><?= $clazz->displayEffectiveTeachers ?></td>
+										<td>
+											<?php foreach($clazz->locals as $local): ?>
+		                                		<?php echo ($local->name .' ['. $local->address .']') ?><br>
+		                                	<?php endforeach; ?>
+										</td>
+										<td>
+											<?php foreach($clazz->locals as $local): ?>
+		                                		<?php echo ($local->_joinData->schedule_id) ?><br>
+		                                	<?php endforeach; ?>
+										</td>
+									<?php endif; ?>
+	                            <?php endforeach; ?>
                             </tr>
                         <?php endforeach; ?>
                     </tbody>
@@ -75,18 +79,20 @@
                             <th><?= $this->Paginator->sort('disciplina', __('Disciplina')) ?></th>
                     </thead>
                     <tbody>
-                        <tr>
-                            <td>INF0123</td>
-                            <td>Prática em Engenharia de Software</td>
-                        </tr>
-                        <tr>
-                            <td>INF1245</td>
-                            <td>Métodos Avançados</td>
-                        </tr>
-                        <tr>
-                            <td>INF0436</td>
-                            <td>Dispositivos Móveis</td>
-                        </tr>
+                    	<?php foreach($clazzes as $clazz): ?>
+                    		<?php foreach($clazz->teachers as $teacher): ?>
+                    			<?php if($teacher->_joinData->status == 'PENDING'): ?>
+                    				<tr>
+                    					<td>
+                    						<?= $clazz->id ?>
+                    					</td>
+                    					<td>
+                    						<?= $clazz->name ?>
+                    					</td>
+                    				</tr>
+                				<?php endif; ?>
+                			<?php endforeach; ?>
+                		<?php endforeach; ?>
                     </tbody>
                 </table>
             </div>
@@ -113,18 +119,20 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <tr>
-                            <td>20122287</td>
-                            <td>Anderson Moreira</td>
-                        </tr>
-                        <tr>
-                            <td>20113487</td>
-                            <td>Eugênio Simon</td>
-                        </tr>
-                        <tr>
-                            <td>20018752</td>
-                            <td>Mariela Euclides da Cunha</td>
-                        </tr>
+                    	<?php foreach($clazzes as $clazz): ?>
+                    		<?php foreach($clazz->teachers as $teacher): ?>
+                    			<?php if($teacher->_joinData->status == 'PENDING'): ?>
+                    				<tr>
+                    					<td>
+                    						<?= $teacher->registry ?>
+                    					</td>
+                    					<td>
+                    						<?= $teacher->user->name ?>
+                    					</td>
+                    				</tr>
+                				<?php endif; ?>
+                			<?php endforeach; ?>
+                		<?php endforeach; ?>
                     </tbody>
                 </table>
             </div>
