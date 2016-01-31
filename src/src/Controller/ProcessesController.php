@@ -132,11 +132,17 @@ class ProcessesController extends AppController
 	}
 	
 	public function simulate(){
-	
+        $clazzes = $this->Processes->Clazzes->find('all')->contain(['Teachers.Users', 'Locals', 'Subjects']);
+        $clazzes = $this->paginate($clazzes);
+        $this->set('clazzes', $clazzes);
 	}
 	
 	public function revert(){
-	
+        $this->paginate = [
+            'contain' => []
+        ];
+        $this->set('processes', $this->paginate($this->Processes));
+        $this->set('_serialize', ['processes']);
 	}
 
     
