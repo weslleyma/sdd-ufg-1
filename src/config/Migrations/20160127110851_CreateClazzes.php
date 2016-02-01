@@ -47,6 +47,11 @@ class CreateClazzes extends AbstractMigration
                 'limit' => 11,
                 'null' => false,
             ])
+            ->addColumn('week_day', 'integer', [
+                'default' => null,
+                'limit' => 2,
+                'null' => false,
+            ])
             ->addIndex(
                 [
                     'clazz_id', 'schedule_id', 'local_id'
