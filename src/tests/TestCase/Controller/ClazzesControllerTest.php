@@ -16,7 +16,18 @@ class ClazzesControllerTest extends IntegrationTestCase
      * @var array
      */
     public $fixtures = [
-        'app.clazzes'
+        'app.clazzes',
+        'app.subjects',
+        'app.knowledges',
+        'app.roles',
+        'app.teachers',
+        'app.users',
+        'app.clazzes_teachers',
+        'app.knowledges_teachers',
+        'app.courses',
+        'app.processes',
+        'app.process_configurations',
+        'app.processes_process_configurations'
     ];
 
     /**
