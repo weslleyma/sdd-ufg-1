@@ -5,9 +5,11 @@
 <li class="active">Alocar Turmas para #<?= $teacher->id ?></li>
 <?php $this->end(); ?>
 
+
 <?php 
 	use Cake\Routing\Router;
-	$this->loadHelper('Utils'); 
+	$this->loadHelper('Utils');
+	echo $this->Html->script('/plugins/jQuery/jQuery-2.1.4.min');	
 ?>
 
 <div id="message" role="alert" class="alert alert-dismissible fade in alert-success" style="display: none;">
@@ -37,10 +39,15 @@
             <div class="box-body">
 				<?php if (count($processes) >= 1) { ?>
 				<div class="row">
-					<div class="col-xs-12" id="filtros">
+					<div class="col-xs-12" id="filters">
 						<fieldset>
 							<legend>Filtros</legend>
 							<div class="row">
+								<div class="col-xs-3">
+									<?php 
+										echo $this->Form->input('process', ['label' => 'Processo de Distr.', 'placeholder' => 'Processo', 'class' => 'col-xs-3', 'options' => $processes]);
+									?>
+								</div>
 								<div class="col-xs-3">
 									<?php 
 										echo $this->Form->input('course_name', ['label' => 'Nome do Curso', 'placeholder' => 'Nome do Curso', 'class' => 'col-xs-3']);
@@ -63,30 +70,36 @@
 								</div>
 								<div class="col-xs-3">
 									<?php
-										echo $this->Form->input('week_day', ['label' => 'Dia da Semana', 'placeholder' => 'Dia da Semana', 'class' => 'col-xs-3']);
+										echo $this->Form->input('week_day', ['label' => 'Dia da Semana', 'placeholder' => 'Dia da Semana', 'class' => 'col-xs-3', 'options' => $this->Utils->daysOfWeek()]);
 									?>
 								</div>
 								<div class="col-xs-3">
 									<?php
-										echo $this->Form->input('start_time', ['label' => 'Horário de Início', 'placeholder' => 'Horário de Início', 'class' => 'col-xs-3']);
+										echo $this->Form->label('start_time');
+										echo $this->Form->time('start_time'
+										, ['format' => '24'
+										, 'interval' => 10,
+										'hour' => [
+											'class' => 'form-control',
+										],
+										'minute' => [
+											'class' => 'form-control',
+										]]);
 									?>
 								</div>
 								<div class="col-xs-3">
 									<?php
-										echo $this->Form->input('end_time', ['label' => 'Horário de Término', 'placeholder' => 'Horário de Término', 'class' => 'col-xs-3']);
+										echo $this->Form->label('end_time');
+										echo $this->Form->time('end_time'
+										, ['format' => '24'
+										, 'interval' => 10,
+										'hour' => [
+											'class' => 'form-control',
+										],
+										'minute' => [
+											'class' => 'form-control',
+										]]);
 									?>
-								</div>
-								<div class="col-xs-3">
-									<?= $this->Html->link(
-										'',
-										['controller' => 'Teachers', 'action' => 'filterClazzes'],
-										[
-											'title' => __('Filtrar'),
-											'class' => 'btn btn-lg btn-success glyphicon glyphicon-search',
-											'data-toggle' => 'tooltip',
-											'data-original-title' => __('Filtrar')
-										]
-									) ?>
 								</div>
 							</div>
 						</fieldset>
@@ -144,7 +157,7 @@
 													foreach ($teacher->clazzes as $c) : 
 														if ($clazz->id == $c->id) { ?>
 											
-														<?= $this->Form->button('<i id="icon-' . $clazz->id . '" class="fa fa-remove"></i>'
+														<?= $this->Form->button('<i id="icon-' . $clazz->id . '" class="fa fa-remove"></i><i id="icon-loading-' . $clazz->id . '" class="fa fa-spinner fa-spin" style="display:none;"></i>'
 															, array(
 																'type' => 'button',
 																'id' => 'button-' . $clazz->id,
@@ -163,7 +176,7 @@
 														<?php
 														if (!$has_clazz) {
 														?>
-															<?= $this->Form->button('<i id="icon-' . $clazz->id . '" class="fa fa-check"></i>'
+															<?= $this->Form->button('<i id="icon-' . $clazz->id . '" class="fa fa-check"></i><i id="icon-loading-' . $clazz->id . '" class="fa fa-spinner fa-spin" style="display:none;"></i>'
 															, array(
 																'type' => 'button',
 																'id' => 'button-' . $clazz->id,
@@ -198,20 +211,40 @@
 					Não existem Processos de Distribuição em Aberto.
 				<?php } ?>
 			</div>
-            <div class="box-footer clearfix">
-                <?= $this->Form->button(__('Salvar'), ['class' => 'btn btn-success']) ?>
-            </div>
         </div>
     </div> 
 </div>
 <?= $this->Form->end() ?>
 <script>
+
+$(document).ready(function() {
+	
+	$('#filters').on('keyup', 'input', function() {
+		$.ajax({
+			type:"POST",
+			url:"<?php echo Router::url(array('controller'=>'Teachers','action'=>'allocateClazzes'));?>/"+<?php echo $teacher->id; ?>,
+			dataType: 'html',
+			data: $('#filters input, #filters select'),
+			success: function(tab){
+				
+			},
+			error: function (tab) {
+				alert('error');
+			}
+		});
+	});
+	
+});
+
 function allocateClazz(teacher, clazz, allocate) {
+	
+	$('#icon-' + clazz).toggle();
+	$('#icon-loading-' + clazz).toggle();
+	
 	$.ajax({
 		type:"GET",
 		url:"<?php echo Router::url(array('controller'=>'Teachers','action'=>'allocateClazzes'));?>/"+teacher+"/"+clazz+"/"+allocate,
 		dataType: 'html',
-		async:false,
 		success: function(tab){
 			if (tab == 'success') {
 				$('#message').empty();
@@ -245,10 +278,17 @@ function allocateClazz(teacher, clazz, allocate) {
 				$('#message').html('Ocorreu um erro ao tentar efetuar a operação. Tente novamente ou contate o administrador do sistema.');
 			}
 			
-			$('#message').toggle();
+			if($('#message').css('display') == 'none')
+			{
+				$('#message').toggle();
+			}
+			$('#icon-loading-' + clazz).toggle();
+			$('#icon-' + clazz).toggle();
+	
 		},
 		error: function (tab) {
 			alert('error');
+			$btn.button('reset');
 		}
 	});
 }
