@@ -14,7 +14,6 @@ use Cake\Event\Event;
  */
 class ProcessesController extends AppController
 {
-
     /**
      * Index method
      *
@@ -114,15 +113,14 @@ class ProcessesController extends AppController
         return $this->redirect(['action' => 'index']);
     }
 
-	
-	public function getClazzes(){
+	public function prototypeDistribute(){
 		$this->autoRender = false;
 		$this->response->type('json');
-		$clazzes = $this->Processes->Clazzes->getAllClazzesNotTeachers();
-		$teachers = TableRegistry::get('Teachers')->find("all");
+		$clazzes = $this->Processes->Clazzes->getAllClazzesWithSubjctsTeachers();
+		$teachers = TableRegistry::get('Teachers')->getAllTeachersWithKnowledge();
 		$teachers = PriorityIndex::generatePriorityIndex($teachers);
 		$clazzes = Distribution::generateDistribution($clazzes, $teachers);
-		$this->response->body(json_encode($teachers, JSON_PRETTY_PRINT));
+		$this->response->body(json_encode($clazzes, JSON_PRETTY_PRINT));
 	}
 	
 	public function distribute(){

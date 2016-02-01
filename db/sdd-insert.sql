@@ -38,6 +38,20 @@ INSERT INTO knowledges(name)
 VALUES ("knowledges2");
 INSERT INTO knowledges(name)
 VALUES ("knowledges3");
+INSERT INTO knowledges(name)
+VALUES ("knowledges4");
+INSERT INTO knowledges(name)
+VALUES ("knowledges5");
+INSERT INTO knowledges(name)
+VALUES ("knowledges6");
+INSERT INTO knowledges(name)
+VALUES ("knowledges7");
+INSERT INTO knowledges(name)
+VALUES ("knowledges8");
+INSERT INTO knowledges(name)
+VALUES ("knowledges9");
+INSERT INTO knowledges(name)
+VALUES ("knowledges10");
 
 INSERT INTO schedules(week_day, start_time, end_time)
 VALUES (2, "18:00:00", "22:00:00");
@@ -57,16 +71,20 @@ VALUES ("Ciência da Computação");
 INSERT INTO courses(name)
 VALUES ("Sistemas de Informação");
 
-INSERT INTO subjects(name, teoric_workload, practical_workload, knowledge_id, course_id)
-VALUES ("subject1", 32, 32, 1, 1);
-INSERT INTO subjects(name, teoric_workload, practical_workload, knowledge_id, course_id)
-VALUES ("subject1", 0, 64, 1, 1);
-INSERT INTO subjects(name, teoric_workload, practical_workload, knowledge_id, course_id)
-VALUES ("subject1", 0, 64, 2, 2);
-INSERT INTO subjects(name, teoric_workload, practical_workload, knowledge_id, course_id)
-VALUES ("subject1", 64, 0, 2, 2);
-INSERT INTO subjects(name, teoric_workload, practical_workload, knowledge_id, course_id)
-VALUES ("subject1", 32, 32, 3, 3);
+INSERT INTO subjects(name, theoretical_workload, practical_workload, knowledge_id, course_id)
+VALUES ("subject1", 32, 32, 1, 4);
+INSERT INTO subjects(name, theoretical_workload, practical_workload, knowledge_id, course_id)
+VALUES ("subject2", 0, 64, 1, 4);
+INSERT INTO subjects(name, theoretical_workload, practical_workload, knowledge_id, course_id)
+VALUES ("subject3", 0, 64, 2, 5);
+INSERT INTO subjects(name, theoretical_workload, practical_workload, knowledge_id, course_id)
+VALUES ("subject4", 64, 0, 2, 5);
+INSERT INTO subjects(name, theoretical_workload, practical_workload, knowledge_id, course_id)
+VALUES ("subject5", 32, 32, 3, 6);
+INSERT INTO subjects(name, theoretical_workload, practical_workload, knowledge_id, course_id)
+VALUES ("subject5", 32, 32, 4, 6);
+INSERT INTO subjects(name, theoretical_workload, practical_workload, knowledge_id, course_id)
+VALUES ("subject7", 32, 32, 10, 6);
 
 INSERT INTO locals(name, address, capacity)
 VALUES ("locals1", "address1", 30);
@@ -79,16 +97,20 @@ VALUES ("locals4", "address4", 30);
 INSERT INTO locals(name, address, capacity)
 VALUES ("locals5", "address5", 30);
 
-INSERT INTO clazzes(name, vacancies, subject_id, schedule_id, local_id, process_id)
-VALUES ("clazzes1", 30, 1, 1, 1, 2);
-INSERT INTO clazzes(name, vacancies, subject_id, schedule_id, local_id, process_id)
-VALUES ("clazzes2", 30, 2, 2, 2, 2);
-INSERT INTO clazzes(name, vacancies, subject_id, schedule_id, local_id, process_id)
-VALUES ("clazzes3", 30, 3, 3, 3, 2);
-INSERT INTO clazzes(name, vacancies, subject_id, schedule_id, local_id, process_id)
-VALUES ("clazzes4", 30, 4, 4, 4, 2);
-INSERT INTO clazzes(name, vacancies, subject_id, schedule_id, local_id, process_id)
-VALUES ("clazzes5", 30, 5, 5, 5, 2);
+INSERT INTO clazzes(name, vacancies, subject_id, process_id)
+VALUES ("clazzes1", 30, 6, 2);
+INSERT INTO clazzes(name, vacancies, subject_id, process_id)
+VALUES ("clazzes2", 30, 7, 2);
+INSERT INTO clazzes(name, vacancies, subject_id, process_id)
+VALUES ("clazzes3", 30, 8, 2);
+INSERT INTO clazzes(name, vacancies, subject_id, process_id)
+VALUES ("clazzes4", 30, 9, 2);
+INSERT INTO clazzes(name, vacancies, subject_id, process_id)
+VALUES ("clazzes5", 30, 10, 2);
+INSERT INTO clazzes(name, vacancies, subject_id, process_id)
+VALUES ("clazzes5", 30, 11, 2);
+INSERT INTO clazzes(name, vacancies, subject_id, process_id)
+VALUES ("clazzes5", 30, 12, 2);
 
 INSERT INTO knowledges_teachers(teacher_id, knowledge_id, level)
 VALUES (1, 1, 1);
@@ -115,6 +137,10 @@ INSERT INTO clazzes_teachers(clazz_id, teacher_id, status)
 VALUES (1, 1, "APPROVED");
 INSERT INTO clazzes_teachers(clazz_id, teacher_id, status)
 VALUES (2, 2, "APPROVED");
+INSERT INTO clazzes_teachers(clazz_id, teacher_id, status)
+VALUES (6, 1, "APPROVED");
+INSERT INTO clazzes_teachers(clazz_id, teacher_id, status)
+VALUES (7, 2, "APPROVED");
 
 INSERT INTO roles(type, teacher_id, knowledge_id)
 VALUES ("COORDENADOR", 6, 1);

@@ -7,19 +7,54 @@ use Cake\ORM\TableRegistry;
 class Distribution
 {
 	/**
-	* Quais os pré requisitos levados em conta no momento da distribuição?
-	* - É possível que dois prof. tenha a mesma disciplina ? se sim como isto
-	* é explicitado ? (algum lugar diz que a disciplina pode ser dada por 2 porfs.)
-	* - É levado em conta o Knowledge do prof. ? se sim como sabemos o Knowledge 
-	* necessário para a disciplina ?
-	* - é levado em conta somente o indice de prioridade ? (como é calculado)
-	* - a distribuição é feita somente com as disciplinas sem prof. interessado ?
-	* - quais os quesitos de desempate ? existe ? Em que ordem (ex: knowledge -> indice de prioridade)
-	* - qual o tempo máximo de lecionamento da disciplina ? (onde esta informação esta disponivel)
-	* - qual a carga horária máxima que um prof. pode ter ?
+	* Falta saber o qual o fator limitante de cada prof.
+	* Falta saber como manipular para inserir no banco.
 	*/
     public static function generateDistribution($clazzes, $teachers)
     {
+		foreach($clazzes as &$clazz){
+			if(!empty($clazz['teachers'])){
+				continue;
+			}
+			$teachersByKnowledge = self::getTeacherByKnowledge($clazz['subject']['knowledge_id'], $teachers);
+			if(count($teachersByKnowledge) > 1){
+				$clazz['teachers'] = self::getTeacherByAge($teachers);
+			}else if(count($teachersByKnowledge) == 1){
+				$clazz['teachers'] = $teachersByKnowledge;
+			}else{
+				$clazz['teachers'] = self::randomTeacher($teachers);
+			}
+		}
+		
         return $clazzes;
     }
+
+	public static function getTeacherByKnowledge($knowledgeId, $teachers){
+		$teachersByKnowledge = [];
+		foreach($teachers as $teacher){
+			foreach($teacher['knowledges'] as $knowledge){
+				if($knowledge['id'] == $knowledgeId){
+					$teachersByKnowledge[] = $teacher;
+				}
+			}
+		}
+		return $teachersByKnowledge;
+	}
+	
+	public static function getTeacherByAge($teachers){
+		usort($teachers, ['App\Lib\Distribution\Distribution', 'sortByBirthDate']);
+		return $teachers[0];
+	}
+	
+	public static function sortByBirthDate($teacher1, $teacher2)
+    {
+        if ($teacher1['birth_date'] === $teacher2['birth_date']) {
+            return 0;
+        }
+        return strtotime($teacher1['birth_date']) < strtotime($teacher2['birth_date']) ? -1 : 1;
+    }
+	
+	public static function randomTeacher($teachers){
+		return $teachers[rand(0, count($teachers) - 1)];
+	}
 }

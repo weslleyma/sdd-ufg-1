@@ -20,7 +20,7 @@ class PriorityIndex
 	
 	public static function initializePriorityIndex($teachers)
     {
-        foreach($teachers as $teacher){
+        foreach($teachers as &$teacher){
 			$teacher['priorityIndex'] = 0;
 		}
         return $teachers;
@@ -28,7 +28,7 @@ class PriorityIndex
 	
 	public static function priorityIndexByWorkload($teachers)
     {
-        foreach($teachers as $teacher){
+        foreach($teachers as &$teacher){
 			if($teacher['workload'] === 40){
 				$teacher['priorityIndex']++;
 			}
@@ -38,7 +38,7 @@ class PriorityIndex
 	
 	public static function priorityIndexBySituation($teachers)
     {
-        foreach($teachers as $teacher){
+        foreach($teachers as &$teacher){
 			if($teacher['situation'] === 'situation1'){
 				$teacher['priorityIndex']++;
 			}

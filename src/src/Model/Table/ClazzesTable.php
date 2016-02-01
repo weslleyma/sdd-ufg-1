@@ -97,6 +97,11 @@ class ClazzesTable extends Table
 		$clazzesTemp = $this
 			->find('all')
 			->contain([
+				'Subjects' => function($q) {
+					return $q->select(['id', 'knowledge_id']);
+				}
+			])
+			->contain([
 				'Teachers' => function($q) {
 					return $q->select(['id']);
 				}
@@ -111,5 +116,21 @@ class ClazzesTable extends Table
 		}
 		
 		return $clazzes;
+	}
+	
+	public function getAllClazzesWithSubjctsTeachers(){
+		return $this
+			->find('all')
+			->contain([
+				'Subjects' => function($q) {
+					return $q->select(['id', 'knowledge_id']);
+				}
+			])
+			->contain([
+				'Teachers' => function($q) {
+					return $q->select(['id']);
+				}
+			])
+			->hydrate(false)->toArray();
 	}
 }
