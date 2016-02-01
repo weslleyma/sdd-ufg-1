@@ -54,17 +54,17 @@ class TeachersController extends AppController
      */
     public function add()
     {
-		$teacher = $this->Teachers->newEntity();
-		
-		if ($this->request->is('post')) {
-			
-			$data = $this->request->data;
-			$data['user']['is_admin'] = isset($this->request->data['user']['is_admin']) ? 1 : 0;
+    		$teacher = $this->Teachers->newEntity();
 
-			$teacher = $this->Teachers->newEntity($data, [
-				'associated' => ['Users' => ['validate' => 'default']]
-			]);
-			
+    		if ($this->request->is('post')) {
+
+    			$data = $this->request->data;
+    			$data['user']['is_admin'] = isset($this->request->data['user']['is_admin']) ? 1 : 0;
+
+    			$teacher = $this->Teachers->newEntity($data, [
+    				'associated' => ['Users' => ['validate' => 'default']]
+    			]);
+
             if ($this->Teachers->save($teacher)) {
                 $this->Flash->success(__('The teacher has been saved.'));
                 return $this->redirect(['action' => 'edit', $teacher->id]);
@@ -73,6 +73,11 @@ class TeachersController extends AppController
             }
         }
         $this->set(compact('teacher'));
+
+        $this->loadModel('Knowledges');
+        $knowledges = $this->Knowledges->find('list',array('fields'=>array('id','name')));
+        $this->set(compact('knowledges'));
+
         $this->set('_serialize', ['teacher']);
     }
 
@@ -93,21 +98,22 @@ class TeachersController extends AppController
 				, 'Clazzes.Subjects.Courses'
 			]
         ]);
-		
-        if ($this->request->is(['patch', 'post', 'put'])) {				
-			
+
+		$clazzes = $this->getClazzes();
+
+        if ($this->request->is(['patch', 'post', 'put'])) {
 			$data = $this->request->data;
 			$data['user']['is_admin'] = isset($this->request->data['user']['is_admin']) ? 1 : 0;
-			
+
 			if (!empty($this->request->data['pwd'])) {
 				$data['user']['password'] = $data['pwd'];
 				unset($data['pwd']);
 			}
-			
+
 			$teacher = $this->Teachers->patchEntity($teacher, $data, [
 				'associated' => ['Users' => ['validate' => 'default']]
 			]);
-			
+
             if ($this->Teachers->save($teacher)) {
                 $this->Flash->success(__('The teacher has been saved.'));
                 return $this->redirect(['action' => 'index']);
@@ -115,8 +121,11 @@ class TeachersController extends AppController
                 $this->Flash->error(__('The teacher could not be saved. Please, try again.'));
             }
         }
-		
-		
+
+        $this->loadModel('Knowledges');
+        $knowledges = $this->Knowledges->find('list',array('fields'=>array('id','name')));
+        $this->set(compact('knowledges'));
+
         $this->set(compact('teacher'));
         $this->set('_serialize', ['teacher']);
     }
@@ -139,7 +148,7 @@ class TeachersController extends AppController
         }
         return $this->redirect(['action' => 'index']);
     }
-	
+
 	
 	/**
      * Allocate Clazzes method
@@ -148,7 +157,7 @@ class TeachersController extends AppController
      * @return \Cake\Network\Response|null Redirects to index.
      * @throws \Cake\Network\Exception\NotFoundException When record not found.
      */
-	public function allocateClazzes($id = null, $clazz_id = null, $allocate = false) 
+	public function allocateClazzes($id = null, $clazz_id = null, $allocate = false)
 	{
 		$table_clazzes_teachers = TableRegistry::get('ClazzesTeachers');
 		$table_processes = TableRegistry::get('Processes');
@@ -161,33 +170,33 @@ class TeachersController extends AppController
 				, 'Clazzes.Subjects.Courses'
 			]
         ]);
-		
+
 		$processes = $table_processes->find('all')->where(['initial_date <= ' => 'CURDATE()']); //, 'final_date >= ' => 'CURDATE()'
 
 		$count = $processes->count();
-		
+
 		if ($count < 1) {
-			
+
 			$this->Flash->info(__('Não existe nenhum Processo de Distribuição de Disciplinas aberto.'));
 			$this->set('process_exists', false);
 			$this->set('_serialize', ['process_exists']);
-			
+
 			$this->set(compact('teacher'));
 			$this->set('_serialize', ['teacher']);
 			$this->set('clazzes', array());
 			$this->set('_serialize', ['clazzes']);
 			$this->set('processes', array());
 			$this->set('_serialize', ['processes']);
-			
-			
+
+
 		} else {
-			
+
 			$process_options = array();
-		
+
 			foreach($processes as $p) {
 				$process_options[$p->id] = $p->name;
 			}
-			
+
 			$clazzes = $this->getClazzes(current(array_keys($process_options)));
 	
 			if ($this->RequestHandler->accepts('ajax')) {
@@ -230,14 +239,15 @@ class TeachersController extends AppController
 					}
 					die();			
 				}
+
 			}
-			
+
 			/* Filters */
 			if ($this->request->is('post')) {
 				$data = $this->request->data;
 				$clazzes = $this->getClazzes($data['process'], $data);
 			}
-		   
+
 			$this->set(compact('teacher'));
 			$this->set('_serialize', ['teacher']);
 			$this->set('clazzes', $clazzes);
@@ -247,8 +257,8 @@ class TeachersController extends AppController
 			$this->set('process_exists', true);
 			$this->set('_serialize', ['process_exists']);
 		}
-		
-		
+
+
 	}
 
 	
@@ -258,6 +268,7 @@ class TeachersController extends AppController
      * @param array|null $params Filters.
      * @return paginated data.
      */
+
     private function getClazzes($process_id, $params = null) 
     {	
 
@@ -278,29 +289,32 @@ class TeachersController extends AppController
 			$query = $this->Clazzes->find()->where(['Clazzes.process_id' => (int)$params['process']]);
 
 			$query->matching('Subjects', function ($q) {
+
 				return $q->where([
-					'IF(LENGTH("' . $params['subject_name'] . '") > 0, Subjects.name LIKE "' . ((!empty($params['subject_name']) ? '%' . $params['subject_name'] . '%"' : '"') . ', "")'),	
+					'IF(LENGTH("' . $params['subject_name'] . '") > 0, Subjects.name LIKE "' . ((!empty($params['subject_name']) ? '%' . $params['subject_name'] . '%"' : '"') . ', "")'),
 				]);
 			});
-			
+
 			$query->matching('Subjects.Courses', function ($q) {
+
 				return $q->where([
 					'IF(LENGTH("' . $params['course_name'] . '") > 0, Courses.name LIKE "' . ((!empty($params['course_name']) ? '%' . $params['course_name'] . '%"' : '"') . ', "")'),
 				]);
 			});
-			
+
 			$query->matching('Subjects.Knowledges', function ($q) {
+
 				return $q->where([
 					'IF(LENGTH("' . $params['knowledge_name'] . '") > 0, Knowledges.name LIKE "' . ((!empty($params['knowledge_name']) ? '%' . $params['knowledge_name'] . '%"' : '"') . ', "")')
 				]);
 			});
-			
+
 			$query->matching('Locals', function ($q) {
 				return $q->where([
 					'IF(LENGTH("' . $params['address'] . '") > 0, Locals.address LIKE"' . ((!empty($params['address']) ? '%' . $params['address'] . '%"' : '"') . ', "")')
 				]);
 			});
-			
+
 			$query->matching('Schedules', function ($q) {
 				return $q->where([
 					'IF(LENGTH("' . $params['week_day'] . '") > 0, Schedules.week_day = "' . ((!empty($params['week_day']) ? '' . $params['week_day'] . '"' : '"') . ', "")'),
@@ -308,11 +322,11 @@ class TeachersController extends AppController
 					'IF(LENGTH("' . $params['end_time'] . '") > 0, Schedules.end_time LIKE "' . ((!empty($params['end_time']) ? '%' . $params['end_time'] . '%"' : '"') . ', "")'),
 				]);
 			});
-		
+
 			return $this->paginate($query);
 		}
 
     }
-	
-	
+
+
 }
