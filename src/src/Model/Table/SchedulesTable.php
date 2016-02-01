@@ -29,8 +29,10 @@ class SchedulesTable extends Table
         $this->displayField('id');
         $this->primaryKey('id');
 
-        $this->hasMany('Clazzes', [
-            'foreignKey' => 'schedule_id'
+        $this->belongsToMany('Clazzes', [
+            'foreignKey' => 'schedule_id',
+            'targetForeignKey' => 'clazz_id',
+            'joinTable' => 'clazzes_schedules_locals'
         ]);
     }
 
