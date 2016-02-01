@@ -12,6 +12,12 @@ use Cake\View\HelperRegistry;
  */
 class TeachersController extends AppController
 {
+	
+	public function initialize()
+    {
+        parent::initialize();
+        $this->loadComponent('RequestHandler');
+    }
 
     /**
      * Index method
@@ -134,37 +140,6 @@ class TeachersController extends AppController
         return $this->redirect(['action' => 'index']);
     }
 	
-	/**
-     * Allocate Knowledges method
-     *
-     * @param string|null $id Teacher id.
-     * @return \Cake\Network\Response|null Redirects to index.
-     * @throws \Cake\Network\Exception\NotFoundException When record not found.
-     */
-	public function allocateKnowledges($id = null) 
-	{
-		$teacher = $this->Teachers->get($id, [
-            'contain' => ['Users'
-				, 'Clazzes'
-				, 'Clazzes.Subjects'
-				, 'Clazzes.Subjects.Knowledges'
-				, 'Clazzes.Subjects.Courses'
-			]
-        ]);
-		
-		$knowledges = $this->getKnowledges();
-		
-        if ($this->request->is(['patch', 'post', 'put'])) {				
-			
-			$data = $this->request->data;
-			
-        }
-
-		$this->set(compact('teacher'));
-        $this->set('_serialize', ['teacher']);
-		$this->set('knowledges', $knowledges);
-        $this->set('_serialize', ['knowledges']);
-	}
 	
 	/**
      * Allocate Clazzes method
@@ -214,50 +189,53 @@ class TeachersController extends AppController
 			}
 			
 			$clazzes = $this->getClazzes(current(array_keys($process_options)));
+	
+			if ($this->RequestHandler->accepts('ajax')) {
 
-			
-			if ($id != null && $clazz_id != null && $allocate) {
-
-				$query = $table_clazzes_teachers->query();
-				$query->delete()->where([
-						'clazz_id' => $clazz_id,
-						'teacher_id' => $id
-				])->execute();
+				$this->response->disableCache();
 				
-				$query = $table_clazzes_teachers->query();
-				$query->insert(['clazz_id', 'teacher_id'])->values([
-						'clazz_id' => $clazz_id,
-						'teacher_id' => $id
+				if ($id != null && $clazz_id != null && $allocate) {
+
+					$query = $table_clazzes_teachers->query();
+					$query->delete()->where([
+							'clazz_id' => $clazz_id,
+							'teacher_id' => $id
 					])->execute();
-				
-				if ($query) {
-					$this->Flash->success(__('Interesse em Turma/Disciplina salvo com sucesso.'));			
-				} else {
-					$this->Flash->error(__('O Interesse na disciplina não pôde ser salvo. Tente novamente.'));	
+					
+					$query = $table_clazzes_teachers->query();
+					$query->insert(['clazz_id', 'teacher_id'])->values([
+							'clazz_id' => $clazz_id,
+							'teacher_id' => $id
+						])->execute();
+					
+					if ($query) {
+						echo 'success';						
+					} else {
+						echo 'error';	
+					}
+					
+					die();
+				} else if ($id != null && $clazz_id != null && !$allocate) {
+					
+					$query = $table_clazzes_teachers->query();
+					$query->delete()->where([
+							'clazz_id' => $clazz_id,
+							'teacher_id' => $id
+					])->execute();
+					
+					if ($query) {
+						echo 'success';						
+					} else {
+						echo 'error';	
+					}
+					die();			
 				}
-				return $this->redirect(['action' => 'allocateClazzes', $teacher->id]);
-				
-			} else if ($id != null && $clazz_id != null && !$allocate) {
-				
-				$query = $table_clazzes_teachers->query();
-				$query->delete()->where([
-						'clazz_id' => $clazz_id,
-						'teacher_id' => $id
-				])->execute();
-				
-				if ($query) {
-					$this->Flash->warning(__('Interesse em Turma/Disciplina CANCELADO com sucesso.'));			
-				} else {
-					$this->Flash->error(__('O Interesse na disciplina não pôde ser CANCELADO. Tente novamente.'));	
-				}
-				return $this->redirect(['action' => 'allocateClazzes', $teacher->id]);
-							
 			}
 			
 			/* Filters */
 			if ($this->request->is('post')) {
 				$data = $this->request->data;
-				$clazzes = $this->getClazzes($this->request->data['process'], $data);
+				$clazzes = $this->getClazzes($data['process'], $data);
 			}
 		   
 			$this->set(compact('teacher'));
@@ -273,16 +251,6 @@ class TeachersController extends AppController
 		
 	}
 
-	/**
-     * Get Knowledges method
-     *
-     * @param array|null $params Filters.
-     * @return paginated data.
-     */
-	private function getKnowledges($params = null) 
-    {
-		return null;
-	}
 	
 	/**
      * Get Clazzes method
@@ -292,40 +260,36 @@ class TeachersController extends AppController
      */
     private function getClazzes($process_id, $params = null) 
     {	
-		$this->loadModel('ClazzesSchedulesLocals');
+
 		$this->loadModel('Clazzes');
 
 		if ($params === null) {
 
-			return $this->paginate($this->ClazzesSchedulesLocals->find()
+			return $this->paginate($this->Clazzes->find()
 				->where(['process_id' => $process_id])
-				->contain(['Clazzes', 'Clazzes.Subjects', 'Clazzes.Subjects.Knowledges', 'Clazzes.Subjects.Courses', 'Locals', 'Schedules']));
+				->contain(['Subjects', 'Subjects.Knowledges', 'Subjects.Courses'])
+				->matching('Locals')
+				->matching('Schedules')
+			);
 				
 		
 		} else {
 
-			$query = $this->ClazzesSchedulesLocals->find();
-			
-			$query->matching('Clazzes', function ($q) {
-				return $q->where([
-					'IF(LENGTH("' . $params['clazz_name'] . '") > 0, Clazzes.name LIKE "' . ((!empty($params['clazz_name']) ? '%' . $params['clazz_name'] . '%"' : '"') . ', "")'),
-					'Clazzes.process_id' => $params['process']
-				]);
-			}); 
-			
-			$query->matching('Clazzes.Subjects', function ($q) {
+			$query = $this->Clazzes->find()->where(['Clazzes.process_id' => (int)$params['process']]);
+
+			$query->matching('Subjects', function ($q) {
 				return $q->where([
 					'IF(LENGTH("' . $params['subject_name'] . '") > 0, Subjects.name LIKE "' . ((!empty($params['subject_name']) ? '%' . $params['subject_name'] . '%"' : '"') . ', "")'),	
 				]);
 			});
 			
-			$query->matching('Clazzes.Subjects.Courses', function ($q) {
+			$query->matching('Subjects.Courses', function ($q) {
 				return $q->where([
 					'IF(LENGTH("' . $params['course_name'] . '") > 0, Courses.name LIKE "' . ((!empty($params['course_name']) ? '%' . $params['course_name'] . '%"' : '"') . ', "")'),
 				]);
 			});
 			
-			$query->matching('Clazzes.Subjects.Knowledges', function ($q) {
+			$query->matching('Subjects.Knowledges', function ($q) {
 				return $q->where([
 					'IF(LENGTH("' . $params['knowledge_name'] . '") > 0, Knowledges.name LIKE "' . ((!empty($params['knowledge_name']) ? '%' . $params['knowledge_name'] . '%"' : '"') . ', "")')
 				]);
@@ -339,7 +303,7 @@ class TeachersController extends AppController
 			
 			$query->matching('Schedules', function ($q) {
 				return $q->where([
-					'IF(LENGTH("' . $params['week_day'] . '") > 0, Schedules.week_day LIKE "' . ((!empty($params['week_day']) ? '%' . $params['week_day'] . '%"' : '"') . ', "")'),
+					'IF(LENGTH("' . $params['week_day'] . '") > 0, Schedules.week_day = "' . ((!empty($params['week_day']) ? '' . $params['week_day'] . '"' : '"') . ', "")'),
 					'IF(LENGTH("' . $params['start_time'] . '") > 0, Schedules.start_time LIKE "' . ((!empty($params['start_time']) ? '%' . $params['start_time'] . '%"' : '"') . ', "")'),
 					'IF(LENGTH("' . $params['end_time'] . '") > 0, Schedules.end_time LIKE "' . ((!empty($params['end_time']) ? '%' . $params['end_time'] . '%"' : '"') . ', "")'),
 				]);

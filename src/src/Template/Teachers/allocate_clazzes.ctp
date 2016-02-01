@@ -5,7 +5,14 @@
 <li class="active">Alocar Turmas para #<?= $teacher->id ?></li>
 <?php $this->end(); ?>
 
-<?php $this->loadHelper('Utils'); ?>
+<?php 
+	use Cake\Routing\Router;
+	$this->loadHelper('Utils'); 
+?>
+
+<div id="message" role="alert" class="alert alert-dismissible fade in alert-success" style="display: none;">
+	<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">×</span></button>.
+</div>
 
 <?= $this->Form->create('Filtros', array('action' => 'allocateClazzes/' . $teacher->id)) ?>
 <div class="row">
@@ -113,14 +120,14 @@
 								<?php endif; ?>
 								<?php foreach ($clazzes as $clazz): ?>
 									<tr>
-										<td><?= h($clazz->clazz_id) ?></td>
-										<td><?= h($clazz->clazze->subject->name) ?></td>
-										<td><?= h($clazz->schedule->week_day) ?></td>
-										<td><?= h($clazz->schedule->start_time) ?></td>
-										<td><?= h($clazz->schedule->end_time) ?></td>
-										<td><?= h($clazz->local->address) ?></td>
-										<td><?= h($clazz->clazze->subject->knowledge->name) ?></td>
-										<td><?= h($clazz->clazze->subject->course->name) ?></td>
+										<td><?= h($clazz->id) ?></td>
+										<td><?= h($clazz->subject->name) ?></td>
+										<td><?= h($clazz->_matchingData['Schedules']->week_day) ?></td>
+										<td><?= h($clazz->_matchingData['Schedules']->start_time) ?></td>
+										<td><?= h($clazz->_matchingData['Schedules']->end_time) ?></td>
+										<td><?= h($clazz->_matchingData['Locals']->address) ?></td>
+										<td><?= h($clazz->subject->knowledge->name) ?></td>
+										<td><?= h($clazz->subject->course->name) ?></td>
 										<td><?= h($clazz->name) ?></td>
 										<td>
 											<?= $this->Html->link(
@@ -135,20 +142,19 @@
 											) ?>
 											<?php 	$has_clazz = false;
 													foreach ($teacher->clazzes as $c) : 
-														if ($clazz->clazz_id == $c->id) { ?>
+														if ($clazz->id == $c->id) { ?>
 											
-														<?= $this->Html->link(
-															'',
-															['controller' => 'Teachers', 'action' => 'allocateClazzes', $teacher->id, $clazz->clazz_id, false],
-															[
-																'confirm' => __('Tem certeza que deseja cancelar a inscrição?'),
-																'title' => __('Cancelar Inscrição'),
-																'class' => 'btn btn-sm btn-danger glyphicon glyphicon-remove',
+														<?= $this->Form->button('<i id="icon-' . $clazz->id . '" class="fa fa-remove"></i>'
+															, array(
+																'type' => 'button',
+																'id' => 'button-' . $clazz->id,
+																'class' => 'btn btn-sm btn-danger',
 																'data-toggle' => 'tooltip',
-																'data-original-title' => __('Cancelar inscrição no processo de distribuição dessa turma'),
-															]
+																'title' => 'Cancelar inscricao na disciplina',
+																'onclick' => 'allocateClazz(' . $teacher->id . ', ' . $clazz->id . ', ' . 'false' . ')',
+																)
 														) ?>
-														Inscrito
+														
 														<?php 
 																$has_clazz = true;
 																break;
@@ -157,22 +163,29 @@
 														<?php
 														if (!$has_clazz) {
 														?>
-															<?= $this->Html->link(
-																'',
-																['controller' => 'Teachers', 'action' => 'allocateClazzes', $teacher->id, $clazz->clazz_id, true],
-																[
-																	'confirm' => __('Tem certeza que deseja efetivar a inscrição?'),
-																	'title' => __('Efetuar Inscrição'),
-																	'class' => 'btn btn-sm btn-success glyphicon glyphicon-ok',
-																	'data-toggle' => 'tooltip',
-																	'data-original-title' => __('Efetuar inscrição no processo de distribuição dessa turma'),
-																]
-																
-															) ?>
-															Não Inscrito
+															<?= $this->Form->button('<i id="icon-' . $clazz->id . '" class="fa fa-check"></i>'
+															, array(
+																'type' => 'button',
+																'id' => 'button-' . $clazz->id,
+																'class' => 'btn btn-sm btn-success',
+																'data-toggle' => 'tooltip',
+																'title' => 'Inscrever-se na disciplina',
+																'onclick' => 'allocateClazz(' . $teacher->id . ', ' . $clazz->id . ', ' . 'true' . ')',
+																)
+														) ?>
+															
 														<?php
 														}
 											?>
+											<div id="situation">
+												<?php
+													if ($has_clazz) {
+														echo 'Inscrito';
+													} else {
+														echo 'Não Inscrito';
+													}
+												?>
+											</div>
 										</td>
 									</tr>
 								<?php endforeach; ?>
@@ -189,3 +202,51 @@
     </div> 
 </div>
 <?= $this->Form->end() ?>
+<script>
+function allocateClazz(teacher, clazz, allocate) {
+	$.ajax({
+		type:"GET",
+		url:"<?php echo Router::url(array('controller'=>'Teachers','action'=>'allocateClazzes'));?>/"+teacher+"/"+clazz+"/"+allocate,
+		dataType: 'html',
+		async:false,
+		success: function(tab){
+			if (tab == 'success') {
+				$('#message').empty();
+				$('#situation').empty();
+				if (allocate) {
+					$('#message').removeClass('alert-warning').removeClass('alert-error');
+					$('#message').addClass('alert-success');
+					$('#message').append('Interesse na disciplina registrado com sucesso!');
+					$('#button-' + clazz).removeClass('btn-success').addClass('btn-danger');
+					$('#button-' + clazz).attr('onclick', 'allocateClazz(' + teacher + ', ' + clazz + ', ' + 'false' + ')');
+					$('#button-' + clazz).attr('title', 'Cancelar inscricao na disciplina');
+					$('#button-' + clazz).attr('data-original-title', 'Cancelar inscricao na disciplina');
+					$('#icon-' + clazz).removeClass('fa-check').addClass('fa-remove');
+					$('#situation').append('Inscrito');
+				} else {
+					$('#message').removeClass('alert-success').removeClass('alert-error');
+					$('#message').addClass('alert-warning');
+					$('#message').append('Interesse na disciplina cancelado com sucesso!');
+					$('#button-' + clazz).removeClass('btn-danger').addClass('btn-success');
+					$('#button-' + clazz).attr('onclick', 'allocateClazz(' + teacher + ', ' + clazz + ', ' + 'true' + ')');
+					$('#button-' + clazz).attr('title', 'Inscrever-se na disciplina');
+					$('#button-' + clazz).attr('data-original-title', 'Inscrever-se na disciplina');
+					$('#icon-' + clazz).removeClass('fa-remove').addClass('fa-check');
+					$('#situation').append('Não Inscrito');
+				}
+	
+			} else {
+
+				$('#message').removeClass('warning').removeClass('success');
+				$('#message').addClass('error');
+				$('#message').html('Ocorreu um erro ao tentar efetuar a operação. Tente novamente ou contate o administrador do sistema.');
+			}
+			
+			$('#message').toggle();
+		},
+		error: function (tab) {
+			alert('error');
+		}
+	});
+}
+</script>

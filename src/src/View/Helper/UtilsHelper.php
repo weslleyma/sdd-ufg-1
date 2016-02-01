@@ -11,6 +11,7 @@ class UtilsHelper extends Helper
     public function daysOfWeek() {
 		
 		return array(
+		'' => 'Selecione o dia',
 			2 => 'Segunda-Feira',
 			3 => 'Terça-Feira',
 			4 => 'Quarta-Feira',
