@@ -2,6 +2,7 @@
 namespace App\Controller;
 
 use App\Controller\AppController;
+use Cake\Datasource\ConnectionManager;
 use Cake\ORM\TableRegistry;
 
 /**
@@ -98,8 +99,6 @@ class TeachersController extends AppController
 			]
         ]);
 
-		$clazzes = $this->getClazzes();
-
         if ($this->request->is(['patch', 'post', 'put'])) {
 
 			$data = $this->request->data;
@@ -128,8 +127,6 @@ class TeachersController extends AppController
 
         $this->set(compact('teacher'));
         $this->set('_serialize', ['teacher']);
-		$this->set('clazzes', $clazzes);
-        $this->set('_serialize', ['clazzes']);
     }
 
     /**
@@ -250,7 +247,8 @@ class TeachersController extends AppController
 			if ($this->request->is('post')) {
 				$data = $this->request->data;
 				$clazzes = $this->getClazzes($data['process'], $data);
-				echo json_encode($clazzes); die();
+				echo json_encode($clazzes);
+				die();
 			}
 
 			$this->set(compact('teacher'));
@@ -290,47 +288,63 @@ class TeachersController extends AppController
 				
 		
 		} else {
-
-			$query = $this->Clazzes->find()->where(['Clazzes.process_id' => (int)$params['process']]);
-
-			$query->matching('Clazzes.Subjects', function ($q) {
-
-				return $q->where([
-					'IF(LENGTH("' . $params['subject_name'] . '") > 0, Subjects.name LIKE "' . ((!empty($params['subject_name']) ? '%' . $params['subject_name'] . '%"' : '"') . ', "")'),
-				]);
-			});
 			
-			$query->matching('Clazzes.Subjects.Courses', function ($q) {
-				return $q->where([
-					'Courses.name LIKE ' => (!empty($params['course_name']) ? '%' . $params['course_name'] . '%' : '')
-				]);
-			});
+			$connection = ConnectionManager::get('default');
 			
-			$query->matching('Clazzes.Subjects.Knowledges', function ($q) {
-				return $q->where([
-					'Knowledges.name LIKE ' => (!empty($params['knowledge_name']) ? '%' . $params['knowledge_name'] . '%' : '')
-				]);
-			});
+			$results = $connection->execute('SELECT 
+				  Clazzes.id AS `Clazzes__id`, 
+				  Clazzes.name AS `Clazzes__name`, 
+				  Clazzes.vacancies AS `Clazzes__vacancies`, 
+				  Clazzes.subject_id AS `Clazzes__subject_id`, 
+				  Clazzes.process_id AS `Clazzes__process_id`, 
+				  Locals.id AS `Locals__id`, 
+				  Locals.name AS `Locals__name`, 
+				  Locals.address AS `Locals__address`, 
+				  Locals.capacity AS `Locals__capacity`, 
+				  ClazzesSchedulesLocals.clazz_id AS `ClazzesSchedulesLocals__clazz_id`, 
+				  ClazzesSchedulesLocals.schedule_id AS `ClazzesSchedulesLocals__schedule_id`, 
+				  ClazzesSchedulesLocals.local_id AS `ClazzesSchedulesLocals__local_id`, 
+				  Schedules.id AS `Schedules__id`, 
+				  Schedules.week_day AS `Schedules__week_day`, 
+				  Schedules.start_time AS `Schedules__start_time`, 
+				  Schedules.end_time AS `Schedules__end_time`, 
+				  Subjects.id AS `Subjects__id`, 
+				  Subjects.name AS `Subjects__name`, 
+				  Subjects.theoretical_workload AS `Subjects__theoretical_workload`, 
+				  Subjects.practical_workload AS `Subjects__practical_workload`, 
+				  Subjects.knowledge_id AS `Subjects__knowledge_id`, 
+				  Subjects.course_id AS `Subjects__course_id`, 
+				  Knowledges.id AS `Knowledges__id`, 
+				  Knowledges.name AS `Knowledges__name`, 
+				  Courses.id AS `Courses__id`, 
+				  Courses.name AS `Courses__name` 
+				FROM .
+				  clazzes Clazzes 
+				  INNER JOIN locals Locals ON (1 = 1)
+				  INNER JOIN schedules Schedules ON (1 = 1 AND TIME(Schedules.start_time) >= CAST("' . (int)$params['start_time']['hour'] . ':' . (int)$params['start_time']['minute'] . '" AS time) ' .
+				  ' AND TIME(Schedules.end_time) <= CAST("' . (int)$params['end_time']['hour'] . ':' . (int)$params['end_time']['minute'] . '" AS time) 
+				  AND Schedules.week_day LIKE "%' . $params['week_day'] . '%" ) 
+				  INNER JOIN clazzes_schedules_locals ClazzesSchedulesLocals ON (
+					Clazzes.id = (
+					  ClazzesSchedulesLocals.clazz_id
+					) 
+					AND Schedules.id = (
+					  ClazzesSchedulesLocals.schedule_id
+					) 
+					AND Locals.id = (
+					  ClazzesSchedulesLocals.local_id
+					)
+				  ) 
+				  INNER JOIN subjects Subjects ON Subjects.id = (Clazzes.subject_id) AND Subjects.name LIKE "%' . $params['subject_name'] . '%"
+				  INNER JOIN knowledges Knowledges ON Knowledges.id = (Subjects.knowledge_id) AND Knowledges.name LIKE "%' . $params['knowledge_name'] . '%"
+				  INNER JOIN courses Courses ON Courses.id = (Subjects.course_id) AND Courses.name LIKE "%' . $params['course_name'] . '%"
+				WHERE 
+				  process_id = ' . $params['process'] . ' 
+				LIMIT 
+				  20 OFFSET 0')->fetchAll('assoc');
+
 			
-
-			$query->matching('Locals', function ($q) {
-
-				return $q->where([
-					'Locals.address LIKE' => (!empty($params['address']) ? '%' . $params['address'] . '%' : '')
-				]);
-			});
-
-
-			$query->matching('Schedules', function ($q) {
-				return $q->where([
-					'IF(LENGTH("' . $params['week_day'] . '") > 0, Schedules.week_day = "' . ((!empty($params['week_day']) ? '' . $params['week_day'] . '"' : '"') . ', "")'),
-					'IF(LENGTH("' . $params['start_time'] . '") > 0, Schedules.start_time >= "' . ((!empty($params['start_time']) ? $params['start_time'] . '"' : '"') . ', "")'),
-					'IF(LENGTH("' . $params['end_time'] . '") > 0, Schedules.end_time <= "' . ((!empty($params['end_time']) ? $params['end_time'] . '"' : '"') . ', "")'),
-				]);
-			});
-
-			return $this->paginate($query);
+			return ($results);
 		}
-
-    }
+	}
 }

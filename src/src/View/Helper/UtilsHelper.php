@@ -17,8 +17,8 @@ class UtilsHelper extends Helper
 			4 => 'Quarta-Feira',
 			5 => 'Quinta-Feira',
 			6 => 'Sexta-Feira',
-			7 => 'Sábado-Feira',
-			8 => 'Domingo-Feira',
+			7 => 'Sábado',
+			1 => 'Domingo',
 		);
 		
 	}

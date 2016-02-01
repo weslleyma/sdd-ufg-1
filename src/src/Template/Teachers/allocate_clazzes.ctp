@@ -78,7 +78,7 @@
 										echo $this->Form->label('start_time');
 										echo $this->Form->time('start_time'
 										, ['format' => '24'
-										, 'interval' => 10,
+										, 'default' => '00:00',
 										'hour' => [
 											'class' => 'form-control',
 										],
@@ -92,7 +92,7 @@
 										echo $this->Form->label('end_time');
 										echo $this->Form->time('end_time'
 										, ['format' => '24'
-										, 'interval' => 10,
+										, 'default' => '23:59',
 										'hour' => [
 											'class' => 'form-control',
 										],
@@ -135,7 +135,7 @@
 									<tr>
 										<td><?= h($clazz->id) ?></td>
 										<td><?= h($clazz->subject->name) ?></td>
-										<td><?= h($clazz->_matchingData['Schedules']->week_day) ?></td>
+										<td><?= h($this->Utils->daysOfWeek()[$clazz->_matchingData['Schedules']->week_day]) ?></td>
 										<td><?= h($clazz->_matchingData['Schedules']->start_time) ?></td>
 										<td><?= h($clazz->_matchingData['Schedules']->end_time) ?></td>
 										<td><?= h($clazz->_matchingData['Locals']->address) ?></td>
@@ -145,7 +145,7 @@
 										<td>
 											<?= $this->Html->link(
 												'',
-												['controller' => 'Clazzes', 'action' => 'view', $clazz->clazz_id],
+												['controller' => 'Clazzes', 'action' => 'view', $clazz->id],
 												[
 													'title' => __('Visualizar'),
 													'class' => 'btn btn-sm btn-default glyphicon glyphicon-search',
@@ -219,14 +219,101 @@
 
 $(document).ready(function() {
 	
-	$('#filters').on('keyup', 'input', function() {
+	$('select[name="start_time[hour]"]').on('change', function() {
+		if ($(this).val() > $('select[name="end_time[hour]"]').val()) {
+			$('select[name="end_time[hour]"]').val($(this).val());
+			
+			if ($('select[name="end_time[minute]"]').val() < $('select[name="start_time[minute]"]').val()) {
+				$('select[name="end_time[minute]"]').val($('select[name="start_time[minute]"]').val());
+			}
+		}
+	});
+	
+	$('select[name="end_time[hour]"]').on('change', function() {
+		if ($(this).val() < $('select[name="start_time[hour]"]').val()) {
+			$(this).val($('select[name="end_time[hour]"]').val());
+			
+			if ($('select[name="end_time[minute]"]').val() < $('select[name="start_time[minute]"]').val()) {
+				$('select[name="end_time[minute]"]').val($('select[name="start_time[minute]"]').val());
+			}
+		}
+	});
+
+	$('select[name="end_time[minute]"]').on('change', function() {
+		if ($('select[name="end_time[hour]"]').val() <= $('select[name="start_time[hour]"]').val()) {
+			if ($(this).val() < $('select[name="start_time[minute]"]').val()) {
+				$(this).val($('select[name="start_time[minute]"]').val());
+			}
+		}
+	});
+	
+	$('select[name="start_time[minute]"]').on('change', function() {
+		if ($('select[name="end_time[hour]"]').val() <= $('select[name="start_time[hour]"]').val()) {
+			if ($(this).val() > $('select[name="end_time[minute]"]').val()) {
+				$('select[name="end_time[minute]"]').val($(this).val());
+			}
+		}
+	});
+	
+	
+	$('#filters input, #filters select').on('keyup keydown change', function() {
 		$.ajax({
 			type:"POST",
 			url:"<?php echo Router::url(array('controller'=>'Teachers','action'=>'allocateClazzes'));?>/"+<?php echo $teacher->id; ?>,
 			dataType: 'html',
 			data: $('#filters input, #filters select'),
 			success: function(tab){
+				var data = JSON.parse(tab);
 				
+				var html = '';
+				
+				$("tbody").empty();
+				
+				if (data.length == 0) {
+					$('tbody').append('<tr>'+
+						'<td colspan="10" class="text-center">Não existem turmas cadastradas no Processo com os critérios informados</td>' +
+					'</tr>');
+				}
+				
+				for (var i = 0; i < data.length; i++) {
+					html += '<tr>' +
+						'<td>' + data[i].Clazzes__id + '</td>' +
+						'<td>' + data[i].Subjects__name + '</td>' +
+						'<td>' + data[i].Schedules__week_day + '</td>' +
+						'<td>' + data[i].Schedules__start_time + '</td>' +
+						'<td>' + data[i].Schedules__end_time + '</td>' +
+						'<td>' + data[i].Locals__address + '</td>' +
+						'<td>' + data[i].Knowledges__name + '</td>' +
+						'<td>' + data[i].Courses__name + '</td>' +
+						'<td>' + data[i].Clazzes__name + '</td>';
+					
+					var teacher_clazzes = <?php echo json_encode($teacher->clazzes); ?>;
+					var has_clazz = false;
+						
+					for (var j = 0; j < teacher_clazzes.length; j++) {
+						if (teacher_clazzes[i].id == data[i].Clazzes__id) {
+			
+							html += '<td><a href="/clazzes/view/' + data[i].Clazzes__id + '" title="" class="btn btn-sm btn-default glyphicon glyphicon-search" data-toggle="tooltip" data-original-title="Visualizar"></a>' +
+							'<button type="button" id="button-' + data[i].Clazzes__id + '" class="btn btn-sm btn-danger" data-toggle="tooltip" title="" onclick="allocateClazz(<?php echo $teacher->id; ?>, ' + data[i].Clazzes__id + ', false)" data-original-title="Cancelar inscricao na disciplina"><i id="icon-' + data[i].Clazzes__id + '" class="fa fa-remove"></i><i id="icon-loading-' + data[i].Clazzes__id + '" class="fa fa-spinner fa-spin" style="display:none;"></i></button>' +
+							'<div id="situation">Inscrito</div>';
+							
+							has_clazz = true;
+							break;
+						} 
+					}
+			
+					if (!has_clazz) {
+	
+						html += '<td><a href="/clazzes/view/' + data[i].Clazzes__id + '" title="" class="btn btn-sm btn-default glyphicon glyphicon-search" data-toggle="tooltip" data-original-title="Visualizar"></a>' +
+						'<button type="button" id="button-' + data[i].Clazzes__id + '" class="btn btn-sm btn-success" data-toggle="tooltip" title="Inscrever-se na disciplina" onclick="allocateClazz(<?php echo $teacher->id; ?>, ' + data[i].Clazzes__id + ', true)" data-original-title="Inscrever-se na disciplina"><i id="icon-' + data[i].Clazzes__id + '" class="fa fa-check" style="display: inline-block;"></i><i id="icon-loading-' + data[i].Clazzes__id + '" class="fa fa-spinner fa-spin" style="display: none;"></i></button>' +
+						'<div id="situation">Não Inscrito</div>';
+
+					}
+					
+					html += '</td></tr>';
+					$('tbody').append(html);
+
+					}
 			},
 			error: function (tab) {
 				alert('error');
