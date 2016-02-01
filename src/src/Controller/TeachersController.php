@@ -3,7 +3,6 @@ namespace App\Controller;
 
 use App\Controller\AppController;
 use Cake\ORM\TableRegistry;
-use Cake\View\HelperRegistry;
 
 /**
  * Teachers Controller
@@ -102,6 +101,7 @@ class TeachersController extends AppController
 		$clazzes = $this->getClazzes();
 
         if ($this->request->is(['patch', 'post', 'put'])) {
+
 			$data = $this->request->data;
 			$data['user']['is_admin'] = isset($this->request->data['user']['is_admin']) ? 1 : 0;
 
@@ -128,6 +128,8 @@ class TeachersController extends AppController
 
         $this->set(compact('teacher'));
         $this->set('_serialize', ['teacher']);
+		$this->set('clazzes', $clazzes);
+        $this->set('_serialize', ['clazzes']);
     }
 
     /**
@@ -161,7 +163,7 @@ class TeachersController extends AppController
 	{
 		$table_clazzes_teachers = TableRegistry::get('ClazzesTeachers');
 		$table_processes = TableRegistry::get('Processes');
-
+		
 		$teacher = $this->Teachers->get($id, [
             'contain' => ['Users'
 				, 'Clazzes'
@@ -270,9 +272,20 @@ class TeachersController extends AppController
      */
 
     private function getClazzes($process_id, $params = null) 
+
     {	
 
 		$this->loadModel('Clazzes');
+		
+		/*array('clazz_name' => ''
+					, 'subject_name' => ''
+					, 'course_name' => ''
+					, 'knowledge_name' => ''
+					, 'week_day' => ''
+					, 'start_time' => ''
+					, 'end_time' => ''
+					, 'address' => ''*/
+
 
 		if ($params === null) {
 
@@ -296,22 +309,25 @@ class TeachersController extends AppController
 			});
 
 			$query->matching('Subjects.Courses', function ($q) {
-
 				return $q->where([
-					'IF(LENGTH("' . $params['course_name'] . '") > 0, Courses.name LIKE "' . ((!empty($params['course_name']) ? '%' . $params['course_name'] . '%"' : '"') . ', "")'),
+					'Clazzes.Subjects.name LIKE ' => (!empty($params['subject_name']) ? '%' . $params['subject_name'] . '%' : '')
+					, 'Clazzes.Subjects.Courses.name LIKE ' => (!empty($params['course_name']) ? '%' . $params['course_name'] . '%' : '')
+					, 'Clazzes.Subjects.Knowleges.name LIKE ' => (!empty($params['knowledge_name']) ? '%' . $params['knowledge_name'] . '%' : '')
 				]);
 			});
 
 			$query->matching('Subjects.Knowledges', function ($q) {
 
 				return $q->where([
-					'IF(LENGTH("' . $params['knowledge_name'] . '") > 0, Knowledges.name LIKE "' . ((!empty($params['knowledge_name']) ? '%' . $params['knowledge_name'] . '%"' : '"') . ', "")')
+					'Locals.address LIKE' => (!empty($params['address']) ? '%' . $params['address'] . '%' : '')
 				]);
 			});
 
 			$query->matching('Locals', function ($q) {
 				return $q->where([
-					'IF(LENGTH("' . $params['address'] . '") > 0, Locals.address LIKE"' . ((!empty($params['address']) ? '%' . $params['address'] . '%"' : '"') . ', "")')
+					'Schedules.week_day LIKE ' =>(!empty($params['week_day']) ? '%' . $params['week_day'] . '%' : '')
+					, 'Schedules.start_time LIKE' => (!empty($params['start_time']) ? '%' . $params['start_time'] . '%' : '')
+					, 'Schedules.end_time LIKE' => (!empty($params['end_time']) ? '%' . $params['end_time'] . '%' : '')
 				]);
 			});
 
@@ -327,6 +343,4 @@ class TeachersController extends AppController
 		}
 
     }
-
-
 }

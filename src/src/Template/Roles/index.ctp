@@ -1,45 +1,77 @@
-<nav class="large-3 medium-4 columns" id="actions-sidebar">
-    <ul class="side-nav">
-        <li class="heading"><?= __('Actions') ?></li>
-        <li><?= $this->Html->link(__('New Role'), ['action' => 'add']) ?></li>
-        <li><?= $this->Html->link(__('List Teachers'), ['controller' => 'Teachers', 'action' => 'index']) ?></li>
-        <li><?= $this->Html->link(__('New Teacher'), ['controller' => 'Teachers', 'action' => 'add']) ?></li>
-        <li><?= $this->Html->link(__('List Knowledges'), ['controller' => 'Knowledges', 'action' => 'index']) ?></li>
-        <li><?= $this->Html->link(__('New Knowledge'), ['controller' => 'Knowledges', 'action' => 'add']) ?></li>
-    </ul>
-</nav>
-<div class="roles index large-9 medium-8 columns content">
-    <h3><?= __('Roles') ?></h3>
-    <table cellpadding="0" cellspacing="0">
-        <thead>
-            <tr>
-                <th><?= $this->Paginator->sort('id') ?></th>
-                <th><?= $this->Paginator->sort('teacher_id') ?></th>
-                <th><?= $this->Paginator->sort('knowledge_id') ?></th>
-                <th class="actions"><?= __('Actions') ?></th>
-            </tr>
-        </thead>
-        <tbody>
-            <?php foreach ($roles as $role): ?>
-            <tr>
-                <td><?= $this->Number->format($role->id) ?></td>
-                <td><?= $role->has('teacher') ? $this->Html->link($role->teacher->id, ['controller' => 'Teachers', 'action' => 'view', $role->teacher->id]) : '' ?></td>
-                <td><?= $role->has('knowledge') ? $this->Html->link($role->knowledge->name, ['controller' => 'Knowledges', 'action' => 'view', $role->knowledge->id]) : '' ?></td>
-                <td class="actions">
-                    <?= $this->Html->link(__('View'), ['action' => 'view', $role->id]) ?>
-                    <?= $this->Html->link(__('Edit'), ['action' => 'edit', $role->id]) ?>
-                    <?= $this->Form->postLink(__('Delete'), ['action' => 'delete', $role->id], ['confirm' => __('Are you sure you want to delete # {0}?', $role->id)]) ?>
-                </td>
-            </tr>
-            <?php endforeach; ?>
-        </tbody>
-    </table>
-    <div class="paginator">
-        <ul class="pagination">
-            <?= $this->Paginator->prev('< ' . __('previous')) ?>
-            <?= $this->Paginator->numbers() ?>
-            <?= $this->Paginator->next(__('next') . ' >') ?>
-        </ul>
-        <p><?= $this->Paginator->counter() ?></p>
+<?php $this->assign('title', 'Processos de distribuição'); ?>
+<?php $this->start('breadcrumb'); ?>
+    <li><a href="#"><i class="fa fa-dashboard"></i> Level</a></li>
+    <li class="active">Here</li>
+<?php $this->end(); ?>
+
+<div class="row">
+    <div class="col-xs-12">
+        <div class="box box-primary">
+            <div class="box-header">
+                <h3 class="box-title">Lista de papéis</h3>
+                <div class="pull-right box-tools">
+                    <?= $this->Html->link(
+                        '<i class="fa fa-plus-circle"></i> ' . __('Adicionar'),
+                        ['action' => 'add'],
+                        [
+                            'escape' => false,
+                            'data-toggle' => 'tooltip',
+                            'data-original-title' => __('Adicionar'),
+                            'class' => 'btn btn-sm btn-primary'
+                        ]
+                    );
+                    ?>
+                </div>
+            </div>
+            <div class="box-body table-responsive no-padding">
+                <table class="table table-striped table-valign-middle">
+                    <thead>
+                        <tr>
+                            <th><?= $this->Paginator->sort('id', __('#ID')) ?></th>
+                            <th><?= $this->Paginator->sort('type', __('Descrição')) ?></th>
+                            <th><?= $this->Paginator->sort('teacher_id', __('Docente')) ?></th>
+                            <th><?= $this->Paginator->sort('knowledge_id', __('Núcleo')) ?></th>
+                            <th width="200px"><?= __('Ações') ?></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php if($roles->isEmpty()): ?>
+                            <tr>
+                                <td colspan="5" class="text-center">Não existe nenhum papel cadastrado</td>
+                            </tr>
+                        <?php endif; ?>
+
+                        <?php foreach ($roles as $role): ?>
+                            <tr>
+                                <td><?= $this->Number->format($role->id) ?></td>
+                                <td><?= h($role->display_type) ?></td>
+                                <td><?= $role->has('teacher') ? $this->Html->link($role->teacher->user->name, ['controller' => 'Teachers', 'action' => 'view', $role->teacher->id]) : '' ?></td>
+                                <td><?= $role->has('knowledge') ? $this->Html->link($role->knowledge->name, ['controller' => 'Knowledges', 'action' => 'view', $role->knowledge->id]) : '' ?></td>
+                                <td>
+                                    <?= $this->Form->postLink(
+                                        '',
+                                        ['action' => 'delete', $role->id],
+                                        [
+                                            'confirm' => __('Você tem certeza de que deseja excluir o papel "{0}"?', $role->id),
+                                            'title' => __('Cancelar'),
+                                            'class' => 'btn btn-sm btn-danger glyphicon glyphicon-trash',
+                                            'data-toggle' => 'tooltip',
+                                            'data-original-title' => __('Cancelar'),
+                                        ]
+                                    ) ?>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+                <div class="box-footer clearfix">
+                    <ul class="pagination pagination-sm no-margin pull-right">
+                        <?= $this->Paginator->prev('«') ?>
+                        <?= $this->Paginator->numbers() ?>
+                        <?= $this->Paginator->next('»') ?>
+                    </ul>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
