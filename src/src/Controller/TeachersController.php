@@ -321,9 +321,9 @@ class TeachersController extends AppController
 				FROM .
 				  clazzes Clazzes 
 				  INNER JOIN locals Locals ON (1 = 1)
-				  INNER JOIN schedules Schedules ON (1 = 1 AND TIME(Schedules.start_time) >= CAST("' . (int)$params['start_time']['hour'] . ':' . (int)$params['start_time']['minute'] . '" AS time) ' .
-				  ' AND TIME(Schedules.end_time) <= CAST("' . (int)$params['end_time']['hour'] . ':' . (int)$params['end_time']['minute'] . '" AS time) 
-				  AND Schedules.week_day LIKE "%' . $params['week_day'] . '%" ) 
+				  INNER JOIN schedules Schedules ON (1 = 1 AND TIME(Schedules.start_time) >= CAST(? AS time) ' .
+				  ' AND TIME(Schedules.end_time) <= CAST(? AS time) 
+				  AND Schedules.week_day LIKE ? ) 
 				  INNER JOIN clazzes_schedules_locals ClazzesSchedulesLocals ON (
 					Clazzes.id = (
 					  ClazzesSchedulesLocals.clazz_id
@@ -335,13 +335,21 @@ class TeachersController extends AppController
 					  ClazzesSchedulesLocals.local_id
 					)
 				  ) 
-				  INNER JOIN subjects Subjects ON Subjects.id = (Clazzes.subject_id) AND Subjects.name LIKE "%' . $params['subject_name'] . '%"
-				  INNER JOIN knowledges Knowledges ON Knowledges.id = (Subjects.knowledge_id) AND Knowledges.name LIKE "%' . $params['knowledge_name'] . '%"
-				  INNER JOIN courses Courses ON Courses.id = (Subjects.course_id) AND Courses.name LIKE "%' . $params['course_name'] . '%"
+				  INNER JOIN subjects Subjects ON Subjects.id = (Clazzes.subject_id) AND Subjects.name LIKE ?
+				  INNER JOIN knowledges Knowledges ON Knowledges.id = (Subjects.knowledge_id) AND Knowledges.name LIKE ?
+				  INNER JOIN courses Courses ON Courses.id = (Subjects.course_id) AND Courses.name LIKE ?
 				WHERE 
-				  process_id = ' . $params['process'] . ' 
+				  process_id = ?  
 				LIMIT 
-				  20 OFFSET 0')->fetchAll('assoc');
+				  20 OFFSET 0'
+				  
+				  , [(int)$params['start_time']['hour'] . ':' . (int)$params['start_time']['minute'],
+					(int)$params['end_time']['hour'] . ':' . (int)$params['end_time']['minute'],
+					'%' . $params['week_day'] . '%',
+					'%' . $params['subject_name'] . '%', 
+					'%' . $params['knowledge_name'] . '%',
+					'%' . $params['course_name'] . '%', 
+					$params['process']], ['string', 'string', 'string', 'string', 'string', 'string', 'integer'])->fetchAll('assoc');
 
 			
 			return ($results);
