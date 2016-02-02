@@ -29,10 +29,9 @@ class SchedulesTable extends Table
         $this->displayField('id');
         $this->primaryKey('id');
 
-        $this->belongsToMany('Clazzes', [
-            'foreignKey' => 'schedule_id',
-            'targetForeignKey' => 'clazz_id',
-            'joinTable' => 'clazzes_schedules_locals'
+        $this->hasMany('ClazzesSchedulesLocals', [
+            'foreignKey' => 'local_id',
+            'propertyName' => 'LocalClazzes'
         ]);
     }
 
@@ -47,10 +46,6 @@ class SchedulesTable extends Table
         $validator
             ->add('id', 'valid', ['rule' => 'numeric'])
             ->allowEmpty('id', 'create');
-
-        $validator
-            ->requirePresence('code', 'create')
-            ->notEmpty('code');
 
         $validator
             ->add('initial_time', 'valid', ['rule' => 'time'])
