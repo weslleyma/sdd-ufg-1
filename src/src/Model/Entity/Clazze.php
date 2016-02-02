@@ -36,4 +36,101 @@ class Clazze extends Entity
         '*' => true,
         'id' => false,
     ];
+
+    public function _getDisplayName()
+    {
+        if(!isset($this->process)) {
+            $table = TableRegistry::get($this->source());
+            $this->process = $table->Processes->findById($this->process_id)->toArray()[0];
+        }
+
+        if(!isset($this->subject)) {
+            $table = TableRegistry::get($this->source());
+            $this->process = $table->Subjects->findById($this->subject_id)->toArray()[0];
+        }
+
+        return $this->process->name . " - " . $this->subject->name . " - " . $this->name;
+    }
+
+    public function _getStatus()
+    {
+        if(!isset($this->intents) || empty($this->intents)) {
+            return "OPEN";
+        }
+
+        $status = (count($this->intents) > 1) ? "CONFLICT" : "OPEN";
+        foreach($this->intents as $intent) {
+            if($intent->status == "SELECTED") {
+                $status = "CLOSED";
+            }
+        }
+
+        return $status;
+    }
+
+    public function _getDisplayStatus()
+    {
+        switch($this->status) {
+            case "CONFLICT":
+                $displayName = _('Em conflito');
+                $lblClass = 'danger';
+                break;
+            case "CLOSED":
+                $displayName = _('Fechado');
+                $lblClass = 'default';
+                break;
+            case "OPEN":
+            default:
+                $displayName = _('Aberto');
+                $lblClass = 'success';
+                break;
+        }
+
+        return '<span class="label label-'.$lblClass.'">'.$displayName.'</span>';
+    }
+
+    public function _getSelectedTeachers()
+    {
+        if(!isset($this->intents) || empty($this->intents)) {
+            return [];
+        }
+
+        $first = $this->intents[0];
+        $teachersById = [];
+        $externalTeachers = False;
+        if(!isset($first->teacher) || !isset($first->teacher->user)) {
+            $externalTeachers = True;
+            if(isset($this->teachersById) && is_array($this->teachersById)) {
+                $teachersById = $this->teachersById;
+            } else {
+                $teacherIds = [];
+                foreach($this->intents as $intent) {
+                    $teacherIds[] = $intent->teacher_id;
+                }
+
+                $teacherModel = TableRegistry::get('Teachers');
+                $teachers = $teacherModel->find('all')->contain(['Users'])
+                    ->where(['Teachers.id IN' => $teacherIds])->toArray();
+
+                foreach($teachers as $teacher) {
+                    $teachersById[$teacher->id] = $teacher;
+                }
+
+                $this->teachersById = $teachersById;
+            }
+        }
+
+        $selectedTeachers = [];
+        foreach($this->intents as $intent) {
+            if($intent->status == "SELECTED") {
+                if($externalTeachers) {
+                    $selectedTeachers[] = $teachersById[$intent->teacher_id];
+                } else {
+                    $selectedTeachers[] = $intent->teacher;
+                }
+            }
+        }
+
+        return $selectedTeachers;
+    }
 }

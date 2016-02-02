@@ -1,6 +1,7 @@
 <?php
 namespace App\Model\Entity;
 
+use App\View\Helper\UtilsHelper;
 use Cake\ORM\Entity;
 
 /**
