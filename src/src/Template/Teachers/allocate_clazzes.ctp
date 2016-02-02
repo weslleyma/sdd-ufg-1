@@ -135,10 +135,42 @@
 									<tr>
 										<td><?= h($clazz->id) ?></td>
 										<td><?= h($clazz->subject->name) ?></td>
-										<td><?= h($this->Utils->daysOfWeek()[$clazz->_matchingData['Schedules']->week_day]) ?></td>
-										<td><?= h($clazz->_matchingData['Schedules']->start_time) ?></td>
-										<td><?= h($clazz->_matchingData['Schedules']->end_time) ?></td>
-										<td><?= h($clazz->_matchingData['Locals']->address) ?></td>
+										<td>
+										<?php 
+											foreach ($clazz->ScheduleLocals as $csl) {
+												echo ($this->Utils->daysOfWeek()[$csl->week_day]); ?>
+												<br>
+											<?php
+											}
+										?>
+										</td>
+										<td>
+										<?php 
+											foreach ($clazz->schedules as $s) {
+												echo ($s->start_time); ?>
+												<br>
+											<?php
+											}
+										?>
+										</td>
+										<td>
+										<?php 
+											foreach ($clazz->schedules as $s) {
+												echo ($s->end_time); ?>
+												<br>
+											<?php
+											}
+										?>
+										</td>
+										<td>
+										<?php 
+											foreach ($clazz->locals as $l) {
+												echo $l->name . ' - ' . $l->local; ?>
+												<br>
+											<?php
+											}
+										?>
+										</td>
 										<td><?= h($clazz->subject->knowledge->name) ?></td>
 										<td><?= h($clazz->subject->course->name) ?></td>
 										<td><?= h($clazz->name) ?></td>
@@ -279,13 +311,17 @@ $(document).ready(function() {
 					html += '<tr>' +
 						'<td>' + data[i].Clazzes__id + '</td>' +
 						'<td>' + data[i].Subjects__name + '</td>' +
-						'<td>' + data[i].Schedules__week_day + '</td>' +
+						'<td>' + data[i].ScheduleLocals__week_day + '</td>' +
 						'<td>' + data[i].Schedules__start_time + '</td>' +
 						'<td>' + data[i].Schedules__end_time + '</td>' +
 						'<td>' + data[i].Locals__address + '</td>' +
 						'<td>' + data[i].Knowledges__name + '</td>' +
 						'<td>' + data[i].Courses__name + '</td>' +
 						'<td>' + data[i].Clazzes__name + '</td>';
+					
+					
+						
+					
 					
 					var teacher_clazzes = <?php echo json_encode($teacher->clazzes); ?>;
 					var has_clazz = false;

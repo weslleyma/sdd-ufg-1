@@ -276,83 +276,22 @@ class TeachersController extends AppController
     {	
 
 		$this->loadModel('Clazzes');
+		$this->loadModel('ClazzesLocalsSchedules');
 		
 		if ($params === null) {
 
 			return $this->paginate($this->Clazzes->find()
 				->where(['process_id' => $process_id])
-				->contain(['Subjects', 'Subjects.Knowledges', 'Subjects.Courses'])
-				->matching('Locals')
-				->matching('Schedules')
+				->contain(['Subjects', 'Subjects.Knowledges', 'Subjects.Courses', 'Locals', 'Schedule', 'ClazzesSchedulesLocals.Locals', 'ClazzesSchedulesLocals.Schedules'])
 			);
-				
+
 		
 		} else {
 			
-			$connection = ConnectionManager::get('default');
-			
-			$results = $connection->execute('SELECT 
-				  Clazzes.id AS `Clazzes__id`, 
-				  Clazzes.name AS `Clazzes__name`, 
-				  Clazzes.vacancies AS `Clazzes__vacancies`, 
-				  Clazzes.subject_id AS `Clazzes__subject_id`, 
-				  Clazzes.process_id AS `Clazzes__process_id`, 
-				  Locals.id AS `Locals__id`, 
-				  Locals.name AS `Locals__name`, 
-				  Locals.address AS `Locals__address`, 
-				  Locals.capacity AS `Locals__capacity`, 
-				  ClazzesSchedulesLocals.clazz_id AS `ClazzesSchedulesLocals__clazz_id`, 
-				  ClazzesSchedulesLocals.schedule_id AS `ClazzesSchedulesLocals__schedule_id`, 
-				  ClazzesSchedulesLocals.local_id AS `ClazzesSchedulesLocals__local_id`, 
-				  Schedules.id AS `Schedules__id`, 
-				  Schedules.week_day AS `Schedules__week_day`, 
-				  Schedules.start_time AS `Schedules__start_time`, 
-				  Schedules.end_time AS `Schedules__end_time`, 
-				  Subjects.id AS `Subjects__id`, 
-				  Subjects.name AS `Subjects__name`, 
-				  Subjects.theoretical_workload AS `Subjects__theoretical_workload`, 
-				  Subjects.practical_workload AS `Subjects__practical_workload`, 
-				  Subjects.knowledge_id AS `Subjects__knowledge_id`, 
-				  Subjects.course_id AS `Subjects__course_id`, 
-				  Knowledges.id AS `Knowledges__id`, 
-				  Knowledges.name AS `Knowledges__name`, 
-				  Courses.id AS `Courses__id`, 
-				  Courses.name AS `Courses__name` 
-				FROM .
-				  clazzes Clazzes 
-				  INNER JOIN locals Locals ON (1 = 1)
-				  INNER JOIN schedules Schedules ON (1 = 1 AND TIME(Schedules.start_time) >= CAST(? AS time) ' .
-				  ' AND TIME(Schedules.end_time) <= CAST(? AS time) 
-				  AND Schedules.week_day LIKE ? ) 
-				  INNER JOIN clazzes_schedules_locals ClazzesSchedulesLocals ON (
-					Clazzes.id = (
-					  ClazzesSchedulesLocals.clazz_id
-					) 
-					AND Schedules.id = (
-					  ClazzesSchedulesLocals.schedule_id
-					) 
-					AND Locals.id = (
-					  ClazzesSchedulesLocals.local_id
-					)
-				  ) 
-				  INNER JOIN subjects Subjects ON Subjects.id = (Clazzes.subject_id) AND Subjects.name LIKE ?
-				  INNER JOIN knowledges Knowledges ON Knowledges.id = (Subjects.knowledge_id) AND Knowledges.name LIKE ?
-				  INNER JOIN courses Courses ON Courses.id = (Subjects.course_id) AND Courses.name LIKE ?
-				WHERE 
-				  process_id = ?  
-				LIMIT 
-				  20 OFFSET 0'
-				  
-				  , [(int)$params['start_time']['hour'] . ':' . (int)$params['start_time']['minute'],
-					(int)$params['end_time']['hour'] . ':' . (int)$params['end_time']['minute'],
-					'%' . $params['week_day'] . '%',
-					'%' . $params['subject_name'] . '%', 
-					'%' . $params['knowledge_name'] . '%',
-					'%' . $params['course_name'] . '%', 
-					$params['process']], ['string', 'string', 'string', 'string', 'string', 'string', 'integer'])->fetchAll('assoc');
-
-			
-			return ($results);
+			return $this->paginate($this->Clazzes->find()
+				->where(['process_id' => $process_id])
+				->contain(['Subjects', 'Subjects.Knowledges', 'Subjects.Courses', 'Locals', 'Schedules', 'ClazzesSchedulesLocals.Locals', 'ClazzesSchedulesLocals.Schedules'])
+			);
 		}
 	}
 }
