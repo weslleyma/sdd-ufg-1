@@ -282,7 +282,7 @@ class TeachersController extends AppController
 
 			return $this->paginate($this->Clazzes->find()
 				->where(['process_id' => $process_id])
-				->contain(['Subjects', 'Subjects.Knowledges', 'Subjects.Courses', 'Locals', 'Schedule', 'ClazzesSchedulesLocals.Locals', 'ClazzesSchedulesLocals.Schedules'])
+				->contain(['Subjects', 'Subjects.Knowledges', 'Subjects.Courses', 'Locals', 'Schedules', 'ClazzesSchedulesLocals.Locals', 'ClazzesSchedulesLocals.Schedules'])
 			);
 
 		
