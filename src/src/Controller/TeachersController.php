@@ -204,7 +204,7 @@ class TeachersController extends AppController
 
 				$this->response->disableCache();
 				
-				if ($id != null && $clazz_id != null && $allocate) {
+				if ($id != null && $clazz_id != null && $allocate == 'allocate') {
 
 					$query = $table_clazzes_teachers->query();
 					$query->delete()->where([
@@ -225,7 +225,7 @@ class TeachersController extends AppController
 					}
 					
 					die();
-				} else if ($id != null && $clazz_id != null && !$allocate) {
+				} else if ($id != null && $clazz_id != null && $allocate == 'deallocate') {
 					
 					$query = $table_clazzes_teachers->query();
 					$query->delete()->where([

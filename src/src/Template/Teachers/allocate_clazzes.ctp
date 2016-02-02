@@ -164,7 +164,7 @@
 																'class' => 'btn btn-sm btn-danger',
 																'data-toggle' => 'tooltip',
 																'title' => 'Cancelar inscricao na disciplina',
-																'onclick' => 'allocateClazz(' . $teacher->id . ', ' . $clazz->id . ', ' . 'false' . ')',
+																'onclick' => 'allocateClazz(' . $teacher->id . ', ' . $clazz->id . ', ' . '\'deallocate\'' . ')',
 																)
 														) ?>
 														
@@ -183,7 +183,7 @@
 																'class' => 'btn btn-sm btn-success',
 																'data-toggle' => 'tooltip',
 																'title' => 'Inscrever-se na disciplina',
-																'onclick' => 'allocateClazz(' . $teacher->id . ', ' . $clazz->id . ', ' . 'true' . ')',
+																'onclick' => 'allocateClazz(' . $teacher->id . ', ' . $clazz->id . ', ' . '\'allocate\'' . ')',
 																)
 														) ?>
 															
@@ -294,7 +294,7 @@ $(document).ready(function() {
 						if (teacher_clazzes[i].id == data[i].Clazzes__id) {
 			
 							html += '<td><a href="/clazzes/view/' + data[i].Clazzes__id + '" title="" class="btn btn-sm btn-default glyphicon glyphicon-search" data-toggle="tooltip" data-original-title="Visualizar"></a>' +
-							'<button type="button" id="button-' + data[i].Clazzes__id + '" class="btn btn-sm btn-danger" data-toggle="tooltip" title="" onclick="allocateClazz(<?php echo $teacher->id; ?>, ' + data[i].Clazzes__id + ', false)" data-original-title="Cancelar inscricao na disciplina"><i id="icon-' + data[i].Clazzes__id + '" class="fa fa-remove"></i><i id="icon-loading-' + data[i].Clazzes__id + '" class="fa fa-spinner fa-spin" style="display:none;"></i></button>' +
+							'<button type="button" id="button-' + data[i].Clazzes__id + '" class="btn btn-sm btn-danger" data-toggle="tooltip" title="" onclick="allocateClazz(<?php echo $teacher->id; ?>, ' + data[i].Clazzes__id + ', \'deallocate\')" data-original-title="Cancelar inscricao na disciplina"><i id="icon-' + data[i].Clazzes__id + '" class="fa fa-remove"></i><i id="icon-loading-' + data[i].Clazzes__id + '" class="fa fa-spinner fa-spin" style="display:none;"></i></button>' +
 							'<div id="situation">Inscrito</div>';
 							
 							has_clazz = true;
@@ -305,7 +305,7 @@ $(document).ready(function() {
 					if (!has_clazz) {
 	
 						html += '<td><a href="/clazzes/view/' + data[i].Clazzes__id + '" title="" class="btn btn-sm btn-default glyphicon glyphicon-search" data-toggle="tooltip" data-original-title="Visualizar"></a>' +
-						'<button type="button" id="button-' + data[i].Clazzes__id + '" class="btn btn-sm btn-success" data-toggle="tooltip" title="Inscrever-se na disciplina" onclick="allocateClazz(<?php echo $teacher->id; ?>, ' + data[i].Clazzes__id + ', true)" data-original-title="Inscrever-se na disciplina"><i id="icon-' + data[i].Clazzes__id + '" class="fa fa-check" style="display: inline-block;"></i><i id="icon-loading-' + data[i].Clazzes__id + '" class="fa fa-spinner fa-spin" style="display: none;"></i></button>' +
+						'<button type="button" id="button-' + data[i].Clazzes__id + '" class="btn btn-sm btn-success" data-toggle="tooltip" title="Inscrever-se na disciplina" onclick="allocateClazz(<?php echo $teacher->id; ?>, ' + data[i].Clazzes__id + ', \'allocate\')" data-original-title="Inscrever-se na disciplina"><i id="icon-' + data[i].Clazzes__id + '" class="fa fa-check" style="display: inline-block;"></i><i id="icon-loading-' + data[i].Clazzes__id + '" class="fa fa-spinner fa-spin" style="display: none;"></i></button>' +
 						'<div id="situation">Não Inscrito</div>';
 
 					}
@@ -333,15 +333,15 @@ function allocateClazz(teacher, clazz, allocate) {
 		url:"<?php echo Router::url(array('controller'=>'Teachers','action'=>'allocateClazzes'));?>/"+teacher+"/"+clazz+"/"+allocate,
 		dataType: 'html',
 		success: function(tab){
-			if (tab == 'success') {
+			if ($.trim(tab) == 'success') {
 				$('#message').empty();
 				$('#situation').empty();
-				if (allocate) {
+				if (allocate == 'allocate') {
 					$('#message').removeClass('alert-warning').removeClass('alert-error');
 					$('#message').addClass('alert-success');
 					$('#message').append('Interesse na disciplina registrado com sucesso!');
 					$('#button-' + clazz).removeClass('btn-success').addClass('btn-danger');
-					$('#button-' + clazz).attr('onclick', 'allocateClazz(' + teacher + ', ' + clazz + ', ' + 'false' + ')');
+					$('#button-' + clazz).attr('onclick', 'allocateClazz(' + teacher + ', ' + clazz + ', ' + '\'deallocate\'' + ')');
 					$('#button-' + clazz).attr('title', 'Cancelar inscricao na disciplina');
 					$('#button-' + clazz).attr('data-original-title', 'Cancelar inscricao na disciplina');
 					$('#icon-' + clazz).removeClass('fa-check').addClass('fa-remove');
@@ -351,7 +351,7 @@ function allocateClazz(teacher, clazz, allocate) {
 					$('#message').addClass('alert-warning');
 					$('#message').append('Interesse na disciplina cancelado com sucesso!');
 					$('#button-' + clazz).removeClass('btn-danger').addClass('btn-success');
-					$('#button-' + clazz).attr('onclick', 'allocateClazz(' + teacher + ', ' + clazz + ', ' + 'true' + ')');
+					$('#button-' + clazz).attr('onclick', 'allocateClazz(' + teacher + ', ' + clazz + ', ' + '\'allocate\'' + ')');
 					$('#button-' + clazz).attr('title', 'Inscrever-se na disciplina');
 					$('#button-' + clazz).attr('data-original-title', 'Inscrever-se na disciplina');
 					$('#icon-' + clazz).removeClass('fa-remove').addClass('fa-check');
@@ -360,8 +360,8 @@ function allocateClazz(teacher, clazz, allocate) {
 	
 			} else {
 
-				$('#message').removeClass('warning').removeClass('success');
-				$('#message').addClass('error');
+				$('#message').removeClass('alert-warning').removeClass('alert-success');
+				$('#message').addClass('alert-error');
 				$('#message').html('Ocorreu um erro ao tentar efetuar a operação. Tente novamente ou contate o administrador do sistema.');
 			}
 			
@@ -375,7 +375,6 @@ function allocateClazz(teacher, clazz, allocate) {
 		},
 		error: function (tab) {
 			alert('error');
-			$btn.button('reset');
 		}
 	});
 }
