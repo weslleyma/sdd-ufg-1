@@ -170,7 +170,7 @@ class TeachersController extends AppController
 			]
         ]);
 
-		$processes = $table_processes->find('all')->where(['initial_date <= ' => 'CURDATE()']); //, 'final_date >= ' => 'CURDATE()'
+		$processes = $table_processes->find('all')->where(['initial_date <= ' => 'CURDATE()', 'final_date >= ' => 'CURDATE()'])->orWhere(['status' => 'OPENED']); 
 
 		$count = $processes->count();
 
@@ -284,13 +284,28 @@ class TeachersController extends AppController
 				->where(['process_id' => $process_id])
 				->contain(['Subjects', 'Subjects.Knowledges', 'Subjects.Courses', 'Locals', 'Schedules', 'ClazzesSchedulesLocals.Locals', 'ClazzesSchedulesLocals.Schedules'])
 			);
-
 		
 		} else {
 			
-			return $this->paginate($this->Clazzes->find()
+			return $this->paginate($this->Clazzes->find('all')
 				->where(['process_id' => $process_id])
 				->contain(['Subjects', 'Subjects.Knowledges', 'Subjects.Courses', 'Locals', 'Schedules', 'ClazzesSchedulesLocals.Locals', 'ClazzesSchedulesLocals.Schedules'])
+				->matching('Subjects', function ($q) {
+						return $q->where(['Subjects.name LIKE ' => '%' . $params['subject_name'] . '%']);
+				})
+				->matching('Subjects.Knowledges', function ($q) {
+						return $q->where(['Knowledges.name LIKE ' => '%' . $params['knowledge_name'] . '%']);
+				})
+				->matching('Subjects.Courses', function ($q) {
+						return $q->where(['Courses.name LIKE ' => '%' . $params['course_name'] . '%']);
+				})
+				->matching('Locals', function ($q) {
+						return $q->where(['Locals.name LIKE ' => '%' . $params['local_name'] . '%'])->orWhere([['Locals.address LIKE ' => '%' . $params['local_name'] . '%']]);;
+				})
+				->matching('Schedules', function ($q) {
+						return $q->where(['Schedules.start_time >= ' => 'CAST(' . (int)$params['start_time']['hour'] . ':' . (int)$params['start_time']['minute'] . ' as TIME)'
+										, 'Schedules.end_time <= ' => 'CAST(' . (int)$params['end_time']['hour'] . ':' . (int)$params['end_time']['minute'] . ' as TIME)']);
+				})
 			);
 		}
 	}
