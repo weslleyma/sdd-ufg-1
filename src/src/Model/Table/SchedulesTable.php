@@ -53,12 +53,12 @@ class SchedulesTable extends Table
             ->notEmpty('code');
 
         $validator
-            ->add('initial_time', 'valid', ['rule' => 'date'])
+            ->add('initial_time', 'valid', ['rule' => 'time'])
             ->requirePresence('initial_time', 'create')
             ->notEmpty('initial_time');
 
         $validator
-            ->add('final_time', 'valid', ['rule' => 'date'])
+            ->add('final_time', 'valid', ['rule' => 'time'])
             ->requirePresence('final_time', 'create')
             ->notEmpty('final_time');
 
