@@ -367,7 +367,7 @@ $(document).ready(function() {
 					var has_clazz = false;
 						
 					for (var j = 0; j < teacher_clazzes.length; j++) {
-						if (teacher_clazzes[i].id == data[i].Clazzes__id) {
+						if (teacher_clazzes[j].id == data[i].Clazzes__id) {
 			
 							html += '<td><a href="/clazzes/view/' + data[i].Clazzes__id + '" title="" class="btn btn-sm btn-default glyphicon glyphicon-search" data-toggle="tooltip" data-original-title="Visualizar"></a>' +
 							'<button type="button" id="button-' + data[i].Clazzes__id + '" class="btn btn-sm btn-danger" data-toggle="tooltip" title="" onclick="allocateClazz(<?php echo $teacher->id; ?>, ' + data[i].Clazzes__id + ', \'deallocate\')" data-original-title="Cancelar inscricao na disciplina"><i id="icon-' + data[i].Clazzes__id + '" class="fa fa-remove"></i><i id="icon-loading-' + data[i].Clazzes__id + '" class="fa fa-spinner fa-spin" style="display:none;"></i></button>' +
