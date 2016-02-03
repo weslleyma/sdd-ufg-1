@@ -26,16 +26,12 @@
                     <tbody>
                         <?php foreach ($clazzes as $clazz): ?>
                             <tr>
-                            	<?php foreach($clazz->teachers as $teacher): ?>
-                            		<?php if($teacher->_joinData->status == 'APPROVED'): ?>
+                            	<?php foreach($clazz->intents as $intent): ?>
+                            		<?php if($intent->status == 'APPROVED'): ?>
 		                                <td><?= $this->Number->format($clazz->subject->id) ?></td>
 		                                <td><?= h($clazz->subject->name) ?></td>
-		                                <td>
-		                                	<?php foreach($clazz->effectiveTeachers as $teacher): ?>
-		                                		<?= h($teacher->registry) ?><br>
-		                                	<?php endforeach; ?>
-		                                </td>
-										<td><?= $clazz->displayEffectiveTeachers ?></td>
+		                                <td><?= $intent->teacher->registry ?></td>
+										<td><?= $intent->teacher->user->name ?></td>
 										<td>
 											<?php foreach($clazz->locals as $local): ?>
 		                                		<?php echo ($local->name .' ['. $local->address .']') ?><br>
@@ -81,8 +77,8 @@
                     <tbody>
                     <?php $subjects = array(); ?>
                     	<?php foreach ($clazzes as $clazz): ?>
-                            <?php foreach ($clazz->teachers as $teacher): ?>
-                                <?php if($teacher->_joinData->status == 'PENDING'): ?>
+                            <?php foreach ($clazz->intents as $intent): ?>
+                                <?php if($intent->status == 'PENDING'): ?>
                                     <?php if (!in_array($clazz->subject->id, $subjects)): ?>
                                         <?php array_push($subjects, $clazz->subject->id); ?>
                                         <tr>
@@ -119,20 +115,18 @@
                         </tr>
                     </thead>
                     <tbody>
-                    <?php $teachers = array(); ?>
-                    	<?php foreach($clazzes as $clazz): ?>
-                    		<?php foreach($clazz->teachers as $teacher): ?>
-                    			<?php if($teacher->_joinData->status == 'PENDING'): ?>
-                                    <?php if (!in_array($teacher->registry, $teachers)): ?>
-                                        <?php array_push($teachers, $teacher->registry); ?>
-                                        <tr>
-                                            <td> <?= h($teacher->registry) ?> </td>
-                                            <td> <?= h($teacher->user->name) ?></td>
-                                        </tr>
-                                    <?php endif ?>
+                        <?php $teachers = array(); ?>
+                		<?php foreach($clazz->intents as $intent): ?>
+                			<?php if($intent->status == 'PENDING'): ?>
+                                <?php if (!in_array($intent->teacher->registry, $teachers)): ?>
+                                    <?php array_push($teachers, $intent->teacher->registry); ?>
+                                    <tr>
+                                        <td> <?= h($intent->teacher->registry) ?> </td>
+                                        <td> <?= h($intent->teacher->user->name) ?></td>
+                                    </tr>
                                 <?php endif ?>
-                			<?php endforeach; ?>
-                		<?php endforeach; ?>
+                            <?php endif ?>
+            			<?php endforeach; ?>
                     </tbody>
                 </table>
             </div>
