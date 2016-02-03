@@ -12,7 +12,7 @@ use Cake\ORM\TableRegistry;
  */
 class TeachersController extends AppController
 {
-	
+
 	public function initialize()
     {
         parent::initialize();
@@ -148,7 +148,7 @@ class TeachersController extends AppController
         return $this->redirect(['action' => 'index']);
     }
 
-	
+
 	/**
      * Allocate Clazzes method
      *
@@ -160,7 +160,7 @@ class TeachersController extends AppController
 	{
 		$table_clazzes_teachers = TableRegistry::get('ClazzesTeachers');
 		$table_processes = TableRegistry::get('Processes');
-		
+
 		$teacher = $this->Teachers->get($id, [
             'contain' => ['Users'
 				, 'Clazzes'
@@ -170,7 +170,7 @@ class TeachersController extends AppController
 			]
         ]);
 
-		$processes = $table_processes->find('all')->where(['initial_date <= ' => 'CURDATE()', 'final_date >= ' => 'CURDATE()'])->orWhere(['status' => 'OPENED']); 
+		$processes = $table_processes->find('all')->where(['initial_date <= ' => 'CURDATE()', 'final_date >= ' => 'CURDATE()'])->orWhere(['status' => 'OPENED']);
 
 		$count = $processes->count();
 
@@ -199,11 +199,11 @@ class TeachersController extends AppController
 			}
 
 			$clazzes = $this->getClazzes(current(array_keys($process_options)));
-	
+
 			if ($this->RequestHandler->accepts('ajax')) {
 
 				$this->response->disableCache();
-				
+
 				if ($id != null && $clazz_id != null && $allocate == 'allocate') {
 
 					$query = $table_clazzes_teachers->query();
@@ -211,34 +211,34 @@ class TeachersController extends AppController
 							'clazz_id' => $clazz_id,
 							'teacher_id' => $id
 					])->execute();
-					
+
 					$query = $table_clazzes_teachers->query();
 					$query->insert(['clazz_id', 'teacher_id'])->values([
 							'clazz_id' => $clazz_id,
 							'teacher_id' => $id
 						])->execute();
-					
+
 					if ($query) {
-						echo 'success';						
+						echo 'success';
 					} else {
-						echo 'error';	
+						echo 'error';
 					}
-					
+
 					die();
 				} else if ($id != null && $clazz_id != null && $allocate == 'deallocate') {
-					
+
 					$query = $table_clazzes_teachers->query();
 					$query->delete()->where([
 							'clazz_id' => $clazz_id,
 							'teacher_id' => $id
 					])->execute();
-					
+
 					if ($query) {
-						echo 'success';						
+						echo 'success';
 					} else {
-						echo 'error';	
+						echo 'error';
 					}
-					die();			
+					die();
 				}
 
 			}
@@ -264,30 +264,26 @@ class TeachersController extends AppController
 
 	}
 
-	
+
 	/**
      * Get Clazzes method
      *
      * @param array|null $params Filters.
      * @return paginated data.
      */
-
-    private function getClazzes($process_id, $params = null) 
-    {	
-
+    private function getClazzes($process_id, $params = null)
+    {
 		$this->loadModel('Clazzes');
 		$this->loadModel('ClazzesLocalsSchedules');
-		
-		if ($params === null) {
 
+		if ($params === null) {
 			return $this->paginate($this->Clazzes->find()
 				->where(['process_id' => $process_id])
 				->contain(['Subjects', 'Subjects.Knowledges', 'Subjects.Courses', 'Locals', 'Schedules', 'ClazzesSchedulesLocals.Locals', 'ClazzesSchedulesLocals.Schedules'])
 			);
-		
 		} else {
 
-			// $sql = 'SELECT 
+			// $sql = 'SELECT
 						// Clazzes.id AS `Clazzes__id`,
 						// Clazzes.name AS `Clazzes__name`,
 						// Clazzes.vacancies AS `Clazzes__vacancies`,
@@ -338,8 +334,8 @@ class TeachersController extends AppController
 							// AND ClazzesSchedulesLocals.week_day LIKE ?)
 					// WHERE
 						// process_id = ?';
-					
-			$sql = 'SELECT 
+
+			$sql = 'SELECT
 				Clazzes.id AS `Clazzes__id`,
 				Clazzes.name AS `Clazzes__name`,
 				Clazzes.vacancies AS `Clazzes__vacancies`,
@@ -388,7 +384,7 @@ class TeachersController extends AppController
 				AND Clazzes.id in (
 					SELECT ClazzesSchedulesLocals.clazz_id
 					FROM clazzes_schedules_locals ClazzesSchedulesLocals
-					INNER JOIN 
+					INNER JOIN
 				locals Locals ON (Locals.id = ClazzesSchedulesLocals.local_id
 					and (Locals.address LIKE ?
 						OR Locals.name LIKE ?))
@@ -398,38 +394,38 @@ class TeachersController extends AppController
 						AND Schedules.end_time <= CAST(? as TIME))
 					WHERE ClazzesSchedulesLocals.week_day LIKE ?
 				)';
-					
+
 			$connection = ConnectionManager::get('default');
-					
+
 			$results = $connection->execute($sql, [
-					'%' . $params['subject_name'] . '%', 
+					'%' . $params['subject_name'] . '%',
 					'%' . $params['knowledge_name'] . '%',
-					'%' . $params['course_name'] . '%', 
+					'%' . $params['course_name'] . '%',
 					$params['process'],
-					'%' . $params['local'] . '%', 
-					'%' . $params['local'] . '%', 
+					'%' . $params['local'] . '%',
+					'%' . $params['local'] . '%',
 					(int)$params['start_time']['hour'] . ':' . (int)$params['start_time']['minute'],
 					(int)$params['end_time']['hour'] . ':' . (int)$params['end_time']['minute'],
 					'%' . $params['week_day'] . '%']
 				, ['string', 'string', 'string', 'string', 'string', 'string', 'string', 'string', 'string', 'integer'])->fetchAll('assoc');
 
 			$formatted_results = array();
-			
-			$joins = array('locals' => array('Locals__id' => 'id', 'Locals__name' => 'name', 'Locals__address' => 'address'), 
+
+			$joins = array('locals' => array('Locals__id' => 'id', 'Locals__name' => 'name', 'Locals__address' => 'address'),
 							'schedules' => array('Schedules__id' => 'id', 'Schedules__start_time' => 'start_time', 'Schedules__end_time' => 'end_time'),
 							'SchedulesLocals' => array('ClazzesSchedulesLocals__week_day' => 'week_day'));
-			
+
 			$formatted_results = $this->create_join_array($results, $joins);
-			
+
 			return $formatted_results;
 
 		}
 	}
-	
+
 	function create_join_array($rows, $joins){
-		
+
 		$out = array();
-		
+
 		foreach((array)$rows as $row){
 			if (!isset($out[$row['Clazzes__id']])) {
 				$out[$row['Clazzes__id']] = $row;
