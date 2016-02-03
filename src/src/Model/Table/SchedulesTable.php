@@ -26,7 +26,7 @@ class SchedulesTable extends Table
         parent::initialize($config);
 
         $this->table('schedules');
-        $this->displayField('id');
+        $this->displayField('period');
         $this->primaryKey('id');
 
         $this->hasMany('ClazzesSchedulesLocals', [

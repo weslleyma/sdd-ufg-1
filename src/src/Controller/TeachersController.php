@@ -12,7 +12,7 @@ use Cake\ORM\TableRegistry;
  */
 class TeachersController extends AppController
 {
-	
+
 	public function initialize()
     {
         parent::initialize();
@@ -148,7 +148,7 @@ class TeachersController extends AppController
         return $this->redirect(['action' => 'index']);
     }
 
-	
+
 	/**
      * Allocate Clazzes method
      *
@@ -160,7 +160,7 @@ class TeachersController extends AppController
 	{
 		$table_clazzes_teachers = TableRegistry::get('ClazzesTeachers');
 		$table_processes = TableRegistry::get('Processes');
-		
+
 		$teacher = $this->Teachers->get($id, [
             'contain' => ['Users'
 				, 'Clazzes'
@@ -199,11 +199,11 @@ class TeachersController extends AppController
 			}
 
 			$clazzes = $this->getClazzes(current(array_keys($process_options)));
-	
+
 			if ($this->RequestHandler->accepts('ajax')) {
 
 				$this->response->disableCache();
-				
+
 				if ($id != null && $clazz_id != null && $allocate == 'allocate') {
 
 					$query = $table_clazzes_teachers->query();
@@ -211,34 +211,34 @@ class TeachersController extends AppController
 							'clazz_id' => $clazz_id,
 							'teacher_id' => $id
 					])->execute();
-					
+
 					$query = $table_clazzes_teachers->query();
 					$query->insert(['clazz_id', 'teacher_id'])->values([
 							'clazz_id' => $clazz_id,
 							'teacher_id' => $id
 						])->execute();
-					
+
 					if ($query) {
-						echo 'success';						
+						echo 'success';
 					} else {
-						echo 'error';	
+						echo 'error';
 					}
-					
+
 					die();
 				} else if ($id != null && $clazz_id != null && $allocate == 'deallocate') {
-					
+
 					$query = $table_clazzes_teachers->query();
 					$query->delete()->where([
 							'clazz_id' => $clazz_id,
 							'teacher_id' => $id
 					])->execute();
-					
+
 					if ($query) {
-						echo 'success';						
+						echo 'success';
 					} else {
-						echo 'error';	
+						echo 'error';
 					}
-					die();			
+					die();
 				}
 
 			}
@@ -264,19 +264,17 @@ class TeachersController extends AppController
 
 	}
 
-	
+
 	/**
      * Get Clazzes method
      *
      * @param array|null $params Filters.
      * @return paginated data.
      */
-
-    private function getClazzes($process_id, $params = null) 
-    {	
-
+    private function getClazzes($process_id, $params = null)
+    {
 		$this->loadModel('Clazzes');
-		
+
 		if ($params === null) {
 
 			return $this->paginate($this->Clazzes->find()
@@ -285,73 +283,73 @@ class TeachersController extends AppController
 				->matching('Locals')
 				->matching('Schedules')
 			);
-				
-		
+
+
 		} else {
-			
+
 			$connection = ConnectionManager::get('default');
-			
-			$results = $connection->execute('SELECT 
-				  Clazzes.id AS `Clazzes__id`, 
-				  Clazzes.name AS `Clazzes__name`, 
-				  Clazzes.vacancies AS `Clazzes__vacancies`, 
-				  Clazzes.subject_id AS `Clazzes__subject_id`, 
-				  Clazzes.process_id AS `Clazzes__process_id`, 
-				  Locals.id AS `Locals__id`, 
-				  Locals.name AS `Locals__name`, 
-				  Locals.address AS `Locals__address`, 
-				  Locals.capacity AS `Locals__capacity`, 
-				  ClazzesSchedulesLocals.clazz_id AS `ClazzesSchedulesLocals__clazz_id`, 
-				  ClazzesSchedulesLocals.schedule_id AS `ClazzesSchedulesLocals__schedule_id`, 
-				  ClazzesSchedulesLocals.local_id AS `ClazzesSchedulesLocals__local_id`, 
-				  Schedules.id AS `Schedules__id`, 
-				  Schedules.week_day AS `Schedules__week_day`, 
-				  Schedules.start_time AS `Schedules__start_time`, 
-				  Schedules.end_time AS `Schedules__end_time`, 
-				  Subjects.id AS `Subjects__id`, 
-				  Subjects.name AS `Subjects__name`, 
-				  Subjects.theoretical_workload AS `Subjects__theoretical_workload`, 
-				  Subjects.practical_workload AS `Subjects__practical_workload`, 
-				  Subjects.knowledge_id AS `Subjects__knowledge_id`, 
-				  Subjects.course_id AS `Subjects__course_id`, 
-				  Knowledges.id AS `Knowledges__id`, 
-				  Knowledges.name AS `Knowledges__name`, 
-				  Courses.id AS `Courses__id`, 
-				  Courses.name AS `Courses__name` 
+
+			$results = $connection->execute('SELECT
+				  Clazzes.id AS `Clazzes__id`,
+				  Clazzes.name AS `Clazzes__name`,
+				  Clazzes.vacancies AS `Clazzes__vacancies`,
+				  Clazzes.subject_id AS `Clazzes__subject_id`,
+				  Clazzes.process_id AS `Clazzes__process_id`,
+				  Locals.id AS `Locals__id`,
+				  Locals.name AS `Locals__name`,
+				  Locals.address AS `Locals__address`,
+				  Locals.capacity AS `Locals__capacity`,
+				  ClazzesSchedulesLocals.clazz_id AS `ClazzesSchedulesLocals__clazz_id`,
+				  ClazzesSchedulesLocals.schedule_id AS `ClazzesSchedulesLocals__schedule_id`,
+				  ClazzesSchedulesLocals.local_id AS `ClazzesSchedulesLocals__local_id`,
+				  Schedules.id AS `Schedules__id`,
+				  Schedules.week_day AS `Schedules__week_day`,
+				  Schedules.start_time AS `Schedules__start_time`,
+				  Schedules.end_time AS `Schedules__end_time`,
+				  Subjects.id AS `Subjects__id`,
+				  Subjects.name AS `Subjects__name`,
+				  Subjects.theoretical_workload AS `Subjects__theoretical_workload`,
+				  Subjects.practical_workload AS `Subjects__practical_workload`,
+				  Subjects.knowledge_id AS `Subjects__knowledge_id`,
+				  Subjects.course_id AS `Subjects__course_id`,
+				  Knowledges.id AS `Knowledges__id`,
+				  Knowledges.name AS `Knowledges__name`,
+				  Courses.id AS `Courses__id`,
+				  Courses.name AS `Courses__name`
 				FROM .
-				  clazzes Clazzes 
+				  clazzes Clazzes
 				  INNER JOIN locals Locals ON (1 = 1)
 				  INNER JOIN schedules Schedules ON (1 = 1 AND TIME(Schedules.start_time) >= CAST(? AS time) ' .
-				  ' AND TIME(Schedules.end_time) <= CAST(? AS time) 
-				  AND Schedules.week_day LIKE ? ) 
+				  ' AND TIME(Schedules.end_time) <= CAST(? AS time)
+				  AND Schedules.week_day LIKE ? )
 				  INNER JOIN clazzes_schedules_locals ClazzesSchedulesLocals ON (
 					Clazzes.id = (
 					  ClazzesSchedulesLocals.clazz_id
-					) 
+					)
 					AND Schedules.id = (
 					  ClazzesSchedulesLocals.schedule_id
-					) 
+					)
 					AND Locals.id = (
 					  ClazzesSchedulesLocals.local_id
 					)
-				  ) 
+				  )
 				  INNER JOIN subjects Subjects ON Subjects.id = (Clazzes.subject_id) AND Subjects.name LIKE ?
 				  INNER JOIN knowledges Knowledges ON Knowledges.id = (Subjects.knowledge_id) AND Knowledges.name LIKE ?
 				  INNER JOIN courses Courses ON Courses.id = (Subjects.course_id) AND Courses.name LIKE ?
-				WHERE 
-				  process_id = ?  
-				LIMIT 
+				WHERE
+				  process_id = ?
+				LIMIT
 				  20 OFFSET 0'
-				  
+
 				  , [(int)$params['start_time']['hour'] . ':' . (int)$params['start_time']['minute'],
 					(int)$params['end_time']['hour'] . ':' . (int)$params['end_time']['minute'],
 					'%' . $params['week_day'] . '%',
-					'%' . $params['subject_name'] . '%', 
+					'%' . $params['subject_name'] . '%',
 					'%' . $params['knowledge_name'] . '%',
-					'%' . $params['course_name'] . '%', 
+					'%' . $params['course_name'] . '%',
 					$params['process']], ['string', 'string', 'string', 'string', 'string', 'string', 'integer'])->fetchAll('assoc');
 
-			
+
 			return ($results);
 		}
 	}
