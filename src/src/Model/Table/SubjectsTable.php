@@ -75,6 +75,10 @@ class SubjectsTable extends Table
             ->requirePresence('knowledge_id', 'create')
             ->notEmpty('knowledge_id');
 
+        $validator
+            ->requirePresence('course_id', 'create')
+            ->notEmpty('course_id');
+
         return $validator;
     }
 
