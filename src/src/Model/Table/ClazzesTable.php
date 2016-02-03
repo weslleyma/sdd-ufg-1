@@ -47,11 +47,18 @@ class ClazzesTable extends Table
             'targetForeignKey' => 'teacher_id',
             'joinTable' => 'clazzes_teachers'
         ]);
-        $this->belongsToMany('Locals', [
+
+        $this->hasMany('ClazzesSchedulesLocals', [
+            'foreignKey' => 'clazz_id',
+            'propertyName' => 'ScheduleLocals'
+        ]);
+		
+		$this->belongsToMany('Locals', [
             'foreignKey' => 'clazz_id',
             'targetForeignKey' => 'local_id',
             'joinTable' => 'clazzes_schedules_locals'
         ]);
+		
 		$this->belongsToMany('Schedules', [
             'foreignKey' => 'clazz_id',
             'targetForeignKey' => 'schedule_id',

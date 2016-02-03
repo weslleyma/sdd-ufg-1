@@ -1,14 +1,14 @@
 <?php
 namespace App\Test\TestCase\Model\Table;
 
-use App\Model\Table\ClazzesSchedulesLocalsTable;
+use App\Model\Table\NotificationsTable;
 use Cake\ORM\TableRegistry;
 use Cake\TestSuite\TestCase;
 
 /**
- * App\Model\Table\ClazzesSchedulesLocalsTable Test Case
+ * App\Model\Table\NotificationsTable Test Case
  */
-class ClazzesSchedulesLocalsTableTest extends TestCase
+class NotificationsTableTest extends TestCase
 {
 
     /**
@@ -17,21 +17,22 @@ class ClazzesSchedulesLocalsTableTest extends TestCase
      * @var array
      */
     public $fixtures = [
-        'app.clazzes_schedules_locals',
-        'app.clazzes',
-        'app.subjects',
-        'app.knowledges',
-        'app.roles',
-        'app.teachers',
+        'app.notifications',
         'app.users',
-        'app.clazzes_teachers',
-        'app.knowledges_teachers',
+        'app.teachers',
+        'app.roles',
+        'app.knowledges',
+        'app.subjects',
         'app.courses',
+        'app.clazzes',
         'app.processes',
         'app.process_configurations',
         'app.processes_process_configurations',
+        'app.clazzes_teachers',
         'app.locals',
-        'app.schedules'
+        'app.clazzes_schedules_locals',
+        'app.schedules',
+        'app.knowledges_teachers'
     ];
 
     /**
@@ -42,8 +43,8 @@ class ClazzesSchedulesLocalsTableTest extends TestCase
     public function setUp()
     {
         parent::setUp();
-        $config = TableRegistry::exists('ClazzesSchedulesLocals') ? [] : ['className' => 'App\Model\Table\ClazzesSchedulesLocalsTable'];
-        $this->ClazzesSchedulesLocals = TableRegistry::get('ClazzesSchedulesLocals', $config);
+        $config = TableRegistry::exists('Notifications') ? [] : ['className' => 'App\Model\Table\NotificationsTable'];
+        $this->Notifications = TableRegistry::get('Notifications', $config);
     }
 
     /**
@@ -53,7 +54,7 @@ class ClazzesSchedulesLocalsTableTest extends TestCase
      */
     public function tearDown()
     {
-        unset($this->ClazzesSchedulesLocals);
+        unset($this->Notifications);
 
         parent::tearDown();
     }
@@ -64,6 +65,16 @@ class ClazzesSchedulesLocalsTableTest extends TestCase
      * @return void
      */
     public function testInitialize()
+    {
+        $this->markTestIncomplete('Not implemented yet.');
+    }
+
+    /**
+     * Test validationDefault method
+     *
+     * @return void
+     */
+    public function testValidationDefault()
     {
         $this->markTestIncomplete('Not implemented yet.');
     }

@@ -2,25 +2,18 @@
 namespace App\Model\Entity;
 
 use Cake\ORM\Entity;
-use Cake\ORM\TableRegistry;
 
 /**
- * Clazze Entity.
+ * Notification Entity.
  *
  * @property int $id
- * @property string $name
- * @property int $vacancies
- * @property int $subject_id
- * @property \App\Model\Entity\Subject $subject
- * @property int $schedule_id
- * @property \App\Model\Entity\Schedule $schedule
- * @property int $local_id
- * @property \App\Model\Entity\Local $local
- * @property int $process_id
- * @property \App\Model\Entity\Process $process
- * @property \App\Model\Entity\Teacher[] $teachers
+ * @property string $type
+ * @property string $description
+ * @property bool $read
+ * @property int $user_id
+ * @property \App\Model\Entity\User $user
  */
-class Clazze extends Entity
+class Notification extends Entity
 {
 
     /**
