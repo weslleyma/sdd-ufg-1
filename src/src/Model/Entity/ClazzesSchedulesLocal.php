@@ -1,18 +1,20 @@
 <?php
 namespace App\Model\Entity;
 
+use App\View\Helper\UtilsHelper;
 use Cake\ORM\Entity;
 
 /**
- * Schedule Entity.
+ * ClazzesSchedulesLocal Entity.
  *
- * @property int $id
- * @property string $code
- * @property \Cake\I18n\Time $initial_time
- * @property \Cake\I18n\Time $final_time
- * @property \App\Model\Entity\Clazze[] $clazzes
+ * @property int $clazz_id
+ * @property \App\Model\Entity\Clazze $clazze
+ * @property int $schedule_id
+ * @property \App\Model\Entity\Schedule $schedule
+ * @property int $local_id
+ * @property \App\Model\Entity\Local $local
  */
-class Schedule extends Entity
+class ClazzesSchedulesLocal extends Entity
 {
 
     /**
@@ -26,11 +28,8 @@ class Schedule extends Entity
      */
     protected $_accessible = [
         '*' => true,
-        'id' => false,
+        'clazz_id' => false,
+        'schedule_id' => false,
+        'local_id' => false,
     ];
-
-    public function _getPeriod()
-    {
-        return $this->start_time->format('H:i:s') . " ~ " . $this->end_time->format('H:i:s');
-    }
 }

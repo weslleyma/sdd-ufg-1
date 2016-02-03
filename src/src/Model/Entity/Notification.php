@@ -4,15 +4,16 @@ namespace App\Model\Entity;
 use Cake\ORM\Entity;
 
 /**
- * Schedule Entity.
+ * Notification Entity.
  *
  * @property int $id
- * @property string $code
- * @property \Cake\I18n\Time $initial_time
- * @property \Cake\I18n\Time $final_time
- * @property \App\Model\Entity\Clazze[] $clazzes
+ * @property string $type
+ * @property string $description
+ * @property bool $read
+ * @property int $user_id
+ * @property \App\Model\Entity\User $user
  */
-class Schedule extends Entity
+class Notification extends Entity
 {
 
     /**
@@ -28,9 +29,4 @@ class Schedule extends Entity
         '*' => true,
         'id' => false,
     ];
-
-    public function _getPeriod()
-    {
-        return $this->start_time->format('H:i:s') . " ~ " . $this->end_time->format('H:i:s');
-    }
 }
