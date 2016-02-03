@@ -79,20 +79,20 @@
                             <th><?= $this->Paginator->sort('disciplina', __('Disciplina')) ?></th>
                     </thead>
                     <tbody>
-                    	<?php foreach($clazzes as $clazz): ?>
-                    		<?php foreach($clazz->teachers as $teacher): ?>
-                    			<?php if($teacher->_joinData->status == 'PENDING'): ?>
-                    				<tr>
-                    					<td>
-                    						<?= $clazz->id ?>
-                    					</td>
-                    					<td>
-                    						<?= $clazz->name ?>
-                    					</td>
-                    				</tr>
-                				<?php endif; ?>
-                			<?php endforeach; ?>
-                		<?php endforeach; ?>
+                    <?php $subjects = array(); ?>
+                    	<?php foreach ($clazzes as $clazz): ?>
+                            <?php foreach ($clazz->teachers as $teacher): ?>
+                                <?php if($teacher->_joinData->status == 'PENDING'): ?>
+                                    <?php if (!in_array($clazz->subject->id, $subjects)): ?>
+                                        <?php array_push($subjects, $clazz->subject->id); ?>
+                                        <tr>
+                                            <td> <?= $this->Number->format($clazz->subject->id) ?> </td>
+                                            <td> <?= h($clazz->subject->name) ?></td>
+                                        </tr>
+                                    <?php endif ?>
+                                <?php endif ?>
+                            <?php endforeach ?>
+                        <?php endforeach ?>
                     </tbody>
                 </table>
             </div>
@@ -119,18 +119,18 @@
                         </tr>
                     </thead>
                     <tbody>
+                    <?php $teachers = array(); ?>
                     	<?php foreach($clazzes as $clazz): ?>
                     		<?php foreach($clazz->teachers as $teacher): ?>
                     			<?php if($teacher->_joinData->status == 'PENDING'): ?>
-                    				<tr>
-                    					<td>
-                    						<?= $teacher->registry ?>
-                    					</td>
-                    					<td>
-                    						<?= $teacher->user->name ?>
-                    					</td>
-                    				</tr>
-                				<?php endif; ?>
+                                    <?php if (!in_array($teacher->registry, $teachers)): ?>
+                                        <?php array_push($teachers, $teacher->registry); ?>
+                                        <tr>
+                                            <td> <?= h($teacher->registry) ?> </td>
+                                            <td> <?= h($teacher->user->name) ?></td>
+                                        </tr>
+                                    <?php endif ?>
+                                <?php endif ?>
                 			<?php endforeach; ?>
                 		<?php endforeach; ?>
                     </tbody>
