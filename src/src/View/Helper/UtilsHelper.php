@@ -10,7 +10,7 @@ class UtilsHelper extends Helper
 {
     public function daysOfWeek() {
 		return [
-		    0 => '[Selecione]',
+		    '' => '[Selecione]',
             1 => 'Domingo',
 			2 => 'Segunda-Feira',
 			3 => 'Terça-Feira',
