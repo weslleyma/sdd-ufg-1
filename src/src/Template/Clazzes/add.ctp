@@ -7,7 +7,7 @@
 
 <?= $this->Form->create($clazz) ?>
 <div class="row">
-    <div class="col-sm-8 col-xs-12">
+    <div class="col-sm-12 col-xs-12 col-lg-8">
         <div class="box box-primary">
             <div class="box-header with-border">
                 <h3 class="box-title">Adicionar turma</h3>
@@ -23,50 +23,32 @@
 
                 <label for="ClazzesSchedulesLocals">Locais/Horários</label>
                 <div class="content week-box">
-                    <div class="row">
+                    <?php
+                    $index = 0;
+                    foreach($this->Utils->daysOfWeek() as $week_day => $name):
+                        if(!is_numeric($week_day) || $week_day < 2) {
+                            continue;
+                        }
+
+                        if(($index % 3) == 0) {
+                            if($index != 0) {
+                                echo '</div>';
+                            }
+                            echo '<div class="row">';
+                        }
+                        $index++;
+                    ?>
                         <div class="col-sm-4 week-day-box">
-                            <div class="week-title">Segunda</div>
-                            <div class="week-day" data-week-day="2">
+                            <div class="week-title"><?= h($name) ?></div>
+                            <div class="week-day" data-week-day="<?= $week_day ?>">
                                 <a href="javascript:void(0)" class="add-schedule-local"><i class="fa fa-fw fa-calendar-plus-o"></i></a>
                             </div>
                         </div>
-                        <div class="col-sm-4 week-day-box">
-                            <div class="week-title">Terça</div>
-                            <div class="week-day" data-week-day="3">
-                                <a href="javascript:void(0)" class="add-schedule-local"><i class="fa fa-fw fa-calendar-plus-o"></i></a>
-                            </div>
-                        </div>
-                        <div class="col-sm-4 week-day-box">
-                            <div class="week-title">Quarta</div>
-                            <div class="week-day" data-week-day="4">
-                                <a href="javascript:void(0)" class="add-schedule-local"><i class="fa fa-fw fa-calendar-plus-o"></i></a>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-sm-4 week-day-box">
-                            <div class="week-title">Quinta</div>
-                            <div class="week-day" data-week-day="5">
-                                <a href="javascript:void(0)" class="add-schedule-local"><i class="fa fa-fw fa-calendar-plus-o"></i></a>
-                            </div>
-                        </div>
-                        <div class="col-sm-4 week-day-box">
-                            <div class="week-title">Sexta</div>
-                            <div class="week-day" data-week-day="6">
-                                <a href="javascript:void(0)" class="add-schedule-local"><i class="fa fa-fw fa-calendar-plus-o"></i></a>
-                            </div>
-                        </div>
-                        <div class="col-sm-4 week-day-box">
-                            <div class="week-title">Sábado</div>
-                            <div class="week-day" data-week-day="7">
-                                <a href="javascript:void(0)" class="add-schedule-local"><i class="fa fa-fw fa-calendar-plus-o"></i></a>
-                            </div>
-                        </div>
-                    </div>
+                    <?php endforeach; ?>
                 </div>
             </div>
             <div class="box-footer clearfix">
-                <?= $this->Form->button(_('Salvar'), ['class' => 'btn btn-success']) ?>
+                <?= $this->Form->button(__('Salvar'), ['class' => 'btn btn-success']) ?>
             </div>
         </div>
     </div>
@@ -90,14 +72,13 @@
                 ?>
             </div>
             <div class="modal-footer">
-                <button type="button" class="pull-left btn btn-success" id="save-schedule"><?= _('Salvar') ?></button>
-                <button type="button" class="btn btn-default" data-dismiss="modal"><?= _('Cancelar') ?></button>
+                <button type="button" class="pull-left btn btn-success" id="save-schedule"><?= __('Salvar') ?></button>
+                <button type="button" class="btn btn-default" data-dismiss="modal"><?= __('Cancelar') ?></button>
             </div>
         </div>
 
     </div>
 </div>
-
 
 <script>
 <?php $this->Html->scriptStart(['block' => true]); ?>
@@ -173,15 +154,15 @@
         });
 
         function createScheduleLabel(id, schedule, local) {
-            var scheduleLocal = '<div data-schedule-id="'+id+'">' +
-                '<span class="label label-primary">' + schedule +': '+ local +'</span></div>';
+            var scheduleLocal = '<div data-schedule-id="'+id+'" class="label label-primary schedule-data-div">' +
+                '<span class="text-ellipsis">' + schedule +': '+ local +'</span></div>';
 
             var removal = $('<i class="remove-schedule">×</i>').click(removeSchedule);
-            return $(scheduleLocal).find('.label').append(removal).parent();
+            return $(scheduleLocal).append(removal);
         }
 
         function removeSchedule() {
-            var scheduleDiv = $(this).parent().parent();
+            var scheduleDiv = $(this).parent();
             var scheduleId = scheduleDiv.data('schedule-id');
 
             schedules.forEach(function(element, index) {
