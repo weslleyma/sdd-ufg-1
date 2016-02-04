@@ -1,6 +1,7 @@
 <?php
 namespace App\Model\Entity;
 
+use App\View\Helper\UtilsHelper;
 use Cake\ORM\Entity;
 
 /**
@@ -26,9 +27,6 @@ class ClazzesSchedulesLocal extends Entity
      * @var array
      */
     protected $_accessible = [
-        '*' => true,
-        'clazz_id' => false,
-        'schedule_id' => false,
-        'local_id' => false,
+        '*' => true
     ];
 }
