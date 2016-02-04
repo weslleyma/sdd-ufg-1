@@ -55,6 +55,7 @@ class ClazzesController extends AppController
         if ($this->request->is('post')) {
             if(isset($this->request->data['schedules'])) {
                 $schedules = json_decode($this->request->data['schedules'], true);
+                $schedules = is_array($schedules) ? $schedules : [];
                 $scheduleLocals = [];
                 foreach($schedules as $weekDay) {
                     if($weekDay == null) {
@@ -114,8 +115,8 @@ class ClazzesController extends AppController
         if ($this->request->is(['patch', 'post', 'put'])) {
             if(isset($this->request->data['schedules'])) {
                 $schedules = json_decode($this->request->data['schedules'], true);
+                $schedules = is_array($schedules) ? $schedules : [];
                 $scheduleLocals = [];
-
                 foreach($schedules as $weekDay) {
                     if($weekDay == null) {
                         continue;
