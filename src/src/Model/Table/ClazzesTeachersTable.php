@@ -1,20 +1,19 @@
 <?php
 namespace App\Model\Table;
 
-use App\Model\Entity\ClazzesSchedulesLocal;
+use App\Model\Entity\ClazzesTeacher;
 use Cake\ORM\Query;
 use Cake\ORM\RulesChecker;
 use Cake\ORM\Table;
 use Cake\Validation\Validator;
 
 /**
- * ClazzesSchedulesLocals Model
+ * ClazzesTeachers Model
  *
  * @property \Cake\ORM\Association\BelongsTo $Clazzes
- * @property \Cake\ORM\Association\BelongsTo $Schedules
- * @property \Cake\ORM\Association\BelongsTo $Locals
+ * @property \Cake\ORM\Association\BelongsTo $Teachers
  */
-class ClazzesSchedulesLocalsTable extends Table
+class ClazzesTeachersTable extends Table
 {
 
     /**
@@ -27,22 +26,33 @@ class ClazzesSchedulesLocalsTable extends Table
     {
         parent::initialize($config);
 
-        $this->table('clazzes_schedules_locals');
+        $this->table('clazzes_teachers');
         $this->displayField('clazz_id');
-        $this->primaryKey(['clazz_id', 'schedule_id', 'local_id', 'week_day']);
+        $this->primaryKey(['clazz_id', 'teacher_id']);
 
         $this->belongsTo('Clazzes', [
             'foreignKey' => 'clazz_id',
             'joinType' => 'INNER'
         ]);
-        $this->belongsTo('Schedules', [
-            'foreignKey' => 'schedule_id',
+        $this->belongsTo('Teachers', [
+            'foreignKey' => 'teacher_id',
             'joinType' => 'INNER'
         ]);
-        $this->belongsTo('Locals', [
-            'foreignKey' => 'local_id',
-            'joinType' => 'INNER'
-        ]);
+    }
+
+    /**
+     * Default validation rules.
+     *
+     * @param \Cake\Validation\Validator $validator Validator instance.
+     * @return \Cake\Validation\Validator
+     */
+    public function validationDefault(Validator $validator)
+    {
+        $validator
+            ->requirePresence('status', 'create')
+            ->notEmpty('status');
+
+        return $validator;
     }
 
     /**
@@ -55,8 +65,7 @@ class ClazzesSchedulesLocalsTable extends Table
     public function buildRules(RulesChecker $rules)
     {
         $rules->add($rules->existsIn(['clazz_id'], 'Clazzes'));
-        $rules->add($rules->existsIn(['schedule_id'], 'Schedules'));
-        $rules->add($rules->existsIn(['local_id'], 'Locals'));
+        $rules->add($rules->existsIn(['teacher_id'], 'Teachers'));
         return $rules;
     }
 }

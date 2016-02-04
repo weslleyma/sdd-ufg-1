@@ -26,7 +26,7 @@ class LocalsTable extends Table
         parent::initialize($config);
 
         $this->table('locals');
-        $this->displayField('name');
+        $this->displayField('fullPath');
         $this->primaryKey('id');
 
         $this->hasMany('ClazzesSchedulesLocals', [
