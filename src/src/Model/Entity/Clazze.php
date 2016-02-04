@@ -72,16 +72,16 @@ class Clazze extends Entity
     {
         switch($this->status) {
             case "CONFLICT":
-                $displayName = _('Em conflito');
+                $displayName = __('Em conflito');
                 $lblClass = 'danger';
                 break;
             case "CLOSED":
-                $displayName = _('Fechado');
+                $displayName = __('Fechado');
                 $lblClass = 'default';
                 break;
             case "OPEN":
             default:
-                $displayName = _('Aberto');
+                $displayName = __('Aberto');
                 $lblClass = 'success';
                 break;
         }

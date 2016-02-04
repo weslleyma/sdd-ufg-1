@@ -12,7 +12,7 @@ use Cake\ORM\TableRegistry;
  */
 class TeachersController extends AppController
 {
-	
+
 	public function initialize()
     {
         parent::initialize();
@@ -148,7 +148,7 @@ class TeachersController extends AppController
         return $this->redirect(['action' => 'index']);
     }
 
-	
+
 	/**
      * Allocate Clazzes method
      *
@@ -160,7 +160,7 @@ class TeachersController extends AppController
 	{
 		$table_clazzes_teachers = TableRegistry::get('ClazzesTeachers');
 		$table_processes = TableRegistry::get('Processes');
-		
+
 		$teacher = $this->Teachers->get($id, [
             'contain' => ['Users'
 				, 'Clazzes'
@@ -170,7 +170,7 @@ class TeachersController extends AppController
 			]
         ]);
 
-		$processes = $table_processes->find('all')->where(['initial_date <= ' => 'CURDATE()']); //, 'final_date >= ' => 'CURDATE()'
+		$processes = $table_processes->find('all')->where(['initial_date <= ' => 'CURDATE()', 'final_date >= ' => 'CURDATE()'])->orWhere(['status' => 'OPENED']);
 
 		$count = $processes->count();
 
@@ -199,11 +199,11 @@ class TeachersController extends AppController
 			}
 
 			$clazzes = $this->getClazzes(current(array_keys($process_options)));
-	
+
 			if ($this->RequestHandler->accepts('ajax')) {
 
 				$this->response->disableCache();
-				
+
 				if ($id != null && $clazz_id != null && $allocate == 'allocate') {
 
 					$query = $table_clazzes_teachers->query();
@@ -211,34 +211,34 @@ class TeachersController extends AppController
 							'clazz_id' => $clazz_id,
 							'teacher_id' => $id
 					])->execute();
-					
+
 					$query = $table_clazzes_teachers->query();
 					$query->insert(['clazz_id', 'teacher_id'])->values([
 							'clazz_id' => $clazz_id,
 							'teacher_id' => $id
 						])->execute();
-					
+
 					if ($query) {
-						echo 'success';						
+						echo 'success';
 					} else {
-						echo 'error';	
+						echo 'error';
 					}
-					
+
 					die();
 				} else if ($id != null && $clazz_id != null && $allocate == 'deallocate') {
-					
+
 					$query = $table_clazzes_teachers->query();
 					$query->delete()->where([
 							'clazz_id' => $clazz_id,
 							'teacher_id' => $id
 					])->execute();
-					
+
 					if ($query) {
-						echo 'success';						
+						echo 'success';
 					} else {
-						echo 'error';	
+						echo 'error';
 					}
-					die();			
+					die();
 				}
 
 			}
@@ -264,7 +264,7 @@ class TeachersController extends AppController
 
 	}
 
-	
+
 	/**
      * Get Clazzes method
      *
@@ -274,85 +274,169 @@ class TeachersController extends AppController
 
     private function getClazzes($process_id, $params = null) 
     {	
-
-		$this->loadModel('Clazzes');
+		$connection = ConnectionManager::get('default');
 		
 		if ($params === null) {
 
-			return $this->paginate($this->Clazzes->find()
-				->where(['process_id' => $process_id])
-				->contain(['Subjects', 'Subjects.Knowledges', 'Subjects.Courses'])
-				->matching('Locals')
-				->matching('Schedules')
-			);
-				
+			$sql = 'SELECT 
+				Clazzes.id AS `Clazzes__id`,
+				Clazzes.name AS `Clazzes__name`,
+				Clazzes.vacancies AS `Clazzes__vacancies`,
+				Clazzes.subject_id AS `Clazzes__subject_id`,
+				Clazzes.process_id AS `Clazzes__process_id`,
+				Subjects.id AS `Subjects__id`,
+				Subjects.name AS `Subjects__name`,
+				Subjects.theoretical_workload AS `Subjects__theoretical_workload`,
+				Subjects.practical_workload AS `Subjects__practical_workload`,
+				Subjects.knowledge_id AS `Subjects__knowledge_id`,
+				Subjects.course_id AS `Subjects__course_id`,
+				Knowledges.id AS `Knowledges__id`,
+				Knowledges.name AS `Knowledges__name`,
+				Courses.id AS `Courses__id`,
+				Courses.name AS `Courses__name`,
+				Locals.id AS `Locals__id`,
+				Locals.name AS `Locals__name`,
+				Locals.address AS `Locals__address`,
+				Locals.capacity AS `Locals__capacity`,
+				ClazzesSchedulesLocals.clazz_id AS `ClazzesSchedulesLocals__clazz_id`,
+				ClazzesSchedulesLocals.schedule_id AS `ClazzesSchedulesLocals__schedule_id`,
+				ClazzesSchedulesLocals.local_id AS `ClazzesSchedulesLocals__local_id`,
+				ClazzesSchedulesLocals.week_day AS `ClazzesSchedulesLocals__week_day`,
+				Schedules.id AS `Schedules__id`,
+				Schedules.start_time AS `Schedules__start_time`,
+				Schedules.end_time AS `Schedules__end_time`
+			FROM
+				clazzes Clazzes
+					INNER JOIN
+				subjects Subjects ON (Subjects.id = (Clazzes.subject_id))
+					INNER JOIN
+				knowledges Knowledges ON (Knowledges.id = (Subjects.knowledge_id))
+					INNER JOIN
+				courses Courses ON (Courses.id = (Subjects.course_id))
+					INNER JOIN
+				clazzes_schedules_locals ClazzesSchedulesLocals ON (Clazzes.id = (ClazzesSchedulesLocals.clazz_id))
+					INNER JOIN
+				locals Locals ON (Locals.id = ClazzesSchedulesLocals.local_id)
+					INNER JOIN
+				schedules Schedules ON (Schedules.id = ClazzesSchedulesLocals.schedule_id)
+			WHERE
+				process_id = ?';
+					
+					
+			$results = $connection->execute($sql, [
+					$process_id]
+				, ['integer'])->fetchAll('assoc');
 		
 		} else {
-			
-			$connection = ConnectionManager::get('default');
-			
-			$results = $connection->execute('SELECT 
-				  Clazzes.id AS `Clazzes__id`, 
-				  Clazzes.name AS `Clazzes__name`, 
-				  Clazzes.vacancies AS `Clazzes__vacancies`, 
-				  Clazzes.subject_id AS `Clazzes__subject_id`, 
-				  Clazzes.process_id AS `Clazzes__process_id`, 
-				  Locals.id AS `Locals__id`, 
-				  Locals.name AS `Locals__name`, 
-				  Locals.address AS `Locals__address`, 
-				  Locals.capacity AS `Locals__capacity`, 
-				  ClazzesSchedulesLocals.clazz_id AS `ClazzesSchedulesLocals__clazz_id`, 
-				  ClazzesSchedulesLocals.schedule_id AS `ClazzesSchedulesLocals__schedule_id`, 
-				  ClazzesSchedulesLocals.local_id AS `ClazzesSchedulesLocals__local_id`, 
-				  Schedules.id AS `Schedules__id`, 
-				  Schedules.week_day AS `Schedules__week_day`, 
-				  Schedules.start_time AS `Schedules__start_time`, 
-				  Schedules.end_time AS `Schedules__end_time`, 
-				  Subjects.id AS `Subjects__id`, 
-				  Subjects.name AS `Subjects__name`, 
-				  Subjects.theoretical_workload AS `Subjects__theoretical_workload`, 
-				  Subjects.practical_workload AS `Subjects__practical_workload`, 
-				  Subjects.knowledge_id AS `Subjects__knowledge_id`, 
-				  Subjects.course_id AS `Subjects__course_id`, 
-				  Knowledges.id AS `Knowledges__id`, 
-				  Knowledges.name AS `Knowledges__name`, 
-				  Courses.id AS `Courses__id`, 
-				  Courses.name AS `Courses__name` 
-				FROM .
-				  clazzes Clazzes 
-				  INNER JOIN locals Locals ON (1 = 1)
-				  INNER JOIN schedules Schedules ON (1 = 1 AND TIME(Schedules.start_time) >= CAST(? AS time) ' .
-				  ' AND TIME(Schedules.end_time) <= CAST(? AS time) 
-				  AND Schedules.week_day LIKE ? ) 
-				  INNER JOIN clazzes_schedules_locals ClazzesSchedulesLocals ON (
-					Clazzes.id = (
-					  ClazzesSchedulesLocals.clazz_id
-					) 
-					AND Schedules.id = (
-					  ClazzesSchedulesLocals.schedule_id
-					) 
-					AND Locals.id = (
-					  ClazzesSchedulesLocals.local_id
-					)
-				  ) 
-				  INNER JOIN subjects Subjects ON Subjects.id = (Clazzes.subject_id) AND Subjects.name LIKE ?
-				  INNER JOIN knowledges Knowledges ON Knowledges.id = (Subjects.knowledge_id) AND Knowledges.name LIKE ?
-				  INNER JOIN courses Courses ON Courses.id = (Subjects.course_id) AND Courses.name LIKE ?
-				WHERE 
-				  process_id = ?  
-				LIMIT 
-				  20 OFFSET 0'
-				  
-				  , [(int)$params['start_time']['hour'] . ':' . (int)$params['start_time']['minute'],
-					(int)$params['end_time']['hour'] . ':' . (int)$params['end_time']['minute'],
-					'%' . $params['week_day'] . '%',
-					'%' . $params['subject_name'] . '%', 
-					'%' . $params['knowledge_name'] . '%',
-					'%' . $params['course_name'] . '%', 
-					$params['process']], ['string', 'string', 'string', 'string', 'string', 'string', 'integer'])->fetchAll('assoc');
+					
+			$sql = 'SELECT 
+				Clazzes.id AS `Clazzes__id`,
+				Clazzes.name AS `Clazzes__name`,
+				Clazzes.vacancies AS `Clazzes__vacancies`,
+				Clazzes.subject_id AS `Clazzes__subject_id`,
+				Clazzes.process_id AS `Clazzes__process_id`,
+				Subjects.id AS `Subjects__id`,
+				Subjects.name AS `Subjects__name`,
+				Subjects.theoretical_workload AS `Subjects__theoretical_workload`,
+				Subjects.practical_workload AS `Subjects__practical_workload`,
+				Subjects.knowledge_id AS `Subjects__knowledge_id`,
+				Subjects.course_id AS `Subjects__course_id`,
+				Knowledges.id AS `Knowledges__id`,
+				Knowledges.name AS `Knowledges__name`,
+				Courses.id AS `Courses__id`,
+				Courses.name AS `Courses__name`,
+				Locals.id AS `Locals__id`,
+				Locals.name AS `Locals__name`,
+				Locals.address AS `Locals__address`,
+				Locals.capacity AS `Locals__capacity`,
+				ClazzesSchedulesLocals.clazz_id AS `ClazzesSchedulesLocals__clazz_id`,
+				ClazzesSchedulesLocals.schedule_id AS `ClazzesSchedulesLocals__schedule_id`,
+				ClazzesSchedulesLocals.local_id AS `ClazzesSchedulesLocals__local_id`,
+				ClazzesSchedulesLocals.week_day AS `ClazzesSchedulesLocals__week_day`,
+				Schedules.id AS `Schedules__id`,
+				Schedules.start_time AS `Schedules__start_time`,
+				Schedules.end_time AS `Schedules__end_time`
+			FROM
+				clazzes Clazzes
+					INNER JOIN
+				subjects Subjects ON (Subjects.name LIKE ?
+					AND Subjects.id = (Clazzes.subject_id))
+					INNER JOIN
+				knowledges Knowledges ON (Knowledges.name LIKE ?
+					AND Knowledges.id = (Subjects.knowledge_id))
+					INNER JOIN
+				courses Courses ON (Courses.name LIKE ?
+					AND Courses.id = (Subjects.course_id))
+					INNER JOIN
+				clazzes_schedules_locals ClazzesSchedulesLocals ON (Clazzes.id = (ClazzesSchedulesLocals.clazz_id))
+					INNER JOIN
+				locals Locals ON (Locals.id = ClazzesSchedulesLocals.local_id)
+					INNER JOIN
+				schedules Schedules ON (Schedules.id = ClazzesSchedulesLocals.schedule_id)
+			WHERE
+				process_id = ?
+				AND Clazzes.id in (
+					SELECT ClazzesSchedulesLocals.clazz_id
+					FROM clazzes_schedules_locals ClazzesSchedulesLocals
+					INNER JOIN
+				locals Locals ON (Locals.id = ClazzesSchedulesLocals.local_id
+					and (Locals.address LIKE ?
+						OR Locals.name LIKE ?))
+					INNER JOIN
+				schedules Schedules ON (Schedules.id = ClazzesSchedulesLocals.schedule_id
+						AND Schedules.start_time >= CAST(? as TIME)
+						AND Schedules.end_time <= CAST(? as TIME))
+					WHERE ClazzesSchedulesLocals.week_day LIKE ?
+				)';
 
-			
-			return ($results);
+			$results = $connection->execute($sql, [
+					'%' . $params['subject_name'] . '%',
+					'%' . $params['knowledge_name'] . '%',
+					'%' . $params['course_name'] . '%',
+					$params['process'],
+					'%' . $params['local'] . '%',
+					'%' . $params['local'] . '%',
+					(int)$params['start_time']['hour'] . ':' . (int)$params['start_time']['minute'],
+					(int)$params['end_time']['hour'] . ':' . (int)$params['end_time']['minute'],
+					'%' . $params['week_day'] . '%']
+				, ['string', 'string', 'string', 'string', 'string', 'string', 'string', 'string', 'string', 'integer'])->fetchAll('assoc');
+
 		}
+		
+		$formatted_results = array();
+			
+		$joins = array('locals' => array('Locals__id' => 'id', 'Locals__name' => 'name', 'Locals__address' => 'address'), 
+						'schedules' => array('Schedules__id' => 'id', 'Schedules__start_time' => 'start_time', 'Schedules__end_time' => 'end_time'),
+						'SchedulesLocals' => array('ClazzesSchedulesLocals__week_day' => 'week_day'));
+		
+		$formatted_results = $this->create_join_array($results, $joins);
+		
+		return $formatted_results;
+	}
+
+	function create_join_array($rows, $joins){
+
+		$out = array();
+
+		foreach((array)$rows as $row){
+			if (!isset($out[$row['Clazzes__id']])) {
+				$out[$row['Clazzes__id']] = $row;
+			}
+
+			foreach($joins as $name => $item){
+				unset($newitem);
+				foreach($item as $field => $newfield){
+					unset($out[$row['Clazzes__id']][$field]);
+					if (!empty($row[$field]))
+						$newitem[$newfield] = $row[$field];
+				}
+				if (!empty($newitem))
+					$out[$row['Clazzes__id']][$name][$newitem[key($newitem)]] = $newitem;
+			}
+		}
+
+		return $out;
+
 	}
 }
+

@@ -30,7 +30,7 @@ class CreateClazzes extends AbstractMigration
             ->addIndex(['subject_id', 'process_id'])
             ->create();
 
-        $table = $this->table('clazzes_schedules_locals', ['id' => false, 'primary_key' => ['clazz_id', 'schedule_id', 'local_id']]);
+        $table = $this->table('clazzes_schedules_locals', ['id' => false, 'primary_key' => ['clazz_id', 'schedule_id', 'local_id', 'week_day']]);
         $table
             ->addColumn('clazz_id', 'integer', [
                 'default' => null,
