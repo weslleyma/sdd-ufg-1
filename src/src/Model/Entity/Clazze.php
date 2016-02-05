@@ -133,4 +133,27 @@ class Clazze extends Entity
 
         return $selectedTeachers;
     }
+
+    public function _getEffectiveTeachers() {
+        if(!isset($this->teachers) || empty($this->teachers)) {
+            return [];
+        }
+
+        $effectiveTeachers = [];
+        foreach($this->teachers as $teacher) {
+            if($teacher->_joinData->status == 'APPROVED') {
+                $effectiveTeachers[] = $teacher;
+            }
+        }
+
+        return $effectiveTeachers;
+    }
+
+    public function _getDisplayEffectiveTeachers() {
+        $display = "";
+        foreach($this->effectiveTeachers as $teacher) {
+            $display .= $teacher->user->name . '<br>';
+        }
+        return $display;
+    }
 }
