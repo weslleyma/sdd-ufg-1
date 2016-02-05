@@ -315,6 +315,7 @@ class ClazzesController extends AppController
 			$clazz = $this->Clazzes->get($params['clazz_id']);
 		
 			$query = $this->Teachers->find('all')
+						->distinct(['Teachers.id'])
 						->where([
 								'COALESCE(Teachers.registry, "") LIKE ' => '%' . $params['registry'] . '%',
 								'COALESCE(Teachers.workload, "") LIKE ' => '%' . $params['workload'] . '%',
