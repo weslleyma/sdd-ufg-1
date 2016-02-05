@@ -195,7 +195,7 @@
 																'id' => 'button-' . $clazz['Clazzes__id'],
 																'class' => 'btn btn-sm btn-danger',
 																'data-toggle' => 'tooltip',
-																'title' => 'Cancelar inscricao na disciplina',
+																'title' => 'Cancelar interesse na disciplina',
 																'onclick' => 'allocateClazz(' . $teacher->id . ', ' . $clazz['Clazzes__id'] . ', ' . '\'deallocate\'' . ')',
 																)
 														) ?>
@@ -214,7 +214,7 @@
 																'id' => 'button-' . $clazz['Clazzes__id'],
 																'class' => 'btn btn-sm btn-success',
 																'data-toggle' => 'tooltip',
-																'title' => 'Inscrever-se na disciplina',
+																'title' => 'Registrar interesse na disciplina',
 																'onclick' => 'allocateClazz(' . $teacher->id . ', ' . $clazz['Clazzes__id'] . ', ' . '\'allocate\'' . ')',
 																)
 														) ?>
@@ -370,7 +370,7 @@ $(document).ready(function() {
 						if (teacher_clazzes[j].id == data[i].Clazzes__id) {
 			
 							html += '<td><a href="/clazzes/view/' + data[i].Clazzes__id + '" title="" class="btn btn-sm btn-default glyphicon glyphicon-search" data-toggle="tooltip" data-original-title="Visualizar"></a>' +
-							'<button type="button" id="button-' + data[i].Clazzes__id + '" class="btn btn-sm btn-danger" data-toggle="tooltip" title="" onclick="allocateClazz(<?php echo $teacher->id; ?>, ' + data[i].Clazzes__id + ', \'deallocate\')" data-original-title="Cancelar inscricao na disciplina"><i id="icon-' + data[i].Clazzes__id + '" class="fa fa-remove"></i><i id="icon-loading-' + data[i].Clazzes__id + '" class="fa fa-spinner fa-spin" style="display:none;"></i></button>' +
+							'<button type="button" id="button-' + data[i].Clazzes__id + '" class="btn btn-sm btn-danger" data-toggle="tooltip" title="" onclick="allocateClazz(<?php echo $teacher->id; ?>, ' + data[i].Clazzes__id + ', \'deallocate\')" data-original-title="Cancelar interesse na disciplina"><i id="icon-' + data[i].Clazzes__id + '" class="fa fa-remove"></i><i id="icon-loading-' + data[i].Clazzes__id + '" class="fa fa-spinner fa-spin" style="display:none;"></i></button>' +
 							'<div id="situation">Inscrito</div>';
 							
 							has_clazz = true;
@@ -381,7 +381,7 @@ $(document).ready(function() {
 					if (!has_clazz) {
 	
 						html += '<td><a href="/clazzes/view/' + data[i].Clazzes__id + '" title="" class="btn btn-sm btn-default glyphicon glyphicon-search" data-toggle="tooltip" data-original-title="Visualizar"></a>' +
-						'<button type="button" id="button-' + data[i].Clazzes__id + '" class="btn btn-sm btn-success" data-toggle="tooltip" title="Inscrever-se na disciplina" onclick="allocateClazz(<?php echo $teacher->id; ?>, ' + data[i].Clazzes__id + ', \'allocate\')" data-original-title="Inscrever-se na disciplina"><i id="icon-' + data[i].Clazzes__id + '" class="fa fa-check" style="display: inline-block;"></i><i id="icon-loading-' + data[i].Clazzes__id + '" class="fa fa-spinner fa-spin" style="display: none;"></i></button>' +
+						'<button type="button" id="button-' + data[i].Clazzes__id + '" class="btn btn-sm btn-success" data-toggle="tooltip" title="Registrar interesse na disciplina" onclick="allocateClazz(<?php echo $teacher->id; ?>, ' + data[i].Clazzes__id + ', \'allocate\')" data-original-title="Registrar interesse na disciplina"><i id="icon-' + data[i].Clazzes__id + '" class="fa fa-check" style="display: inline-block;"></i><i id="icon-loading-' + data[i].Clazzes__id + '" class="fa fa-spinner fa-spin" style="display: none;"></i></button>' +
 						'<div id="situation">Não Inscrito</div>';
 
 					}
@@ -419,8 +419,8 @@ function allocateClazz(teacher, clazz, allocate) {
 					$('#message').append('Interesse na disciplina registrado com sucesso!');
 					$('#button-' + clazz).removeClass('btn-success').addClass('btn-danger');
 					$('#button-' + clazz).attr('onclick', 'allocateClazz(' + teacher + ', ' + clazz + ', ' + '\'deallocate\'' + ')');
-					$('#button-' + clazz).attr('title', 'Cancelar inscricao na disciplina');
-					$('#button-' + clazz).attr('data-original-title', 'Cancelar inscricao na disciplina');
+					$('#button-' + clazz).attr('title', 'Cancelar interesse na disciplina');
+					$('#button-' + clazz).attr('data-original-title', 'Cancelar interesse na disciplina');
 					$('#icon-' + clazz).removeClass('fa-check').addClass('fa-remove');
 					$('#situation').append('Inscrito');
 				} else {
@@ -429,8 +429,8 @@ function allocateClazz(teacher, clazz, allocate) {
 					$('#message').append('Interesse na disciplina cancelado com sucesso!');
 					$('#button-' + clazz).removeClass('btn-danger').addClass('btn-success');
 					$('#button-' + clazz).attr('onclick', 'allocateClazz(' + teacher + ', ' + clazz + ', ' + '\'allocate\'' + ')');
-					$('#button-' + clazz).attr('title', 'Inscrever-se na disciplina');
-					$('#button-' + clazz).attr('data-original-title', 'Inscrever-se na disciplina');
+					$('#button-' + clazz).attr('title', 'Registrar interesse na disciplina');
+					$('#button-' + clazz).attr('data-original-title', 'Registrar interesse na disciplina');
 					$('#icon-' + clazz).removeClass('fa-remove').addClass('fa-check');
 					$('#situation').append('Não Inscrito');
 				}
