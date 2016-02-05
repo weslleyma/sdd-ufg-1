@@ -55,6 +55,7 @@ class ClazzesController extends AppController
         if ($this->request->is('post')) {
             if(isset($this->request->data['schedules'])) {
                 $schedules = json_decode($this->request->data['schedules'], true);
+                $schedules = is_array($schedules) ? $schedules : [];
                 $scheduleLocals = [];
                 foreach($schedules as $weekDay) {
                     if($weekDay == null) {
@@ -68,11 +69,11 @@ class ClazzesController extends AppController
                         ];
                     }
                 }
-                unset($this->request->data['schedules']);
                 $this->request->data['scheduleLocals'] = $scheduleLocals;
             }
-
-            $clazz = $this->Clazzes->patchEntity($clazz, $this->request->data, [
+            $data = $this->request->data;
+            unset($data['schedules']);
+            $clazz = $this->Clazzes->patchEntity($clazz, $data, [
                 'associated' => ['ClazzesSchedulesLocals']
             ]);
 
@@ -84,14 +85,14 @@ class ClazzesController extends AppController
             }
         }
 
-        $this->set('subjects', array_replace([0 => _('[Selecione]')],
+        $this->set('subjects', array_replace([0 => __('[Selecione]')],
             $this->Clazzes->Subjects->find('list')->toArray()));
-        $this->set('processes', array_replace([0 => _('[Selecione]')],
+        $this->set('processes', array_replace([0 => __('[Selecione]')],
             $this->Clazzes->Processes->find('list')->toArray()));
 
-        $this->set('locals', array_replace([0 => _('[Selecione]')],
+        $this->set('locals', array_replace([0 => __('[Selecione]')],
             $this->Clazzes->Locals->find('list')->toArray()));
-        $this->set('schedules', array_replace([0 => _('[Selecione]')],
+        $this->set('schedules', array_replace([0 => __('[Selecione]')],
             $this->Clazzes->Schedules->find('list')->toArray()));
 
         $this->set(compact('clazz'));
@@ -114,8 +115,8 @@ class ClazzesController extends AppController
         if ($this->request->is(['patch', 'post', 'put'])) {
             if(isset($this->request->data['schedules'])) {
                 $schedules = json_decode($this->request->data['schedules'], true);
+                $schedules = is_array($schedules) ? $schedules : [];
                 $scheduleLocals = [];
-
                 foreach($schedules as $weekDay) {
                     if($weekDay == null) {
                         continue;
@@ -131,10 +132,10 @@ class ClazzesController extends AppController
                         $scheduleLocals[] = $scheduleLocalEnt;
                     }
                 }
-                unset($this->request->data['schedules']);
             }
-
-            $clazz = $this->Clazzes->patchEntity($clazz, $this->request->data);
+            $data = $this->request->data;
+            unset($data['schedules']);
+            $clazz = $this->Clazzes->patchEntity($clazz, $data);
             if(isset($scheduleLocals)) {
                 $this->Clazzes->ClazzesSchedulesLocals->deleteAll(['clazz_id' => $clazz->id]);
                 $clazz->scheduleLocals = $scheduleLocals;
@@ -162,14 +163,14 @@ class ClazzesController extends AppController
 
         $this->set('scheduledLocals', json_encode($schedules));
 
-        $this->set('subjects', array_replace([0 => _('[Selecione]')],
+        $this->set('subjects', array_replace([0 => __('[Selecione]')],
             $this->Clazzes->Subjects->find('list')->toArray()));
-        $this->set('processes', array_replace([0 => _('[Selecione]')],
+        $this->set('processes', array_replace([0 => __('[Selecione]')],
             $this->Clazzes->Processes->find('list')->toArray()));
 
-        $this->set('locals', array_replace([0 => _('[Selecione]')],
+        $this->set('locals', array_replace([0 => __('[Selecione]')],
             $this->Clazzes->Locals->find('list')->toArray()));
-        $this->set('schedules', array_replace([0 => _('[Selecione]')],
+        $this->set('schedules', array_replace([0 => __('[Selecione]')],
             $this->Clazzes->Schedules->find('list')->toArray()));
 
         $this->set(compact('clazz'));
