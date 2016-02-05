@@ -74,69 +74,80 @@
             <div class="box-header">
                 <h3 class="box-title">Locais/Horários de aula</h3>
             </div>
-            <div class="box-body table-responsive no-padding">
-                <table class="table table-striped table-valign-middle">
-                    <thead>
-                    <tr>
-                        <th><?= __('Local') ?></th>
-                        <th><?= __('Horário') ?></th>
-                        <th><?= __('Dia da semana') ?></th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    <?php if(empty($clazz->scheduleLocals)): ?>
-                        <tr>
-                            <td colspan="3" class="text-center">Essa turma não possui nenhum local/horário definido</td>
-                        </tr>
-                    <?php else: ?>
-                        <?php foreach ($clazz->scheduleLocals as $scheduledLocal): ?>
-                            <tr>
-                                <td><?= $this->Html->link($scheduledLocal->local->name, ['controller' => 'Locals', 'action' => 'view', $scheduledLocal->local_id]) ?></td>
-                                <td><?= $this->Html->link($scheduledLocal->schedule->period, ['controller' => 'Schedules', 'action' => 'view', $scheduledLocal->schedule_id]) ?></td>
-                                <td><?= $this->Utils->daysOfWeek()[$scheduledLocal->week_day] ?></td>
-                            </tr>
-                        <?php endforeach; ?>
-                    <?php endif; ?>
-                    </tbody>
-                </table>
+
+            <div class="box-body">
+                <div class="content week-box">
+                    <?php
+                    $index = 0;
+                    foreach($this->Utils->daysOfWeek() as $week_day => $name):
+                        if(!is_numeric($week_day) || $week_day < 2) {
+                            continue;
+                        }
+
+                        if(($index % 3) == 0) {
+                            if($index != 0) {
+                                echo '</div>';
+                            }
+                            echo '<div class="row">';
+                        }
+                        $index++;
+                        ?>
+                        <div class="col-sm-4 week-day-box">
+                            <div class="week-title"><?= h($name) ?></div>
+                            <div class="week-day" data-week-day="<?= $week_day ?>">
+                                <?php foreach ($clazz->scheduleLocals as $scheduledLocal): ?>
+                                    <?php if($scheduledLocal->week_day == $week_day): ?>
+                                        <div class="label label-primary schedule-data-div">
+                                            <span class="text-ellipsis" style="max-width: calc(100% - 15px);">
+                                                <?= $scheduledLocal->schedule->period ?>: <?= $scheduledLocal->local->fullPath ?>
+                                            </span>
+                                        </div>
+                                    <?php endif; ?>
+                                <?php endforeach; ?>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
-<div class="row">
-    <div class="col-xs-12">
-        <div class="box box-primary">
-            <div class="box-header">
-                <h3 class="box-title">Docentes inscritos para ministrar a turma</h3>
-            </div>
-            <div class="box-body table-responsive no-padding">
-                <table class="table table-striped table-valign-middle">
-                    <thead>
-                    <tr>
-                        <th><?= __('#ID') ?></th>
-                        <th><?= __('Nome') ?></th>
-                        <th><?= __('Índice de prioridade') ?></th>
-                        <th><?= __('Status') ?></th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    <?php if(empty($clazz->intents)): ?>
+<div class="content">
+    <div class="row">
+        <div class="col-xs-12">
+            <div class="box box-primary">
+                <div class="box-header">
+                    <h3 class="box-title">Docentes inscritos para ministrar a turma</h3>
+                </div>
+                <div class="box-body table-responsive no-padding">
+                    <table class="table table-striped table-valign-middle">
+                        <thead>
                         <tr>
-                            <td colspan="3" class="text-center">Essa turma não possui nenhuma inscrição</td>
+                            <th><?= __('#ID') ?></th>
+                            <th><?= __('Nome') ?></th>
+                            <th><?= __('Índice de prioridade') ?></th>
+                            <th><?= __('Status') ?></th>
                         </tr>
-                    <?php else: ?>
-                    <?php foreach ($clazz->intents as $intent): ?>
-                        <tr>
-                            <td><?= $this->Number->format($intent->teacher_id) ?></td>
-                            <td><?= $this->Html->link($intent->teacher->user->name, ['controller' => 'Teachers', 'action' => 'view', $intent->teacher_id]) ?></td>
-                            <td><?= $intent->priority ?></td>
-                            <td><?= $intent->displayStatus ?></td>
-                        </tr>
-                    <?php endforeach; ?>
-                    <?php endif; ?>
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody>
+                        <?php if(empty($clazz->intents)): ?>
+                            <tr>
+                                <td colspan="4" class="text-center">Essa turma não possui nenhuma inscrição</td>
+                            </tr>
+                        <?php else: ?>
+                        <?php foreach ($clazz->intents as $intent): ?>
+                            <tr>
+                                <td><?= $this->Number->format($intent->teacher_id) ?></td>
+                                <td><?= $this->Html->link($intent->teacher->user->name, ['controller' => 'Teachers', 'action' => 'view', $intent->teacher_id]) ?></td>
+                                <td><?= $intent->priority ?></td>
+                                <td><?= $intent->displayStatus ?></td>
+                            </tr>
+                        <?php endforeach; ?>
+                        <?php endif; ?>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>

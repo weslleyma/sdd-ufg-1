@@ -34,16 +34,16 @@ class ClazzesTeacher extends Entity
     {
         switch($this->status) {
             case "SELECTED":
-                $displayName = _('Selecionado');
+                $displayName = __('Selecionado');
                 $lblClass = 'success';
                 break;
             case "REJECTED":
-                $displayName = _('Rejeitado');
+                $displayName = __('Rejeitado');
                 $lblClass = 'danger';
                 break;
             case "PENDING":
             default:
-                $displayName = _('Pendente');
+                $displayName = __('Pendente');
                 $lblClass = 'warning';
                 break;
         }
