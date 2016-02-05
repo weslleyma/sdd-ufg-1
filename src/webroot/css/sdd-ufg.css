@@ -17,6 +17,19 @@
     background-color: #e5e5e5;
 }
 
+.simple-table{
+	border-collapse:collapse
+}
+
+.simple-table tr td {
+	border:1px solid #000
+}
+
+.simple-table thead{
+	font-weight:bold;
+	background-color:#855E42
+}
+
 .week-box {
     min-height: initial;
     padding-top: 0;

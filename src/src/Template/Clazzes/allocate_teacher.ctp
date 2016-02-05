@@ -6,10 +6,10 @@
 <?php $this->end(); ?>
 
 
-<?php 
+<?php
 	use Cake\Routing\Router;
 	$this->loadHelper('Utils');
-	echo $this->Html->script('/plugins/jQuery/jQuery-2.1.4.min');	
+	echo $this->Html->script('/plugins/jQuery/jQuery-2.1.4.min');
 ?>
 
 <div id="message" role="alert" class="alert alert-dismissible fade in alert-success" style="display: none;">
@@ -41,17 +41,17 @@
 					<div class="col-xs-12" id="filters">
 						<fieldset>
 							<legend>Filtros</legend>
-							<div class="row"> 
-								<?php 
+							<div class="row">
+								<?php
 									echo $this->Form->hidden('clazz_id', array('value' => $clazz->id));
 								?>
 								<div class="col-xs-3">
-									<?php 
+									<?php
 										echo $this->Form->input('name', ['label' => 'Nome do Docente', 'placeholder' => 'Nome do Docente', 'class' => 'col-xs-3']);
 									?>
 								</div>
 								<div class="col-xs-3">
-									<?php 
+									<?php
 										echo $this->Form->input('registry', ['label' => 'Matrícula', 'placeholder' => 'Matrícula', 'class' => 'col-xs-3']);
 									?>
 								</div>
@@ -116,7 +116,7 @@
 							<table class="table table-striped table-valign-middle">
 								<thead>
 								<tr>
-									<th><?= $this->Paginator->sort('id',__('#ID')) ?></th>								
+									<th><?= $this->Paginator->sort('id',__('#ID')) ?></th>
 									<th><?= $this->Paginator->sort('name',__('Nome')) ?></th>
 									<th><?= $this->Paginator->sort('registry',__('Matrícula')) ?></th>
 									<th><?= $this->Paginator->sort('workload',__('Carga Horária')) ?></th>
@@ -141,7 +141,7 @@
 										<td><?= h($teacher->formation) ?></td>
 										<td><?= h($teacher->situation) ?></td>
 										<td>
-										<?php 
+										<?php
 											foreach ($teacher->knowledges as $k) {
 												echo $k->name; ?>
 												<br>
@@ -161,9 +161,9 @@
 												]
 											) ?>
 											<?php 	$has_clazz = false;
-													foreach ($clazzesTeachers as $c) : 
+													foreach ($clazzesTeachers as $c) :
 														if ($teacher->id == $c->teacher_id && $c->status == 'ACTIVE') { ?>
-											
+
 														<?= $this->Form->button('<i id="icon-' . $teacher->id . '" class="fa fa-remove"></i><i id="icon-loading-' . $teacher->id . '" class="fa fa-spinner fa-spin" style="display:none;"></i>'
 															, array(
 																'type' => 'button',
@@ -174,8 +174,8 @@
 																'onclick' => 'allocateTeacher(' . $clazz->id . ', ' . $teacher->id . ', ' . '\'deallocate\'' .  ')',
 																)
 														) ?>
-														
-														<?php 
+
+														<?php
 																$has_clazz = true;
 																break;
 															} ?>
@@ -193,7 +193,7 @@
 																'onclick' => 'allocateTeacher(' . $clazz->id . ', ' . $teacher->id . ', ' . '\'allocate\'' . ')',
 																)
 														) ?>
-															
+
 														<?php
 														}
 											?>
@@ -216,7 +216,7 @@
 				</div>
 			</div>
         </div>
-    </div> 
+    </div>
 </div>
 <?= $this->Form->end() ?>
 <script>
@@ -230,22 +230,22 @@ $(document).ready(function() {
 			data: $('#filters input:text, #filters input:hidden, #filters select, #filters input:radio:checked'),
 			success: function(tab){
 				var data = JSON.parse(tab);
-				
+
 				data = $.map(data, function(value, index) {
 					return [value];
 				});
 
-				
+
 				var html = '';
-				
+
 				$("tbody").empty();
-				
+
 				if (data.length == 0) {
 					$('tbody').append('<tr>'+
 						'<td colspan="10" class="text-center">Não existem docentes cadastrados com os critérios informados</td>' +
 					'</tr>');
 				}
-				
+
 				for (var i = 0; i < data.length; i++) {
 					html += '<tr id="' + data[i].id + '">' +
 						'<td>' + data[i].id + '</td>' +
@@ -257,51 +257,51 @@ $(document).ready(function() {
 
 					html+= '<td>';
 					for(var k = 0; k < data[i].knowledges.length; k++) {
-						html += data[i].knowledges[k].name + '<br>'; 
+						html += data[i].knowledges[k].name + '<br>';
 					}
-					
+
 					var teacher_clazzes = <?php echo json_encode($clazzesTeachers); ?>;
 					var has_clazz = false;
-						
+
 					for (var j = 0; j < teacher_clazzes.length; j++) {
 						if (teacher_clazzes[j].teacher_id == data[i].id && teacher_clazzes[j].status == 'ACTIVE') {
-			
+
 							html += '<td><a href="/teachers/view/' + data[i].id + '" title="" class="btn btn-sm btn-default glyphicon glyphicon-search" data-toggle="tooltip" data-original-title="Visualizar"></a>' +
 							'<button type="button" id="button-' + data[i].id + '" class="btn btn-sm btn-danger" data-toggle="tooltip" title="" onclick="allocateTeacher(<?php echo $clazz->id; ?>, ' + data[i].id + ', \'deallocate\')" data-original-title="Cancelar inscricao do docente para ministrar Turma"><i id="icon-' + data[i].id + '" class="fa fa-remove"></i><i id="icon-loading-' + data[i].id + '" class="fa fa-spinner fa-spin" style="display:none;"></i></button>' +
 							'<div id="situation-' + data[i].id + '">Ministrando</div>';
-							
+
 							has_clazz = true;
 							break;
-						} 
+						}
 					}
-			
+
 					if (!has_clazz) {
-	
+
 						html += '<td><a href="/clazzes/view/' + data[i].id + '" title="" class="btn btn-sm btn-default glyphicon glyphicon-search" data-toggle="tooltip" data-original-title="Visualizar"></a>' +
 						'<button type="button" id="button-' + data[i].id + '" class="btn btn-sm btn-success" data-toggle="tooltip" title="Alocar docente para ministrar Turma" onclick="allocateTeacher(<?php echo $clazz->id; ?>, ' + data[i].id + ', \'allocate\')" data-original-title="Alocar docente para ministrar a Turma"><i id="icon-' + data[i].id + '" class="fa fa-check" style="display: inline-block;"></i><i id="icon-loading-' + data[i].id + '" class="fa fa-spinner fa-spin" style="display: none;"></i></button>' +
 						'<div id="situation-' + data[i].id + '"></div>';
 
 					}
 				}
-					
+
 					html += '</td></tr>';
 					$('tbody').append(html);
 
-				
+
 			},
 			error: function (tab) {
 				alert('error');
 			}
 		});
 	});
-	
+
 });
 
 function allocateTeacher(clazz, teacher, allocate) {
-	
+
 	$('#icon-' + teacher).toggle();
 	$('#icon-loading-' + teacher).toggle();
-	
+
 	$.ajax({
 		type:"GET",
 		url:"<?php echo Router::url(array('controller'=>'Clazzes','action'=>'allocateTeacher'));?>/"+clazz+"/"+teacher+"/"+allocate,
@@ -312,9 +312,9 @@ function allocateTeacher(clazz, teacher, allocate) {
 				$('div[id^=\'situation\']').each(function() {
 					$(this).empty();
 				});
-				
+
 				if (allocate == 'allocate') {
-					
+
 					$("button.btn-danger").each(function() {
 						var id = $(this).attr('id').substring(7, $(this).attr('id').length);
 						$(this).removeClass('btn-danger').addClass('btn-success');
@@ -322,11 +322,11 @@ function allocateTeacher(clazz, teacher, allocate) {
 						$(this).attr('title', 'Alocar docente para ministrar a Turma');
 						$(this).attr('data-original-title', 'Alocar docente para ministrar a Turma');
 					});
-					
+
 					$("i.fa-remove").each(function() {
 						$(this).removeClass('fa-remove').addClass('fa-check');
 					});
-					
+
 					$('#message').removeClass('alert-warning').removeClass('alert-error');
 					$('#message').addClass('alert-success');
 					$('#message').append('Interesse na disciplina registrado com sucesso!');
@@ -336,9 +336,9 @@ function allocateTeacher(clazz, teacher, allocate) {
 					$('#button-' + teacher).attr('data-original-title', 'Cancelar inscricao do docente para ministrar Turma');
 					$('#icon-' + teacher).removeClass('fa-check').addClass('fa-remove');
 					$('#situation-' + teacher).append('Ministrando');
-					
+
 				} else {
-					
+
 					$('#message').removeClass('alert-success').removeClass('alert-error');
 					$('#message').addClass('alert-warning');
 					$('#message').append('Interesse na disciplina cancelado com sucesso!');
@@ -349,21 +349,21 @@ function allocateTeacher(clazz, teacher, allocate) {
 					$('#icon-' + teacher).removeClass('fa-remove').addClass('fa-check');
 					$('#situation-' + teacher).append('');
 				}
-	
+
 			} else {
 
 				$('#message').removeClass('alert-warning').removeClass('alert-success');
 				$('#message').addClass('alert-error');
 				$('#message').html('Ocorreu um erro ao tentar efetuar a operação. Tente novamente ou contate o administrador do sistema.');
 			}
-			
+
 			if($('#message').css('display') == 'none')
 			{
 				$('#message').toggle();
 			}
 			$('#icon-loading-' + teacher).toggle();
 			$('#icon-' + teacher).toggle();
-	
+
 		},
 		error: function (tab) {
 			alert('error');
