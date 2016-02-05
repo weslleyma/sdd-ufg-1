@@ -116,17 +116,19 @@
                     </thead>
                     <tbody>
                         <?php $teachers = array(); ?>
-                		<?php foreach($clazz->intents as $intent): ?>
-                			<?php if($intent->status == 'PENDING'): ?>
-                                <?php if (!in_array($intent->teacher->registry, $teachers)): ?>
-                                    <?php array_push($teachers, $intent->teacher->registry); ?>
-                                    <tr>
-                                        <td> <?= h($intent->teacher->registry) ?> </td>
-                                        <td> <?= h($intent->teacher->user->name) ?></td>
-                                    </tr>
+                        <?php foreach ($clazzes as $clazz): ?>
+                    		<?php foreach($clazz->intents as $intent): ?>
+                    			<?php if($intent->status == 'PENDING'): ?>
+                                    <?php if (!in_array($intent->teacher->registry, $teachers)): ?>
+                                        <?php array_push($teachers, $intent->teacher->registry); ?>
+                                        <tr>
+                                            <td> <?= h($intent->teacher->registry) ?> </td>
+                                            <td> <?= h($intent->teacher->user->name) ?></td>
+                                        </tr>
+                                    <?php endif ?>
                                 <?php endif ?>
-                            <?php endif ?>
-            			<?php endforeach; ?>
+                			<?php endforeach; ?>
+                        <?php endforeach; ?>
                     </tbody>
                 </table>
             </div>
