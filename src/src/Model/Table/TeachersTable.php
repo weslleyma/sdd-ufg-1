@@ -128,7 +128,6 @@ class TeachersTable extends Table
 				'Knowledges' => function($q) {
 					return $q->select(['id']);
 				}
-			])
-			->hydrate(false)->toArray();
+			]);
 	}
 }

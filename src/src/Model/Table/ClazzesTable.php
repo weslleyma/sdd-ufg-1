@@ -105,8 +105,7 @@ class ClazzesTable extends Table
 				'Teachers' => function($q) {
 					return $q->select(['id']);
 				}
-			])
-			->hydrate(false)->toArray();
+			]);
 			
 		$clazzes = [];
 		foreach($clazzesTemp as $clazzTemp){
@@ -130,7 +129,14 @@ class ClazzesTable extends Table
 				'Teachers' => function($q) {
 					return $q->select(['id']);
 				}
-			])
-			->hydrate(false)->toArray();
+			]);
+	}
+	
+	public function setTeachersAllClazzes($clazzes){
+		foreach($clazzes as $clazz){
+			$this->save($clazz);
+			//$result = $clazz->dirty('teachers', true);
+			//echo $result . '<br>';
+		}
 	}
 }

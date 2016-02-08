@@ -6,23 +6,21 @@ use Cake\ORM\TableRegistry;
 
 class Distribution
 {
-	/**
-	* Falta saber o qual o fator limitante de cada prof.
-	* Falta saber como manipular para inserir no banco.
-	*/
     public static function generateDistribution($clazzes, $teachers)
     {
-		foreach($clazzes as &$clazz){
-			if(!empty($clazz['teachers'])){
+		foreach($clazzes as $clazz){
+			if(!empty($clazz->teachers)){
 				continue;
 			}
 			$teachersByKnowledge = self::getTeacherByKnowledge($clazz['subject']['knowledge_id'], $teachers);
-			if(count($teachersByKnowledge) > 1){
-				$clazz['teachers'] = self::getTeacherByAge($teachers);
-			}else if(count($teachersByKnowledge) == 1){
-				$clazz['teachers'] = $teachersByKnowledge;
+			if(count($teachersByKnowledge) > 0){
+				//Pega o primeiro porque não implementamos uma seleção baseado em critérios 
+				//no futuro podemos implementar porém o stakeholder disse que não era ecenssial.
+				$clazz->teachers =[];
+				$clazz->teachers[] = $teachersByKnowledge[0];
 			}else{
-				$clazz['teachers'] = self::randomTeacher($teachers);
+				$clazz->teachers =[];
+				$clazz->teachers[] = self::randomTeacher($teachers->toArray());
 			}
 		}
 		
@@ -32,27 +30,14 @@ class Distribution
 	public static function getTeacherByKnowledge($knowledgeId, $teachers){
 		$teachersByKnowledge = [];
 		foreach($teachers as $teacher){
-			foreach($teacher['knowledges'] as $knowledge){
-				if($knowledge['id'] == $knowledgeId){
+			foreach($teacher->knowledges as $knowledge){
+				if($knowledge->id == $knowledgeId){
 					$teachersByKnowledge[] = $teacher;
 				}
 			}
 		}
 		return $teachersByKnowledge;
 	}
-	
-	public static function getTeacherByAge($teachers){
-		usort($teachers, ['App\Lib\Distribution\Distribution', 'sortByBirthDate']);
-		return $teachers[0];
-	}
-	
-	public static function sortByBirthDate($teacher1, $teacher2)
-    {
-        if ($teacher1['birth_date'] === $teacher2['birth_date']) {
-            return 0;
-        }
-        return strtotime($teacher1['birth_date']) < strtotime($teacher2['birth_date']) ? -1 : 1;
-    }
 	
 	public static function randomTeacher($teachers){
 		return $teachers[rand(0, count($teachers) - 1)];

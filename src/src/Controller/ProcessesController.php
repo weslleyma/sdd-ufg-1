@@ -14,6 +14,18 @@ use Cake\Event\Event;
  */
 class ProcessesController extends AppController
 {
+	public function beforeFilter(Event $event)
+    {
+        parent::beforeFilter($event);
+        $this->Auth->allow(['prototypeDistribute']);
+
+        $redirectToHome = ['requestAccount', 'login'];
+        $authUser = isset($this->request->Session()->read('Auth')['User']) ? true : false;
+        if($authUser && in_array($this->request->params['action'], $redirectToHome)) {
+            return $this->redirect('/');
+        }
+    }
+
     /**
      * Index method
      *
@@ -114,12 +126,14 @@ class ProcessesController extends AppController
     }
 
 	public function prototypeDistribute(){
+		//http://localhost:8765/processes/prototype-distribute
 		$this->autoRender = false;
 		$this->response->type('json');
 		$clazzes = $this->Processes->Clazzes->getAllClazzesWithSubjctsTeachers();
 		$teachers = TableRegistry::get('Teachers')->getAllTeachersWithKnowledge();
-		$teachers = PriorityIndex::generatePriorityIndex($teachers);
 		$clazzes = Distribution::generateDistribution($clazzes, $teachers);
+		$this->Processes->Clazzes->setTeachersAllClazzes($clazzes);
+		$clazzes = $this->Processes->Clazzes->getAllClazzesWithSubjctsTeachers();
 		$this->response->body(json_encode($clazzes, JSON_PRETTY_PRINT));
 	}
 	
