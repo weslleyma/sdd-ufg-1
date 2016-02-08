@@ -51,7 +51,7 @@ class ProcessesController extends AppController
     {
         $process = $this->Processes->get($id, [
             'contain' => [
-                'Clazzes', 'Clazzes.Processes'
+                'ProcessConfigurations', 'Clazzes'
             ]
         ]);
         $this->set('process', $process);
@@ -78,6 +78,7 @@ class ProcessesController extends AppController
         }
         $this->set(compact('process'));
         $this->set('_serialize', ['process']);
+        $this->set('processConfigurations', $this->Processes->ProcessConfigurations->find('list'));
     }
 
     /**
@@ -90,7 +91,7 @@ class ProcessesController extends AppController
     public function edit($id = null)
     {
         $process = $this->Processes->get($id, [
-            'contain' => []
+            'contain' => ['ProcessConfigurations', 'Clazzes']
         ]);
         if ($this->request->is(['patch', 'post', 'put'])) {
             $process = $this->Processes->patchEntity($process, $this->request->data);
@@ -103,6 +104,7 @@ class ProcessesController extends AppController
         }
         $this->set(compact('process'));
         $this->set('_serialize', ['process']);
+        $this->set('processConfigurations', $this->Processes->ProcessConfigurations->find('list'));
     }
 
     /**
@@ -114,13 +116,34 @@ class ProcessesController extends AppController
      */
     public function cancel($id = null)
     {
-        $this->request->allowMethod(['post', 'delete']);
+        $this->request->allowMethod(['post', 'cancel']);
         $process = $this->Processes->get($id);
         $process->status = 'CANCELLED';
         if ($this->Processes->save($process)) {
-            $this->Flash->success(__('O processo foi cancelado!'));
+            $this->Flash->success(__('O processo foi cancelado com sucesso.'));
         } else {
-            $this->Flash->error(__('Não foi possível cancelar o processo. Tente novamente.'));
+            $this->Flash->error(__('O processo nao pode ser cancelado. Por favor, tente novamente.'));
+        }
+        return $this->redirect(['action' => 'index']);
+    }
+
+    /**
+     * Close method
+     *
+     * @param string|null $id Process id.
+     * @return \Cake\Network\Response|null Redirects to index.
+     * @throws \Cake\Network\Exception\NotFoundException When record not found.
+     */
+    public function close($id = null)
+    {
+        $this->request->allowMethod(['post', 'close']);
+        $process = $this->Processes->get($id);
+        $process->status = 'CLOSED';
+//        $process->dirty('processConfigurations');
+        if ($this->Processes->save($process)) {
+            $this->Flash->success(__('O processo foi fechado com sucesso.'));
+        } else {
+            $this->Flash->error(__('O processo nao pode ser fechado. Por favor, tente novamente.'));
         }
         return $this->redirect(['action' => 'index']);
     }
@@ -138,13 +161,13 @@ class ProcessesController extends AppController
 	}
 	
 	public function distribute(){
-        $clazzes = $this->Processes->Clazzes->find('all')->contain(['Teachers.Users', 'Locals', 'Subjects']);
+        $clazzes = $this->Processes->Clazzes->find('all')->contain(['ClazzesTeachers.Teachers.Users', 'Locals', 'Subjects']);
         $clazzes = $this->paginate($clazzes);
         $this->set('clazzes', $clazzes);
 	}
 	
 	public function simulate(){
-        $clazzes = $this->Processes->Clazzes->find('all')->contain(['Teachers.Users', 'Locals', 'Subjects']);
+        $clazzes = $this->Processes->Clazzes->find('all')->contain(['ClazzesTeachers.Teachers.Users', 'Locals', 'Subjects']);
         $clazzes = $this->paginate($clazzes);
         $this->set('clazzes', $clazzes);
 	}
@@ -200,5 +223,5 @@ class ProcessesController extends AppController
         $this->set(compact('$process'));
         $this->set('_serialize', ['$process']);
     }
-    
+
 }

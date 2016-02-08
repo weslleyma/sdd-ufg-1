@@ -27,16 +27,12 @@
                     <tbody>
                         <?php foreach ($clazzes as $clazz): ?>
                             <tr>
-                            	<?php foreach($clazz->teachers as $teacher): ?>
-                            		<?php if($teacher->_joinData->status == 'APPROVED'): ?>
+                            	<?php foreach($clazz->intents as $intent): ?>
+                            		<?php if($intent->status == 'APPROVED'): ?>
 		                                <td><?= $this->Number->format($clazz->subject->id) ?></td>
 		                                <td><?= h($clazz->subject->name) ?></td>
-		                                <td>
-		                                	<?php foreach($clazz->effectiveTeachers as $teacher): ?>
-		                                		<?= h($teacher->registry) ?><br>
-		                                	<?php endforeach; ?>
-		                                </td>
-										<td><?= $clazz->displayEffectiveTeachers ?></td>
+		                                <td><?= $intent->teacher->registry ?></td>
+										<td><?= $intent->teacher->user->name ?></td>
 										<td>
 											<?php foreach($clazz->locals as $local): ?>
 		                                		<?php echo ($local->name .' ['. $local->address .']') ?><br>
@@ -87,16 +83,12 @@
                     <tbody>
                         <?php foreach ($clazzes as $clazz): ?>
                             <tr>
-                            	<?php foreach($clazz->teachers as $teacher): ?>
-                            		<?php if($teacher->_joinData->status == 'AUTOMATIC DISTRIBUTION - PENDING'): ?>
+                            	<?php foreach($clazz->intents as $intent): ?>
+                            		<?php if($intent->status == 'AUTOMATIC DISTRIBUTION - PENDING'): ?>
 		                                <td><?= $this->Number->format($clazz->subject->id) ?></td>
 		                                <td><?= h($clazz->subject->name) ?></td>
-		                                <td>
-		                                	<?php foreach($clazz->effectiveTeachers as $teacher): ?>
-		                                		<?= h($teacher->registry) ?><br>
-		                                	<?php endforeach; ?>
-		                                </td>
-										<td><?= $clazz->displayEffectiveTeachers ?></td>
+		                                <td><?= $intent->teacher->registry ?></td>
+										<td><?= $intent->teacher->user->name ?></td>
 										<td>
 											<?php foreach($clazz->locals as $local): ?>
 		                                		<?php echo ($local->name .' ['. $local->address .']') ?><br>
