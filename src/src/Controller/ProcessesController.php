@@ -148,12 +148,17 @@ class ProcessesController extends AppController
         return $this->redirect(['action' => 'index']);
     }
 
+	/*
+		Soma o prática e teórica da disciplina da turma e divide por 16
+		E vê se o valor da ao menos oq ta no workload do docente que e na maioria 8
+	*/
+	
 	public function prototypeDistribute(){
 		//http://localhost:8765/processes/prototype-distribute
 		$this->autoRender = false;
 		$this->response->type('json');
 		$clazzes = $this->Processes->Clazzes->getAllClazzesWithSubjctsTeachers();
-		$teachers = TableRegistry::get('Teachers')->getAllTeachersWithKnowledge();
+		$teachers = TableRegistry::get('Teachers')->getAllTeachersWithKnowledge()->toArray();
 		$clazzes = Distribution::generateDistribution($clazzes, $teachers);
 		$this->Processes->Clazzes->setTeachersAllClazzes($clazzes);
 		$clazzes = $this->Processes->Clazzes->getAllClazzesWithSubjctsTeachers();

@@ -141,7 +141,6 @@ class ClazzesTable extends Table
         return $rules;
     }
 
-	
 	public function getAllClazzesNotTeachers(){
 		$clazzesTemp = $this
 			->find('all')
@@ -171,7 +170,7 @@ class ClazzesTable extends Table
 			->find('all')
 			->contain([
 				'Subjects' => function($q) {
-					return $q->select(['id', 'knowledge_id']);
+					return $q->select(['id', 'knowledge_id', 'theoretical_workload', 'practical_workload']);
 				}
 			])
 			->contain([
