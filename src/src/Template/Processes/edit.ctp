@@ -21,6 +21,7 @@
                     echo $this->Form->input('substitute_intent_date', ['label' => 'até', 'type' => 'text', 'class' => 'datepicker', 'data-date-format' => 'dd/mm/yyyy']);
                     echo $this->Form->input('secondary_distribution_date', ['label' => 'Resolução de conflitos', 'type' => 'text', 'class' => 'datepicker', 'data-date-format' => 'dd/mm/yyyy']);
                     echo $this->Form->input('final_date', ['label' => 'até', 'type' => 'text', 'class' => 'datepicker', 'data-date-format' => 'dd/mm/yyyy']);
+                    echo $this->Form->input('processConfigurations', ['label' => 'Configs. do Processo', 'multiple' => true]);
                 ?>
             </div>
             <div class="box-footer clearfix">
