@@ -60,7 +60,7 @@
                                             'data-original-title' => __('Visualizar'),
                                         ]
                                     ) ?>
-                                    <?php if($process->status == 'OPEN' ): ?>
+                                    <?php if($process->status == 'OPENED' ): ?>
                                         <?= $this->Html->link(
                                             '',
                                             ['action' => 'edit', $process->id],
