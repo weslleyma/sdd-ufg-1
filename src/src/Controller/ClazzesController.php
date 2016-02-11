@@ -379,7 +379,7 @@ class ClazzesController extends AppController
 	{
 		$processes = $this->Clazzes->Processes->find('list')
             ->where(['initial_date <= ' => 'CURDATE()', 'final_date >= ' => 'CURDATE()'])
-            ->orWhere(['status' => 'OPEN'])
+            ->orWhere(['status' => 'OPENED'])
             ->toArray();
 
         $processes = array_replace(['' => __('[Selecione]')], $processes);

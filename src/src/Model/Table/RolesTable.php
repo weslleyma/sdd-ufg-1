@@ -52,6 +52,7 @@ class RolesTable extends Table
             ->allowEmpty('id', 'create');
 
         $validator
+            ->add('type', 'enum', ['rule' => ['inList', ['COORDINATOR', 'FACILITATOR'], true]])
             ->requirePresence('type', 'create')
             ->notEmpty('type');
 

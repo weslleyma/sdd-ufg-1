@@ -56,7 +56,7 @@ class ProcessesController extends AppController
         $process = $this->Processes->newEntity();
         if ($this->request->is('post')) {
             $process = $this->Processes->patchEntity($process, $this->request->data);
-            $process->status = 'OPEN';
+            $process->status = 'OPENED';
             if ($this->Processes->save($process)) {
                 $this->Flash->success(__('O processo foi salvo.'));
                 return $this->redirect(['action' => 'index']);
@@ -145,19 +145,19 @@ class ProcessesController extends AppController
 		$clazzes = Distribution::generateDistribution($clazzes, $teachers);
 		$this->response->body(json_encode($clazzes, JSON_PRETTY_PRINT));
 	}
-	
+
 	public function distribute(){
         $clazzes = $this->Processes->Clazzes->find('all')->contain(['ClazzesTeachers.Teachers.Users', 'Locals', 'Subjects']);
         $clazzes = $this->paginate($clazzes);
         $this->set('clazzes', $clazzes);
 	}
-	
+
 	public function simulate(){
         $clazzes = $this->Processes->Clazzes->find('all')->contain(['ClazzesTeachers.Teachers.Users', 'Locals', 'Subjects']);
         $clazzes = $this->paginate($clazzes);
         $this->set('clazzes', $clazzes);
 	}
-	
+
 	public function revert(){
         $this->paginate = [
             'contain' => []
@@ -166,7 +166,7 @@ class ProcessesController extends AppController
         $this->set('_serialize', ['processes']);
 	}
 
-    
+
     public function cloneProcess($id = null)
     {
         $clonedProcess = $this->Processes->get($id, [
@@ -175,7 +175,7 @@ class ProcessesController extends AppController
 
         if ($this->request->is('post')) {
             $process = $this->Processes->patchEntity($process, $this->request->data);
-            $process->status = 'OPEN';
+            $process->status = 'OPENED';
             if ($this->Processes->save($process)) {
                 $this->Flash->success(__('O processo foi clonado.'));
                 return $this->redirect(['action' => 'index']);
