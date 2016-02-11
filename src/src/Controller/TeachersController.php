@@ -54,16 +54,18 @@ class TeachersController extends AppController
      */
     public function add()
     {
-    		$teacher = $this->Teachers->newEntity();
+    	$teacher = $this->Teachers->newEntity();
+		$this->loadModel('Knowledges');
+        $knowledges = $this->Knowledges->find('list',array('fields'=>array('id','name')));
 
-    		if ($this->request->is('post')) {
+		if ($this->request->is('post')) {
 
-    			$data = $this->request->data;
-    			$data['user']['is_admin'] = isset($this->request->data['user']['is_admin']) ? 1 : 0;
+			$data = $this->request->data;
+			$data['user']['is_admin'] = isset($this->request->data['user']['is_admin']) ? 1 : 0;
 
-    			$teacher = $this->Teachers->newEntity($data, [
-    				'associated' => ['Users' => ['validate' => 'default']]
-    			]);
+			$teacher = $this->Teachers->patchEntity($teacher, $data, [
+				'associated' => ['Users' => ['validate' => 'default'], 'Knowledges']
+			]);
 
             if ($this->Teachers->save($teacher)) {
                 $this->Flash->success(__('The teacher has been saved.'));
@@ -74,10 +76,8 @@ class TeachersController extends AppController
         }
         $this->set(compact('teacher'));
 
-        $this->loadModel('Knowledges');
-        $knowledges = $this->Knowledges->find('list',array('fields'=>array('id','name')));
+        
         $this->set(compact('knowledges'));
-
         $this->set('_serialize', ['teacher']);
     }
 
@@ -91,7 +91,7 @@ class TeachersController extends AppController
     public function edit($id = null)
     {
         $teacher = $this->Teachers->get($id, [
-            'contain' => ['Users'
+            'contain' => ['Users', 'Knowledges'
 				, 'Clazzes'
 				, 'Clazzes.Subjects'
 				, 'Clazzes.Subjects.Knowledges'
@@ -110,7 +110,7 @@ class TeachersController extends AppController
 			}
 
 			$teacher = $this->Teachers->patchEntity($teacher, $data, [
-				'associated' => ['Users' => ['validate' => 'default']]
+				'associated' => ['Users' => ['validate' => 'default'], 'Knowledges']
 			]);
 
             if ($this->Teachers->save($teacher)) {
@@ -122,9 +122,9 @@ class TeachersController extends AppController
         }
 
         $this->loadModel('Knowledges');
-        $knowledges = $this->Knowledges->find('list',array('fields'=>array('id','name')));
-        $this->set(compact('knowledges'));
-
+        $knowledges = $this->Knowledges->find('list', array('fields' => array('id', 'name')));
+		
+		$this->set(compact('knowledges'));
         $this->set(compact('teacher'));
         $this->set('_serialize', ['teacher']);
     }

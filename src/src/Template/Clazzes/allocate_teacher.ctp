@@ -162,7 +162,7 @@
 											) ?>
 											<?php 	$has_clazz = false;
 													foreach ($clazzesTeachers as $c) :
-														if ($teacher->id == $c->teacher_id && $c->status == 'ACTIVE') { ?>
+														if ($teacher->id == $c->teacher_id && $c->status == 'SELECTED') { ?>
 
 														<?= $this->Form->button('<i id="icon-' . $teacher->id . '" class="fa fa-remove"></i><i id="icon-loading-' . $teacher->id . '" class="fa fa-spinner fa-spin" style="display:none;"></i>'
 															, array(
@@ -264,7 +264,7 @@ $(document).ready(function() {
 					var has_clazz = false;
 
 					for (var j = 0; j < teacher_clazzes.length; j++) {
-						if (teacher_clazzes[j].teacher_id == data[i].id && teacher_clazzes[j].status == 'ACTIVE') {
+						if (teacher_clazzes[j].teacher_id == data[i].id && teacher_clazzes[j].status == 'SELECTED') {
 
 							html += '<td><a href="/teachers/view/' + data[i].id + '" title="" class="btn btn-sm btn-default glyphicon glyphicon-search" data-toggle="tooltip" data-original-title="Visualizar"></a>' +
 							'<button type="button" id="button-' + data[i].id + '" class="btn btn-sm btn-danger" data-toggle="tooltip" title="" onclick="allocateTeacher(<?php echo $clazz->id; ?>, ' + data[i].id + ', \'deallocate\')" data-original-title="Cancelar inscricao do docente para ministrar Turma"><i id="icon-' + data[i].id + '" class="fa fa-remove"></i><i id="icon-loading-' + data[i].id + '" class="fa fa-spinner fa-spin" style="display:none;"></i></button>' +

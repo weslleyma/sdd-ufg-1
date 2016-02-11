@@ -419,9 +419,9 @@ class ClazzesController extends AppController
             ->contain([
                 'Subjects.Courses', 'Subjects.Knowledges',
                 'ClazzesSchedulesLocals.Locals', 'ClazzesSchedulesLocals.Schedules',
-                'Processes'
+                'Processes',
         ]);
-
+		
         if($params !== null) {
 			
 			$data = $this->Clazzes->find('all')
@@ -434,8 +434,13 @@ class ClazzesController extends AppController
 						return $q->where(["Clazzes.process_id LIKE " => "%" . $params['process'] . "%"]);
 					}
             ]);
-
         }
+		
+		foreach($data as $clazz => $value) {
+			if ($value->_getStatus() == 'CLOSED') {
+				unset($data[$clazz]);
+			}
+		}
 
         return $data->toArray();
 	}
