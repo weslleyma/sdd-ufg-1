@@ -72,16 +72,16 @@ class Clazze extends Entity
     {
         switch($this->status) {
             case "CONFLICT":
-                $displayName = _('Em conflito');
+                $displayName = __('Em conflito');
                 $lblClass = 'danger';
                 break;
             case "CLOSED":
-                $displayName = _('Fechado');
+                $displayName = __('Fechado');
                 $lblClass = 'default';
                 break;
             case "OPEN":
             default:
-                $displayName = _('Aberto');
+                $displayName = __('Aberto');
                 $lblClass = 'success';
                 break;
         }
@@ -132,5 +132,28 @@ class Clazze extends Entity
         }
 
         return $selectedTeachers;
+    }
+
+    public function _getEffectiveTeachers() {
+        if(!isset($this->teachers) || empty($this->teachers)) {
+            return [];
+        }
+
+        $effectiveTeachers = [];
+        foreach($this->teachers as $teacher) {
+            if($teacher->_joinData->status == 'APPROVED') {
+                $effectiveTeachers[] = $teacher;
+            }
+        }
+
+        return $effectiveTeachers;
+    }
+
+    public function _getDisplayEffectiveTeachers() {
+        $display = "";
+        foreach($this->effectiveTeachers as $teacher) {
+            $display .= $teacher->user->name . '<br>';
+        }
+        return $display;
     }
 }

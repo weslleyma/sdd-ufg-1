@@ -62,9 +62,9 @@ class SubjectsController extends AppController
             }
         }
 
-        $this->set('knowledges', array_replace([0 => _('[Selecione]')],
+        $this->set('knowledges', array_replace([0 => __('[Selecione]')],
             $this->Subjects->Knowledges->find('list')->toArray()));
-        $this->set('courses', array_replace([0 => _('[Selecione]')],
+        $this->set('courses', array_replace([0 => __('[Selecione]')],
             $this->Subjects->Courses->find('list')->toArray()));
         $this->set(compact('subject'));
         $this->set('_serialize', ['subject']);
@@ -92,9 +92,9 @@ class SubjectsController extends AppController
             }
         }
 
-        $this->set('knowledges', array_replace([0 => _('[Selecione]')],
+        $this->set('knowledges', array_replace([0 => __('[Selecione]')],
             $this->Subjects->Knowledges->find('list')->toArray()));
-        $this->set('courses', array_replace([0 => _('[Selecione]')],
+        $this->set('courses', array_replace([0 => __('[Selecione]')],
             $this->Subjects->Courses->find('list')->toArray()));
         $this->set(compact('subject'));
         $this->set('_serialize', ['subject']);
