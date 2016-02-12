@@ -13,7 +13,64 @@ use Cake\ORM\TableRegistry;
  */
 class ClazzesController extends AppController
 {
+	
+	private $_userInfo;
+	private $_userRoles;
+	private $_userKnowledges;
 
+	
+	public function initialize()
+    {
+        parent::initialize();
+        $this->loadComponent('RequestHandler');
+		
+		$this->_userInfo = $this->request->session()->read('UserInfo');
+		
+		$roles = array();
+		$knowledges = array();
+		
+		foreach($this->_userInfo->teacher->roles as $r) {
+			$roles[] = $r->type;
+		}
+		
+		foreach($this->_userInfo->teacher->roles as $r) {
+			if ($r->knowledge_id != null) {
+				$knowledges[] = $r->knowledge_id;
+			}
+		}
+		
+		$this->_userRoles = $roles;
+		$this->_userKnowledges = $knowledges;
+    }
+	
+	public function isAuthorized($user)
+	{
+		
+		return true; //remove line on production
+		
+		if (in_array($this->request->action, ['edit', 'delete', 'add'])) {
+
+			if ($user['is_admin'] || in_array('COORDINATOR', $this->_userRoles)) {
+				return true;
+			}
+			
+			$this->Flash->warning(__('Você não tem permissão para efetuar essa operação.'));
+			return false;
+		}
+		
+		if (in_array($this->request->action, ['listOpenedClazzes'])) {
+
+			if ($user['is_admin'] || in_array('COORDINATOR', $this->_userRoles) || in_array('FACILITATOR', $this->_userRoles)) {
+				return true;
+			}
+			
+			$this->Flash->warning(__('Você não tem permissão para efetuar essa operação.'));
+			return false;
+		}
+		
+		return parent::isAuthorized($user);
+	}
+	
     /**
      * Index method
      *
@@ -26,8 +83,10 @@ class ClazzesController extends AppController
         ];
         $this->set('clazzes', $this->paginate($this->Clazzes));
         $this->set('_serialize', ['clazzes']);
+		
     }
 
+	
     /**
      * View method
      *
@@ -198,7 +257,108 @@ class ClazzesController extends AppController
         }
         return $this->redirect(['action' => 'index']);
     }
+	
+	/**
+	*
+	* Show current user/teacher 's intents
+	*/
+	public function myIntents()
+    {
+		$clazzes = $this->Clazzes->ClazzesTeachers->getIntentsByTeacher($this->_userInfo->teacher->id);
+		
+		$this->set('clazzes', $this->paginate($clazzes));
+		$this->set('_serialize', ['clazzes']);
+		$this->set('teacherId', $this->_userInfo->teacher->id);
+    }
+	
+	
+	/**
+	*
+	* List opened clazzes
+	*/
+	public function listOpenedClazzes()
+	{
+		$processes = $this->Clazzes->Processes->find('list')
+            ->where(['initial_date <= ' => 'CURDATE()', 'final_date >= ' => 'CURDATE()'])
+            ->orWhere(['status' => 'OPENED'])
+            ->toArray();
 
+        $processes = array_replace(['' => __('[Selecione]')], $processes);
+
+		if (count($processes) < 2) {
+			$this->Flash->info(__('Não existe nenhum Processo de Distribuição de Disciplinas aberto.'));
+			$this->set('process_exists', false);
+			$this->set('_serialize', ['process_exists']);
+			$this->set('clazzes', array());
+			$this->set('_serialize', ['clazzes']);
+			$this->set('processes', array());
+			$this->set('_serialize', ['processes']);
+
+		} else {
+			$clazzes = $this->getOpenedClazzes();
+
+			/* Filters */
+			if ($this->request->is('post')) {
+				$data = $this->request->data;
+				$clazzes = $this->getOpenedClazzes($data);
+				echo json_encode($clazzes);
+				die();
+			}
+
+			$this->set('clazzes', $clazzes);
+			$this->set('_serialize', ['clazzes']);
+			$this->set('processes', $processes);
+			$this->set('_serialize', ['processes']);
+			$this->set('process_exists', true);
+			$this->set('_serialize', ['process_exists']);
+		}
+	}
+
+
+	private function getOpenedClazzes($params = null)
+	{
+		
+		$data = $this->Clazzes->find('all')
+					->contain([
+						'Subjects.Courses', 'Subjects.Knowledges',
+						'ClazzesSchedulesLocals.Locals', 'ClazzesSchedulesLocals.Schedules',
+						'Processes',
+					]);
+
+        if($params !== null) {
+			
+			$data = $this->Clazzes->find('all')
+					->contain([
+						'Subjects.Courses', 'Subjects.Knowledges' => function ($q) use ($params) {
+							return $q->where(["Knowledges.name LIKE " => "%" . $params['knowledge_name'] . "%"]);
+						},
+						'ClazzesSchedulesLocals.Locals', 'ClazzesSchedulesLocals.Schedules',
+						'Processes' => function ($q) use ($params) {
+							return $q->where(["Clazzes.process_id LIKE " => "%" . $params['process'] . "%"]);
+						}
+					]);
+
+        }
+		
+		if (!in_array('COORDINATOR', $this->_userRoles) && in_array('FACILITATOR', $this->_userRoles)) {
+			
+			if (count($this->_userKnowledges) < 1) {
+				return;
+			}
+			$data->innerJoinWith('Subjects.Knowledges', function($q) {
+				return $q->where(['Knowledges.id IN ' => $this->_userKnowledges]);		
+			});
+		}
+		
+		foreach($data as $clazz => $value) {
+			if ($value->_getStatus() == 'CLOSED') {
+				unset($data[$clazz]);
+			}
+		}
+
+        return $data->toArray();
+	}
+	
 	/**
 	* Allocate Teacher method
 	*
@@ -231,7 +391,7 @@ class ClazzesController extends AppController
 
 					$query = $table_clazzes_teachers->query();
 					$query->update()
-							->set(['status' => 'PENDING'])
+							->set(['status' => 'REJECTED'])
 							->where([
 							'clazz_id' => $clazz_id,
 							'teacher_id != ' => $teacher_id
@@ -247,7 +407,7 @@ class ClazzesController extends AppController
 					$query->insert(['clazz_id', 'teacher_id', 'status'])->values([
 							'clazz_id' => $clazz_id,
 							'teacher_id' => $teacher_id,
-							'status' => 'ACTIVE'
+							'status' => 'SELECTED'
 						])->execute();
 
 					if ($query) {
@@ -263,8 +423,7 @@ class ClazzesController extends AppController
 					$query->update()
 							->set(['status' => 'PENDING'])
 							->where([
-							'clazz_id' => $clazz_id,
-							'teacher_id' => $teacher_id
+							'clazz_id' => $clazz_id
 					])->execute();
 
 					if ($query) {
@@ -373,64 +532,5 @@ class ClazzesController extends AppController
 
 		}
 
-	}
-
-	public function listOpenedClazzes()
-	{
-		$processes = $this->Clazzes->Processes->find('list')
-            ->where(['initial_date <= ' => 'CURDATE()', 'final_date >= ' => 'CURDATE()'])
-            ->orWhere(['status' => 'OPEN'])
-            ->toArray();
-
-        $processes = array_replace(['' => __('[Selecione]')], $processes);
-
-		if (count($processes) < 2) {
-			$this->Flash->info(__('Não existe nenhum Processo de Distribuição de Disciplinas aberto.'));
-			$this->set('process_exists', false);
-			$this->set('_serialize', ['process_exists']);
-			$this->set('clazzes', array());
-			$this->set('_serialize', ['clazzes']);
-			$this->set('processes', array());
-			$this->set('_serialize', ['processes']);
-			$this->set('process_options', array());
-			$this->set('_serialize', ['process_options']);
-		} else {
-			$clazzes = $this->getClazzes();
-
-			/* Filters */
-			if ($this->request->is('post')) {
-				$data = $this->request->data;
-				$clazzes = $this->getClazzes($data);
-				echo json_encode($clazzes);
-				die();
-			}
-
-			$this->set('clazzes', $clazzes);
-			$this->set('_serialize', ['clazzes']);
-			$this->set('processes', $processes);
-			$this->set('_serialize', ['processes']);
-			$this->set('process_exists', true);
-			$this->set('_serialize', ['process_exists']);
-		}
-	}
-
-
-	public function getClazzes($params = null)
-	{
-        $data = $this->Clazzes->find('all')
-            ->contain([
-                'Subjects.Courses', 'Subjects.Knowledges',
-                'ClazzesSchedulesLocals.Locals', 'ClazzesSchedulesLocals.Schedules',
-                'Processes'
-            ]);
-
-        if($params !== null) {
-            $data->where([
-                "Knowledges.name LIKE" => "%" . $params['knowledge_name'] . "%",
-                "Clazzes.process_id" => $params['process']
-            ]);
-        }
-
-        return $data->toArray();
 	}
 }

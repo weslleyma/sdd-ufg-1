@@ -26,9 +26,9 @@
 											echo $this->Form->input('entry_date', ['label' => 'Data de Ingresso', 'placeholder' => 'Data de Ingresso']);
 											echo $this->Form->input('formation', ['label' => 'Formação', 'placeholder' => 'Formação']);
 											echo $this->Form->input('workload', ['label' => 'Carga Horária', 'placeholder' => 'Carga Horária']);
-											echo $this->Form->input('knowledges', ['label' => 'Núcleos de conhecimento', 'multiple' => true]);
 											echo $this->Form->input('about', ['label' => 'Sobre', 'placeholder' => 'Sobre']);
 											echo $this->Form->input('situation', ['label' => 'Situação', 'placeholder' => 'Situação']);
+											echo $this->Form->input('knowledges._ids', ['label' => 'Núcleos de conhecimento', 'type' => 'select', 'multiple' => true, 'options' => $knowledges]);
 										?>
 									</fieldset>
 								</div>
