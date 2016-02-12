@@ -55,10 +55,10 @@ class Clazze extends Entity
     public function _getStatus()
     {
         if(!isset($this->intents) || empty($this->intents)) {
-            return "OPEN";
+            return "OPENED";
         }
 
-        $status = (count($this->intents) > 1) ? "CONFLICT" : "OPEN";
+        $status = (count($this->intents) > 1) ? "CONFLICT" : "OPENED";
         foreach($this->intents as $intent) {
             if($intent->status == "SELECTED") {
                 $status = "CLOSED";
@@ -79,7 +79,7 @@ class Clazze extends Entity
                 $displayName = __('Fechado');
                 $lblClass = 'default';
                 break;
-            case "OPEN":
+            case "OPENED":
             default:
                 $displayName = __('Aberto');
                 $lblClass = 'success';

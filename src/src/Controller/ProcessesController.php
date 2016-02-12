@@ -56,7 +56,7 @@ class ProcessesController extends AppController
         $process = $this->Processes->newEntity();
         if ($this->request->is('post')) {
             $process = $this->Processes->patchEntity($process, $this->request->data);
-            $process->status = 'OPEN';
+            $process->status = 'OPENED';
             if ($this->Processes->save($process)) {
                 $this->Flash->success(__('O processo foi salvo.'));
                 return $this->redirect(['action' => 'index']);
@@ -102,14 +102,36 @@ class ProcessesController extends AppController
      * @return \Cake\Network\Response|null Redirects to index.
      * @throws \Cake\Network\Exception\NotFoundException When record not found.
      */
-    public function delete($id = null)
+    public function cancel($id = null)
     {
-        $this->request->allowMethod(['post', 'delete']);
+        $this->request->allowMethod(['post', 'cancel']);
         $process = $this->Processes->get($id);
-        if ($this->Processes->delete($process)) {
-            $this->Flash->success(__('O processo foi deletado com sucesso.'));
+        $process->status = 'CANCELLED';
+        if ($this->Processes->save($process)) {
+            $this->Flash->success(__('O processo foi cancelado com sucesso.'));
         } else {
-            $this->Flash->error(__('O processo nao pode ser deletado. Por favor, tente novamente.'));
+            $this->Flash->error(__('O processo nao pode ser cancelado. Por favor, tente novamente.'));
+        }
+        return $this->redirect(['action' => 'index']);
+    }
+
+    /**
+     * Close method
+     *
+     * @param string|null $id Process id.
+     * @return \Cake\Network\Response|null Redirects to index.
+     * @throws \Cake\Network\Exception\NotFoundException When record not found.
+     */
+    public function close($id = null)
+    {
+        $this->request->allowMethod(['post', 'close']);
+        $process = $this->Processes->get($id);
+        $process->status = 'CLOSED';
+//        $process->dirty('processConfigurations');
+        if ($this->Processes->save($process)) {
+            $this->Flash->success(__('O processo foi fechado com sucesso.'));
+        } else {
+            $this->Flash->error(__('O processo nao pode ser fechado. Por favor, tente novamente.'));
         }
         return $this->redirect(['action' => 'index']);
     }
@@ -123,19 +145,19 @@ class ProcessesController extends AppController
 		$clazzes = Distribution::generateDistribution($clazzes, $teachers);
 		$this->response->body(json_encode($clazzes, JSON_PRETTY_PRINT));
 	}
-	
+
 	public function distribute(){
         $clazzes = $this->Processes->Clazzes->find('all')->contain(['ClazzesTeachers.Teachers.Users', 'Locals', 'Subjects']);
         $clazzes = $this->paginate($clazzes);
         $this->set('clazzes', $clazzes);
 	}
-	
+
 	public function simulate(){
         $clazzes = $this->Processes->Clazzes->find('all')->contain(['ClazzesTeachers.Teachers.Users', 'Locals', 'Subjects']);
         $clazzes = $this->paginate($clazzes);
         $this->set('clazzes', $clazzes);
 	}
-	
+
 	public function revert(){
         $this->paginate = [
             'contain' => []
@@ -144,7 +166,7 @@ class ProcessesController extends AppController
         $this->set('_serialize', ['processes']);
 	}
 
-    
+
     public function cloneProcess($id = null)
     {
         $clonedProcess = $this->Processes->get($id, [
@@ -153,7 +175,7 @@ class ProcessesController extends AppController
 
         if ($this->request->is('post')) {
             $process = $this->Processes->patchEntity($process, $this->request->data);
-            $process->status = 'OPEN';
+            $process->status = 'OPENED';
             if ($this->Processes->save($process)) {
                 $this->Flash->success(__('O processo foi clonado.'));
                 return $this->redirect(['action' => 'index']);
@@ -186,25 +208,6 @@ class ProcessesController extends AppController
 
         $this->set(compact('$process'));
         $this->set('_serialize', ['$process']);
-    }
-
-    /**
-     * Close method
-     *
-     * @param string|null $id Process id.
-     * @return \Cake\Network\Response|null Redirects to index.
-     * @throws \Cake\Network\Exception\NotFoundException When record not found.
-     */
-    public function close($id = null)
-    {
-        $this->request->allowMethod(['post', 'close']);
-        $process = $this->Processes->get($id);
-        if ($this->Processes->close($process)) {
-            $this->Flash->success(__('O processo foi fechado com sucesso.'));
-        } else {
-            $this->Flash->error(__('O processo nao pode ser fechado. Por favor, tente novamente.'));
-        }
-        return $this->redirect(['action' => 'index']);
     }
 
 }

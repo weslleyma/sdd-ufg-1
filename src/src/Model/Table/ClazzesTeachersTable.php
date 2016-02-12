@@ -49,6 +49,7 @@ class ClazzesTeachersTable extends Table
     public function validationDefault(Validator $validator)
     {
         $validator
+            ->add('status', 'enum', ['rule' => ['inList', ['PENDING', 'SELECTED', 'REJECTED'], true]])
             ->requirePresence('status', 'create')
             ->notEmpty('status');
 

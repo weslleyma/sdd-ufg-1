@@ -231,7 +231,7 @@ class ClazzesController extends AppController
 
 					$query = $table_clazzes_teachers->query();
 					$query->update()
-							->set(['status' => 'PENDING'])
+							->set(['status' => 'REJECTED'])
 							->where([
 							'clazz_id' => $clazz_id,
 							'teacher_id != ' => $teacher_id
@@ -247,7 +247,7 @@ class ClazzesController extends AppController
 					$query->insert(['clazz_id', 'teacher_id', 'status'])->values([
 							'clazz_id' => $clazz_id,
 							'teacher_id' => $teacher_id,
-							'status' => 'ACTIVE'
+							'status' => 'SELECTED'
 						])->execute();
 
 					if ($query) {
@@ -263,8 +263,7 @@ class ClazzesController extends AppController
 					$query->update()
 							->set(['status' => 'PENDING'])
 							->where([
-							'clazz_id' => $clazz_id,
-							'teacher_id' => $teacher_id
+							'clazz_id' => $clazz_id
 					])->execute();
 
 					if ($query) {
@@ -379,7 +378,7 @@ class ClazzesController extends AppController
 	{
 		$processes = $this->Clazzes->Processes->find('list')
             ->where(['initial_date <= ' => 'CURDATE()', 'final_date >= ' => 'CURDATE()'])
-            ->orWhere(['status' => 'OPEN'])
+            ->orWhere(['status' => 'OPENED'])
             ->toArray();
 
         $processes = array_replace(['' => __('[Selecione]')], $processes);
@@ -392,8 +391,7 @@ class ClazzesController extends AppController
 			$this->set('_serialize', ['clazzes']);
 			$this->set('processes', array());
 			$this->set('_serialize', ['processes']);
-			$this->set('process_options', array());
-			$this->set('_serialize', ['process_options']);
+
 		} else {
 			$clazzes = $this->getClazzes();
 
@@ -421,15 +419,28 @@ class ClazzesController extends AppController
             ->contain([
                 'Subjects.Courses', 'Subjects.Knowledges',
                 'ClazzesSchedulesLocals.Locals', 'ClazzesSchedulesLocals.Schedules',
-                'Processes'
-            ]);
-
+                'Processes',
+        ]);
+		
         if($params !== null) {
-            $data->where([
-                "Knowledges.name LIKE" => "%" . $params['knowledge_name'] . "%",
-                "Clazzes.process_id" => $params['process']
+			
+			$data = $this->Clazzes->find('all')
+				->contain([
+					'Subjects.Courses', 'Subjects.Knowledges' => function ($q) use ($params) {
+						return $q->where(["Knowledges.name LIKE " => "%" . $params['knowledge_name'] . "%"]);
+					},
+					'ClazzesSchedulesLocals.Locals', 'ClazzesSchedulesLocals.Schedules',
+					'Processes' => function ($q) use ($params) {
+						return $q->where(["Clazzes.process_id LIKE " => "%" . $params['process'] . "%"]);
+					}
             ]);
         }
+		
+		foreach($data as $clazz => $value) {
+			if ($value->_getStatus() == 'CLOSED') {
+				unset($data[$clazz]);
+			}
+		}
 
         return $data->toArray();
 	}
