@@ -29,4 +29,11 @@ class Role extends Entity
         '*' => true,
         'id' => false,
     ];
+
+    public function _getDisplayType() {
+        if ($this->type == 'FACILITATOR') {
+            return __('Facilitador');
+        }
+        return __('Coordenador');
+    }
 }

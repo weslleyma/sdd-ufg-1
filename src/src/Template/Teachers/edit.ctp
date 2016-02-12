@@ -14,16 +14,6 @@
 				<div class="pull-right box-tools">
 					<?= $this->Html->link(
 						'',
-						['action' => 'allocateKnowledges', $teacher->id],
-						[
-							'title' => __('Núcleos de Interesse'),
-							'class' => 'btn btn-sm btn-default glyphicon glyphicon-book',
-							'data-toggle' => 'tooltip',
-							'data-original-title' => __('Escolher núcleos de conhecimento para o docente'),
-						]
-					) ?>
-					<?= $this->Html->link(
-						'',
 						['action' => 'allocateClazzes', $teacher->id],
 						[
 							'title' => __('Turmas de Interesse'),
@@ -32,7 +22,7 @@
 							'data-original-title' => __('Escolher turmas de interesse para concorrer em Processo de Distribuição'),
 						]
 					) ?>
-					
+
 				</div>
             </div>
             <div class="box-body">
@@ -51,6 +41,7 @@
 								echo $this->Form->input('workload', ['label' => 'Carga Horária', 'placeholder' => 'Carga Horária']);
 								echo $this->Form->input('about', ['label' => 'Sobre', 'placeholder' => 'Sobre']);
 								echo $this->Form->input('situation', ['label' => 'Situação', 'placeholder' => 'Situação']);
+								echo $this->Form->input('knowledges._ids', ['label' => 'Núcleos de conhecimento', 'type' => 'select', 'multiple' => true, 'options' => $knowledges]);
 							?>
 						</fieldset>
 					</div>
@@ -64,12 +55,12 @@
 							?>
 							<div class="form-group">
 							<label for="pwd">Senha&nbsp;</label>
-							<?php 
+							<?php
 								echo $this->Form->password('pwd', ['label' => 'Senha', 'placeholder' => 'Digite uma nova senha caso deseje MODIFICAR a atual', 'class' => 'form-control']);
 							?>
 							</div>
 							<label for="is_admin">É administrador?&nbsp;
-							<?php 
+							<?php
 								echo $this->Form->radio('user.is_admin', [
 									['value' => '1', 'text' => 'Sim'],
 									['value' => '0', 'text' => 'Não'],
@@ -84,7 +75,7 @@
 					<?= $this->Form->button(__('Salvar'), ['class' => 'btn btn-success']) ?>
 				</div>
 			</div>
-		</div> 
+		</div>
 	</div>
 </div>
 <?= $this->Form->end() ?>

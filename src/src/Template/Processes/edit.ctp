@@ -1,7 +1,7 @@
-<?php $this->assign('title', 'Processos'); ?>
+<?php $this->assign('title', 'Processos de distribuição'); ?>
 <?php $this->start('breadcrumb'); ?>
     <li><?= $this->Html->link('<i class="fa fa-dashboard"></i>' . __('Dashboard'), '/', ['escape' => false]) ?></li>
-    <li><?= $this->Html->link(__('Processos'), ['action' => 'index']) ?></li>
+    <li><?= $this->Html->link(__('Processos de distribuição'), ['action' => 'index']) ?></li>
     <li class="active">Editar #<?= $process->id ?></li>
 <?php $this->end(); ?>
 
@@ -21,6 +21,7 @@
                     echo $this->Form->input('substitute_intent_date', ['label' => 'até', 'type' => 'text', 'class' => 'datepicker', 'data-date-format' => 'dd/mm/yyyy']);
                     echo $this->Form->input('secondary_distribution_date', ['label' => 'Resolução de conflitos', 'type' => 'text', 'class' => 'datepicker', 'data-date-format' => 'dd/mm/yyyy']);
                     echo $this->Form->input('final_date', ['label' => 'até', 'type' => 'text', 'class' => 'datepicker', 'data-date-format' => 'dd/mm/yyyy']);
+                    echo $this->Form->input('processConfigurations', ['label' => 'Configs. do Processo', 'multiple' => true]);
                 ?>
             </div>
             <div class="box-footer clearfix">

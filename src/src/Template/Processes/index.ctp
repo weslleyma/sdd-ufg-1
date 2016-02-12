@@ -1,7 +1,7 @@
 <?php $this->assign('title', 'Processos de distribuição'); ?>
 <?php $this->start('breadcrumb'); ?>
-    <li><a href="#"><i class="fa fa-dashboard"></i> Level</a></li>
-    <li class="active">Here</li>
+    <li><?= $this->Html->link('<i class="fa fa-dashboard"></i>' . __('Dashboard'), '/', ['escape' => false]) ?></li>
+    <li class="active">Processos de distribuição</li>
 <?php $this->end(); ?>
 
 <div class="row">
@@ -60,7 +60,7 @@
                                             'data-original-title' => __('Visualizar'),
                                         ]
                                     ) ?>
-                                    <?php if($process->status != 'CANCELLED'): ?>
+                                    <?php if($process->status == 'OPENED' ): ?>
                                         <?= $this->Html->link(
                                             '',
                                             ['action' => 'edit', $process->id],
@@ -82,6 +82,18 @@
                                                 'data-original-title' => __('Cancelar'),
                                             ]
                                         ) ?>
+                                        <?= $this->Form->postLink(
+                                            __('Fechar'),
+                                            ['action' => 'close', $process->id],
+                                            [
+                                                'confirm' => __('Você tem certeza de que deseja fechar o processo "{0}"?', $process->name),
+                                                'title' => __('Fechar Processo'),
+                                                'data-toggle' => 'tooltip',
+                                                'data-original-title' => __('Fechar'),
+                                                'class' => 'btn btn-sm btn-primary'
+                                            ]
+                                        );
+                                        ?>
                                     <?php endif; ?>
                                 </td>
                             </tr>
