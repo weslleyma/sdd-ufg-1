@@ -4,6 +4,7 @@ namespace App\Controller;
 use App\Controller\AppController;
 use Cake\Datasource\ConnectionManager;
 use Cake\ORM\TableRegistry;
+use Cake\View\Helper\SessionHelper;
 
 /**
  * Teachers Controller
@@ -12,12 +13,43 @@ use Cake\ORM\TableRegistry;
  */
 class TeachersController extends AppController
 {
+	
+	private $_userInfo;
+	private $_userRoles;
 
 	public function initialize()
     {
         parent::initialize();
         $this->loadComponent('RequestHandler');
+		
+		$this->_userInfo = $this->request->session()->read('UserInfo');
+		$roles = array();
+		
+		foreach($this->_userInfo->teacher->roles as $r) {
+			$roles[] = $r->type;
+		}
+		
+		$this->_userRoles = $roles;
     }
+	
+	public function isAuthorized($user)
+	{
+		return true; //remove line on production
+		
+		//Only admin or teacher itself can edit the teacher
+		if (in_array($this->request->action, ['edit', 'allocateClazzes'])) {
+			$teacherId = (int)$this->request->params['pass'][0];
+
+			if ($user['id'] === $teacherId || $user['is_admin'] || in_array('COORDINATOR', $this->_userRoles)) {
+				return true;
+			}
+			
+			$this->Flash->warning(__('Você não tem permissão para editar esse docente.'));
+			return false;
+		}
+		
+		return parent::isAuthorized($user);
+	}
 
     /**
      * Index method
@@ -25,9 +57,21 @@ class TeachersController extends AppController
      * @return void
      */
     public function index()
-    {
-        $this->set('teachers', $this->paginate($this->Teachers->find('all')->contain(['Users'])));
-        $this->set('_serialize', ['teachers']);
+    {		
+	
+		$this->set('teachers', $this->paginate($this->Teachers->find('all')->contain(['Users'])));
+	
+		if (!in_array('COORDINATOR', $this->_userRoles)) {
+			
+			$this->set('teachers', $this->paginate($this->Teachers->find('all')
+				->contain(['Users' ])
+				->innerJoinWith('Users', function($q) { 
+					return $q->where(['Users.id' => $this->_userInfo->id]);
+				})
+			));
+		} 
+
+		$this->set('_serialize', ['teachers']);
     }
 
     /**
