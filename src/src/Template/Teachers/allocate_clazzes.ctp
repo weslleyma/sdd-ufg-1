@@ -180,16 +180,16 @@
                                             ) ?>
 											<?php 	$has_clazz = false;
 													foreach ($teacher->clazzes as $c) : 
-														if ($clazz['Clazzes__id'] == $c->id) { ?>
+														if ($clazz->id == $c->id) { ?>
 											
-														<?= $this->Form->button('<i id="icon-' . $clazz['Clazzes__id'] . '" class="fa fa-remove"></i><i id="icon-loading-' . $clazz['Clazzes__id'] . '" class="fa fa-spinner fa-spin" style="display:none;"></i>'
+														<?= $this->Form->button('<i id="icon-' . $clazz->id . '" class="fa fa-remove"></i><i id="icon-loading-' . $clazz->id . '" class="fa fa-spinner fa-spin" style="display:none;"></i>'
 															, array(
 																'type' => 'button',
-																'id' => 'button-' . $clazz['Clazzes__id'],
+																'id' => 'button-' . $clazz->id,
 																'class' => 'btn btn-sm btn-danger',
 																'data-toggle' => 'tooltip',
 																'title' => 'Cancelar interesse na disciplina',
-																'onclick' => 'allocateClazz(' . $teacher->id . ', ' . $clazz['Clazzes__id'] . ', ' . '\'deallocate\'' . ')',
+																'onclick' => 'allocateClazz(' . $teacher->id . ', ' . $clazz->id . ', ' . '\'deallocate\'' . ')',
 																)
 														) ?>
 														
@@ -201,14 +201,14 @@
 														<?php
 														if (!$has_clazz) {
 														?>
-															<?= $this->Form->button('<i id="icon-' . $clazz['Clazzes__id'] . '" class="fa fa-check"></i><i id="icon-loading-' . $clazz['Clazzes__id'] . '" class="fa fa-spinner fa-spin" style="display:none;"></i>'
+															<?= $this->Form->button('<i id="icon-' . $clazz->id . '" class="fa fa-check"></i><i id="icon-loading-' . $clazz->id . '" class="fa fa-spinner fa-spin" style="display:none;"></i>'
 															, array(
 																'type' => 'button',
-																'id' => 'button-' . $clazz['Clazzes__id'],
+																'id' => 'button-' . $clazz->id,
 																'class' => 'btn btn-sm btn-success',
 																'data-toggle' => 'tooltip',
 																'title' => 'Registrar interesse na disciplina',
-																'onclick' => 'allocateClazz(' . $teacher->id . ', ' . $clazz['Clazzes__id'] . ', ' . '\'allocate\'' . ')',
+																'onclick' => 'allocateClazz(' . $teacher->id . ', ' . $clazz->id . ', ' . '\'allocate\'' . ')',
 																)
 														) ?>
 															
