@@ -82,6 +82,11 @@ class ProcessesTable extends Table
             ->requirePresence('final_date', 'create')
             ->notEmpty('final_date');
 
+        $validator
+            ->add('status', 'enum', ['rule' => ['inList', ['OPENED', 'CLOSED'], true]])
+            ->requirePresence('status', 'create')
+            ->notEmpty('status');
+
         return $validator;
     }
 }
