@@ -5,6 +5,7 @@ use App\Model\Entity\Role;
 use Cake\ORM\Query;
 use Cake\ORM\RulesChecker;
 use Cake\ORM\Table;
+use Cake\ORM\Rule\IsUnique;
 use Cake\Validation\Validator;
 
 /**
@@ -56,6 +57,20 @@ class RolesTable extends Table
             ->requirePresence('type', 'create')
             ->notEmpty('type');
 
+        $validator
+            ->add('teacher_id','custom',[
+                'rule'=>  function($value, $context){
+                    $roles = $this->find('all', [
+                        'conditions' => ['type' => 'COORDINATOR', 'teacher_id' => $context['data']['teacher_id']]
+                    ]);
+                    if ($roles) {
+                        return false;
+                    }
+                    return true;
+                },
+                'message'=>'Professor já vinculado como coordenador!',
+            ]);
+
         return $validator;
     }
 
@@ -70,6 +85,15 @@ class RolesTable extends Table
     {
         $rules->add($rules->existsIn(['teacher_id'], 'Teachers'));
         $rules->add($rules->existsIn(['knowledge_id'], 'Knowledges'));
+
+        $rules->add(
+            new IsUnique(['type', 'teacher_id', 'knowledge_id']),
+            [
+                'errorField' => 'knowledge_id',
+                'message' => __('Professor já vinculado facilitador desse núcleo de conhecimento!')
+            ]
+        );
+
         return $rules;
     }
 
