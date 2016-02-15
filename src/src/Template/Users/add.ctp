@@ -18,7 +18,7 @@
                     echo $this->Form->input('email', ['label' => 'Email', 'placeholder' => 'Email']);
                     echo $this->Form->input('name', ['label' => 'Nome', 'placeholder' => 'Nome']);
                     echo $this->Form->input('password', ['label' => 'Senha', 'placeholder' => 'Senha']);
-                    echo $this->Form->input('is_admin', ['label' => 'É administrador']);
+                    echo $this->Form->input('is_admin', ['label' => 'Administrador']);
                 ?>
             </div>
             <div class="box-footer clearfix">

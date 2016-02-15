@@ -42,7 +42,7 @@
                         <td><?= $user->name ?></td>
                     </tr>
                     <tr>
-                        <th><?= __('É administrador') ?></th>
+                        <th><?= __('Administrador') ?></th>
                         <td><?= $user->is_admin ? __('Sim') : __('Não'); ?></td>
                     </tr>
                 </table>

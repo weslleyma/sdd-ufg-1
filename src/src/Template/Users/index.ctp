@@ -31,7 +31,7 @@
                       <th><?= $this->Paginator->sort('login', __('Login')) ?></th>
                       <th><?= $this->Paginator->sort('email', __('Email')) ?></th>
                       <th><?= $this->Paginator->sort('name', __('Nome')) ?></th>
-                      <th><?= $this->Paginator->sort('is_admin', __('É administrador')) ?></th>
+                      <th><?= $this->Paginator->sort('is_admin', __('Administrador')) ?></th>
                       <th width="200px"><?= __('Ações') ?></th>
                   </tr>
                   </thead>
