@@ -24,7 +24,13 @@ class ClazzesController extends AppController
         parent::initialize();
         $this->loadComponent('RequestHandler');
 		
-		$this->_userInfo = $this->request->session()->read('UserInfo');
+		$userInfo = $this->request->session()->read('UserInfo');
+
+		if (!$userInfo) {
+			return redirect(['controller' => 'Users', 'action' => 'logout']);
+		}
+		
+		$this->_userInfo = $userInfo;
 		
 		$roles = array();
 		$knowledges = array();

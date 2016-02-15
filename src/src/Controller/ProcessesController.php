@@ -209,5 +209,43 @@ class ProcessesController extends AppController
         $this->set(compact('$process'));
         $this->set('_serialize', ['$process']);
     }
+	
+	
+	public function reuseProcess($id)
+    {
+        $originalProcess = $this->Processes->get($id, [
+            'contain' => ['Clazzes', 'Clazzes.Schedules', 'Clazzes.Locals', 'Clazzes.ClazzesTeachers', 'ProcessConfigurations']
+        ]);
+
+		$originalProcess->id = null;
+		$originalProcess->status = 'OPENED';
+		
+		foreach($originalProcess->clazzes as $item => $value) {
+			$originalProcess->clazzes[$item]->id = null; 
+			
+			foreach($value->locals as $key => $l) {
+				$originalProcess->clazzes[$item]->locals[$key]->id = null; 
+			}
+			
+			foreach($value->schedules as $key => $l) {
+				$originalProcess->clazzes[$item]->schedules[$key]->id = null; 
+			}
+		}
+
+		foreach($originalProcess->process_configurations as $item => $value) {
+			$originalProcess->processConfigurations[$item]->id = null; 
+		}
+		
+		$clonedProcess = $this->Processes->newEntity($originalProcess->toArray()
+			, ['associations' => ['Clazzes', 'Clazzes.Schedules', 'Clazzes.Locals', 'ProcessConfigurations']]);
+		
+		if ($this->Processes->save($clonedProcess)) {
+            $this->Flash->success(__('Processo Clonado Com Sucesso!'));
+        } else {
+            $this->Flash->error(__('Ocorreu um erro ao tentar clonar o Processo. Por favor, tente novamente.'));
+        }
+        return $this->redirect(['action' => 'index']);
+		
+    }
 
 }
