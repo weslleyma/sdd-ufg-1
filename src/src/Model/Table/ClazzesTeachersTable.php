@@ -69,4 +69,23 @@ class ClazzesTeachersTable extends Table
         $rules->add($rules->existsIn(['teacher_id'], 'Teachers'));
         return $rules;
     }
+	
+	public function getIntentsByTeacher($teacherId){
+		$clazzesTeachers = $this
+			->find('all')
+			->contain([
+				'Clazzes'=> function($q) {
+					return $q->select(['Clazzes.name']);
+				},
+				'Clazzes.Subjects' => function($q) {
+					return $q->select(['Subjects.name']);
+				},
+				'Teachers' => function($q) {
+					return $q->select(['id']);
+				}
+			])
+			->where(['ClazzesTeachers.teacher_id' => $teacherId]);
+
+		return $clazzesTeachers;
+	}
 }
