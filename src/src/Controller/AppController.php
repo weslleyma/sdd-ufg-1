@@ -31,6 +31,9 @@ class AppController extends Controller
 
     public $helpers = ['Gravatar.Gravatar'];
 
+    /** @var bool|User */
+    protected $loggedUser = false;
+
     /**
      * Initialization hook method.
      *
@@ -63,6 +66,8 @@ class AppController extends Controller
                 'action' => 'login'
             ]
         ]);
+
+        $this->setLoggedUserData();
     }
 
     /**
@@ -96,5 +101,26 @@ class AppController extends Controller
         }
 
         return false;
+    }
+
+    /**
+     * Gets the logged user data, if exists, and sets to all controllers.
+     */
+    private function setLoggedUserData()
+    {
+        $authUser = isset($this->request->Session()->read('Auth')['User']) ?
+            $this->request->Session()->read('Auth')['User'] : false;
+
+        if($authUser === false) {
+            return;
+        }
+
+        $userModel = $this->loadModel('Users');
+
+        $this->loggedUser = $userModel->get($authUser['id'], [
+            'contain' => ['Teachers.Roles']
+        ]);
+
+        $this->set('loggedUser', $this->loggedUser);
     }
 }

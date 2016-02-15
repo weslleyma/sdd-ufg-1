@@ -35,9 +35,22 @@ class TeachersTable extends Table
         $this->hasMany('Roles', [
             'foreignKey' => 'teacher_id'
         ]);
-        $this->hasMany('Users', [
-            'foreignKey' => 'teacher_id'
+
+        $this->hasMany('ClazzesTeachers', [
+            'foreignKey' => 'teacher_id',
+            'propertyName' => 'intents'
         ]);
+
+        $this->hasMany('KnowledgesTeachers', [
+            'foreignKey' => 'teacher_id',
+            'propertyName' => 'knowledges'
+        ]);
+
+        $this->belongsTo('Users', [
+            'foreignKey' => 'user_id'
+        ]);
+
+        // Remove - redundancy
         $this->belongsToMany('Clazzes', [
             'foreignKey' => 'teacher_id',
             'targetForeignKey' => 'clazz_id',
@@ -47,10 +60,6 @@ class TeachersTable extends Table
             'foreignKey' => 'teacher_id',
             'targetForeignKey' => 'knowledge_id',
             'joinTable' => 'knowledges_teachers'
-        ]);
-
-        $this->belongsTo('Users', [
-            'foreignKey' => 'user_id'
         ]);
     }
 
