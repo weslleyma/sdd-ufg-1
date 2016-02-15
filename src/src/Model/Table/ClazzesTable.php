@@ -137,8 +137,20 @@ class ClazzesTable extends Table
         return $rules;
     }
 
+    public function isTeacherSubscribed($teacherId, $clazzId)
+    {
+        $isSubscribed = $this->find('all')->matching('ClazzesTeachers')
+            ->where([
+                'ClazzesTeachers.teacher_id' => $teacherId,
+                'ClazzesTeachers.clazz_id' => $clazzId
+            ])->toArray();
 
-	public function getAllClazzesNotTeachers(){
+        return !empty($isSubscribed);
+    }
+
+
+	public function getAllClazzesNotTeachers()
+    {
 		$clazzesTemp = $this
 			->find('all')
 			->contain([
@@ -163,7 +175,8 @@ class ClazzesTable extends Table
 		return $clazzes;
 	}
 
-	public function getAllClazzesWithSubjctsTeachers(){
+	public function getAllClazzesWithSubjctsTeachers()
+    {
 		return $this
 			->find('all')
 			->contain([
