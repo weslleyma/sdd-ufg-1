@@ -13,70 +13,33 @@ use Cake\ORM\TableRegistry;
  */
 class ClazzesController extends AppController
 {
-	
-	private $_userInfo;
-	private $_userRoles;
-	private $_userKnowledges;
 
-	
-	public function initialize()
-    {
-        parent::initialize();
-        $this->loadComponent('RequestHandler');
-		
-		$userInfo = $this->request->session()->read('UserInfo');
-
-		if (!$userInfo) {
-			return redirect(['controller' => 'Users', 'action' => 'logout']);
-		}
-		
-		$this->_userInfo = $userInfo;
-		
-		$roles = array();
-		$knowledges = array();
-		
-		foreach($this->_userInfo->teacher->roles as $r) {
-			$roles[] = $r->type;
-		}
-		
-		foreach($this->_userInfo->teacher->roles as $r) {
-			if ($r->knowledge_id != null) {
-				$knowledges[] = $r->knowledge_id;
-			}
-		}
-		
-		$this->_userRoles = $roles;
-		$this->_userKnowledges = $knowledges;
-    }
-	
 	public function isAuthorized($user)
 	{
-		
-		return true; //remove line on production
-		
 		if (in_array($this->request->action, ['edit', 'delete', 'add'])) {
-
-			if ($user['is_admin'] || in_array('COORDINATOR', $this->_userRoles)) {
-				return true;
-			}
-			
-			$this->Flash->warning(__('Você não tem permissão para efetuar essa operação.'));
-			return false;
+            if($this->loggedUser !== false && $this->loggedUser->isCoordinator()) {
+                return True;
+            }
 		}
-		
+
 		if (in_array($this->request->action, ['listOpenedClazzes'])) {
-
-			if ($user['is_admin'] || in_array('COORDINATOR', $this->_userRoles) || in_array('FACILITATOR', $this->_userRoles)) {
-				return true;
-			}
-			
-			$this->Flash->warning(__('Você não tem permissão para efetuar essa operação.'));
-			return false;
+            if($this->loggedUser !== false) {
+                return True;
+            }
 		}
-		
+
+        // Need to be logged ONLY by a teacher
+        if(in_array($this->request->action, ['subscribe', 'unsubscribe'])) {
+            if(isset($this->loggedUser->teacher) && $this->loggedUser->teacher != null) {
+                return True;
+            }
+
+            return False;
+        }
+
 		return parent::isAuthorized($user);
 	}
-	
+
     /**
      * Index method
      *
@@ -89,10 +52,10 @@ class ClazzesController extends AppController
         ];
         $this->set('clazzes', $this->paginate($this->Clazzes));
         $this->set('_serialize', ['clazzes']);
-		
+
     }
 
-	
+
     /**
      * View method
      *
@@ -104,7 +67,7 @@ class ClazzesController extends AppController
     {
         $clazz = $this->Clazzes->get($id, [
             'contain' => [
-                'Processes', 'Subjects', 'ClazzesTeachers.Teachers.Users',
+                'Processes', 'Subjects.Knowledges', 'ClazzesTeachers.Teachers.Users',
                 'ClazzesSchedulesLocals.Locals', 'ClazzesSchedulesLocals.Schedules'
             ]
         ]);
@@ -263,7 +226,67 @@ class ClazzesController extends AppController
         }
         return $this->redirect(['action' => 'index']);
     }
-	
+
+    /**
+     * Subscribe method
+     *
+     * @param string|null $id Clazz id.
+     * @return \Cake\Network\Response|null Redirects to index.
+     * @throws \Cake\Network\Exception\NotFoundException When record not found.
+     */
+    public function subscribe($id = null)
+    {
+        $this->request->allowMethod(['post']);
+        if($this->Clazzes->isTeacherSubscribed($this->loggedUser->teacher->id, $id)) {
+            $this->Flash->error(__('Você já está inscrito nesta turma.'));
+            return $this->redirect(['action' => 'view', $id]);
+        }
+
+        $clazzTeacher = $this->Clazzes->ClazzesTeachers->newEntity([
+            'teacher_id' => $this->loggedUser->teacher->id,
+            'clazz_id' => $id,
+            'status' => 'PENDING'
+        ]);
+
+        if($this->Clazzes->ClazzesTeachers->save($clazzTeacher)) {
+            $this->Flash->success(__('Inscrição realizada com sucesso.'));
+        } else {
+            $this->Flash->error(__('Não foi possível realizar sua inscrição, tente novamente.'));
+        }
+
+        return $this->redirect(['action' => 'view', $id]);
+    }
+
+    /**
+     * Unsubscribe method
+     *
+     * @param string|null $id Clazz id.
+     * @return \Cake\Network\Response|null Redirects to index.
+     * @throws \Cake\Network\Exception\NotFoundException When record not found.
+     */
+    public function unsubscribe($id = null)
+    {
+        $this->request->allowMethod(['post']);
+        if(!$this->Clazzes->isTeacherSubscribed($this->loggedUser->teacher->id, $id)) {
+            $this->Flash->error(__('Você não está inscrito nesta turma.'));
+            return $this->redirect(['action' => 'view', $id]);
+        }
+
+        $deleteConditions = [
+            'teacher_id' => $this->loggedUser->teacher->id,
+            'clazz_id' => $id
+        ];
+
+        if($this->Clazzes->ClazzesTeachers->deleteAll($deleteConditions)) {
+            $this->Flash->success(__('Inscrição cancelada com sucesso.'));
+        } else {
+            $this->Flash->error(__('Não foi possível cancelar sua inscrição, tente novamente.'));
+        }
+
+        return $this->redirect(['action' => 'view', $id]);
+    }
+
+
 	/**
 	*
 	* Show current user/teacher 's intents
@@ -271,13 +294,13 @@ class ClazzesController extends AppController
 	public function myIntents()
     {
 		$clazzes = $this->Clazzes->ClazzesTeachers->getIntentsByTeacher($this->_userInfo->teacher->id);
-		
+
 		$this->set('clazzes', $this->paginate($clazzes));
 		$this->set('_serialize', ['clazzes']);
 		$this->set('teacherId', $this->_userInfo->teacher->id);
     }
-	
-	
+
+
 	/**
 	*
 	* List opened clazzes
@@ -323,7 +346,7 @@ class ClazzesController extends AppController
 
 	private function getOpenedClazzes($params = null)
 	{
-		
+
 		$data = $this->Clazzes->find('all')
 					->contain([
 						'Subjects.Courses', 'Subjects.Knowledges',
@@ -332,7 +355,7 @@ class ClazzesController extends AppController
 					]);
 
         if($params !== null) {
-			
+
 			$data = $this->Clazzes->find('all')
 					->contain([
 						'Subjects.Courses', 'Subjects.Knowledges' => function ($q) use ($params) {
@@ -345,17 +368,17 @@ class ClazzesController extends AppController
 					]);
 
         }
-		
+
 		if (!in_array('COORDINATOR', $this->_userRoles) && in_array('FACILITATOR', $this->_userRoles)) {
-			
+
 			if (count($this->_userKnowledges) < 1) {
 				return;
 			}
 			$data->innerJoinWith('Subjects.Knowledges', function($q) {
-				return $q->where(['Knowledges.id IN ' => $this->_userKnowledges]);		
+				return $q->where(['Knowledges.id IN ' => $this->_userKnowledges]);
 			});
 		}
-		
+
 		foreach($data as $clazz => $value) {
 			if ($value->_getStatus() == 'CLOSED') {
 				unset($data[$clazz]);
@@ -364,7 +387,7 @@ class ClazzesController extends AppController
 
         return $data->toArray();
 	}
-	
+
 	/**
 	* Allocate Teacher method
 	*

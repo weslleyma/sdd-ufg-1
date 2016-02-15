@@ -3,6 +3,7 @@ namespace App\Model\Entity;
 
 use Cake\Auth\DefaultPasswordHasher;
 use Cake\ORM\Entity;
+use Cake\ORM\TableRegistry;
 
 /**
  * User Entity.
@@ -36,5 +37,78 @@ class User extends Entity
     protected function _setPassword($password)
     {
         return (new DefaultPasswordHasher)->hash($password);
+    }
+
+    public function isCoordinator()
+    {
+        if(!isset($this->teacher) || !isset($this->teacher->roles)) {
+            return False;
+        }
+
+        $roles = $this->teacher->roles;
+        foreach($roles as $role) {
+            if($role->type == 'COORDINATOR') {
+                return True;
+            }
+        }
+
+        return False;
+    }
+
+    public function isFacilitatorOf($knowledgeId)
+    {
+        if(!isset($this->teacher) || !isset($this->teacher->roles)) {
+            return False;
+        }
+
+        $roles = $this->teacher->roles;
+        foreach($roles as $role) {
+            if($role->type == 'FACILITATOR' && $role->knowledge_id == $knowledgeId) {
+                return True;
+            }
+        }
+
+        return False;
+    }
+
+    public function levelOf($knowledgeId)
+    {
+        if(!isset($this->teacher) || $this->teacher == null) {
+            return 0;
+        }
+
+        if(!isset($this->teacher->knowledges) || !is_array($this->teacher->knowledges)) {
+            $knowledgesTeachersModel = TableRegistry::get('KnowledgesTeachers');
+            $knowledges = $knowledgesTeachersModel->find('all')->contain(['Knowledges'])
+                ->where(['KnowledgesTeachers.teacher_id' => $this->teacher->id])->toArray();
+
+            $this->teacher->knowledges = [];
+            foreach($knowledges as $knowledge) {
+                $this->teacher->knowledges[$knowledge->knowledge_id] = $knowledge;
+            }
+        }
+
+        if(!isset($this->teacher->knowledges[$knowledgeId])) {
+            return 0;
+        }
+
+        return $this->teacher->knowledges[$knowledgeId]->level;
+    }
+
+    public function isSubscribed($clazzId)
+    {
+        if(!isset($this->teacher) || $this->teacher == null) {
+            return false;
+        }
+
+        $clazzModel = TableRegistry::get('Clazzes');
+        $subscribed = $clazzModel->find('all')
+            ->matching('ClazzesTeachers')
+            ->where([
+                'ClazzesTeachers.teacher_id' => $this->teacher->id,
+                'ClazzesTeachers.clazz_id' => $clazzId
+            ])->toArray();
+
+        return !empty($subscribed);
     }
 }
