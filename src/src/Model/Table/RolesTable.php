@@ -68,7 +68,7 @@ class RolesTable extends Table
                     }
                     return true;
                 },
-                'message'=>'Professor já vinculado como coordenador!',
+                'message'=> __('Professor já vinculado como coordenador!')
             ]);
 
         return $validator;
