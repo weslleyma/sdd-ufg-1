@@ -148,6 +148,100 @@ class ClazzesTable extends Table
         return !empty($isSubscribed);
     }
 
+    /**
+     * Finds clazzes by filters
+     *
+     * @param $filters
+     * @return Query
+     */
+    public function findByFilters($filters)
+    {
+        /** @var Query $clazzes */
+        $clazzes = $this->find('all')->contain([
+            'Processes', 'Subjects.Knowledges', 'ClazzesTeachers.Teachers.Users'
+        ]);
+
+        $conditions = [];
+        if(isset($filters) && is_array($filters)) {
+            if(isset($filters['process']) && $filters['process'] != 0) {
+                $conditions['Clazzes.process_id'] = $filters['process'];
+            }
+
+            if(isset($filters['knowledge']) && $filters['knowledge'] != 0) {
+                $conditions['Subjects.knowledge_id'] = $filters['knowledge'];
+            }
+
+            if(isset($filters['subject']) && $filters['subject'] != 0) {
+                $conditions['Subjects.id'] = $filters['subject'];
+            }
+
+            if(isset($filters['status']) && !empty($filters['status'])) {
+                $closedClazzesId = [0];
+                $conflictClazzesId = [0];
+
+                if($filters['status'] == 'CLOSED' || $filters['status'] == 'OPENED') {
+                    $closedClazzes = $this->find()
+                        ->select(['Clazzes.id'])
+                        ->matching('ClazzesTeachers')
+                        ->where([
+                            'or' => [
+                                [
+                                    'ClazzesTeachers.status' => 'SELECTED'
+                                ],
+                                [
+                                    'ClazzesTeachers.status' => 'REJECTED'
+                                ]
+                            ]
+                        ])
+                        ->group(['Clazzes.id']);
+
+                    foreach($closedClazzes as $closedClazz) {
+                        $closedClazzesId[] = $closedClazz->id;
+                    }
+
+                    if($filters['status'] == 'CLOSED') {
+                        $conditions['Clazzes.id IN'] = $closedClazzesId;
+                    }
+                }
+
+                if($filters['status'] == 'CONFLICT' || $filters['status'] == 'OPENED') {
+                    $conflictClazzes = $this->find()
+                        ->select(['Clazzes.id', 'Clazzes__count' => 'count(Clazzes.id)'])
+                        ->matching('ClazzesTeachers')
+                        ->where([
+                            'ClazzesTeachers.status' => 'PENDING'
+                        ])
+                        ->having([
+                            'Clazzes__count >' => 1
+                        ])
+                        ->group(['Clazzes.id']);
+
+                    foreach($conflictClazzes as $conflictClazz) {
+                        $conflictClazzesId[] = $conflictClazz->id;
+                    }
+
+                    if($filters['status'] == 'CONFLICT') {
+                        $conditions['Clazzes.id IN'] = $conflictClazzesId;
+                    }
+                }
+
+                if($filters['status'] == 'OPENED') {
+                    $notOppened = array_merge($closedClazzesId, $conflictClazzesId);
+                    $conditions['Clazzes.id NOT IN'] = $notOppened;
+                }
+            }
+
+            if(isset($filters['teachers']) && is_array($filters['teachers'])) {
+                $clazzes->matching('ClazzesTeachers')->group(['Clazzes.id']);
+                $conditions['AND']['ClazzesTeachers.teacher_id IN'] = $filters['teachers'];
+                $conditions['AND']['ClazzesTeachers.status'] = 'SELECTED';
+            }
+        }
+
+        $clazzes->where($conditions);
+
+        return $clazzes;
+    }
 
 	public function getAllClazzesNotTeachers()
     {

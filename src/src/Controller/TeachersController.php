@@ -13,7 +13,6 @@ use Cake\View\Helper\SessionHelper;
  */
 class TeachersController extends AppController
 {
-	
 	private $_userRoles;
 
 	public function initialize()
@@ -28,11 +27,11 @@ class TeachersController extends AppController
 		$this->userRoles = $roles;
 			
     }
-	
+
 	public function isAuthorized($user)
 	{
 		return true; //remove line on production
-		
+
 		//Only admin or teacher itself can edit the teacher
 		if (in_array($this->request->action, ['edit', 'allocateClazzes'])) {
 			$teacherId = (int)$this->request->params['pass'][0];
@@ -43,7 +42,7 @@ class TeachersController extends AppController
 
 			return false;
 		}
-		
+
 		return parent::isAuthorized($user);
 	}
 
@@ -53,19 +52,19 @@ class TeachersController extends AppController
      * @return void
      */
     public function index()
-    {		
-	
+    {
+
 		$this->set('teachers', $this->paginate($this->Teachers->find('all')->contain(['Users'])));
-	
+
 		if (!in_array('COORDINATOR', $this->_userRoles)) {
-			
+
 			$this->set('teachers', $this->paginate($this->Teachers->find('all')
 				->contain(['Users' ])
-				->innerJoinWith('Users', function($q) { 
+				->innerJoinWith('Users', function($q) {
 					return $q->where(['Users.id' => $this->_userInfo->id]);
 				})
 			));
-		} 
+		}
 
 		$this->set('_serialize', ['teachers']);
     }
@@ -99,7 +98,6 @@ class TeachersController extends AppController
         $knowledges = $this->Knowledges->find('list',array('fields'=>array('id','name')));
 
 		if ($this->request->is('post')) {
-
 			$data = $this->request->data;
 			$data['user']['is_admin'] = isset($this->request->data['user']['is_admin']) ? 1 : 0;
 
@@ -109,14 +107,14 @@ class TeachersController extends AppController
 
             if ($this->Teachers->save($teacher)) {
                 $this->Flash->success(__('The teacher has been saved.'));
-                return $this->redirect(['action' => 'edit', $teacher->id]);
+                return $this->redirect(['action' => 'index']);
             } else {
                 $this->Flash->error(__('The teacher could not be saved. Please, try again.'));
             }
         }
         $this->set(compact('teacher'));
 
-        
+
         $this->set(compact('knowledges'));
         $this->set('_serialize', ['teacher']);
     }
@@ -138,6 +136,9 @@ class TeachersController extends AppController
 				, 'Clazzes.Subjects.Courses'
 			]
         ]);
+
+        $teacher->entry_date = $teacher->entry_date->i18nFormat('dd/MM/yyyy');
+        $teacher->birth_date = $teacher->birth_date->i18nFormat('dd/MM/yyyy');
 
         if ($this->request->is(['patch', 'post', 'put'])) {
 
@@ -163,7 +164,7 @@ class TeachersController extends AppController
 
         $this->loadModel('Knowledges');
         $knowledges = $this->Knowledges->find('list', array('fields' => array('id', 'name')));
-		
+
 		$this->set(compact('knowledges'));
         $this->set(compact('teacher'));
         $this->set('_serialize', ['teacher']);
@@ -306,11 +307,11 @@ class TeachersController extends AppController
      * @return paginated data.
      */
 
-    private function getClazzes($params = null) 
-    {	
-	
+    private function getClazzes($params = null)
+    {
+
 		$this->loadModel('Clazzes');
-	
+
 		$data = $this->Clazzes->find('all')
             ->contain([
                 'Subjects.Courses', 'Subjects.Knowledges',
@@ -327,7 +328,7 @@ class TeachersController extends AppController
 					},
 					'Subjects.Courses' => function ($q) use ($params) {
 						return $q->where(['Courses.name LIKE ' => '%' . $params['course_name'] . '%']);
-					}, 
+					},
 					'Subjects.Knowledges' => function ($q) use ($params) {
 						return $q->where(['Knowledges.name LIKE ' => '%' . $params['knowledge_name'] . '%']);
 					},
@@ -344,16 +345,16 @@ class TeachersController extends AppController
 						return $q->where(['Schedules.start_time >= ' => $params['start_time']['hour'] . ':' . $params['start_time']['minute'],
 								'Schedules.end_time <= ' => $params['end_time']['hour'] . ':' . $params['end_time']['minute']]);
 					});
-					
+
 			if (!empty($params['week_day'])) {
 				$data->where(['week_day' => $params['week_day']]);
 			}
-					
-				
+
+
 			$data->group(['Clazzes.id']);
 
         }
-		
+
 		return $data->all();
 	}
 }

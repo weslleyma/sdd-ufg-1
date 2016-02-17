@@ -3,9 +3,12 @@ namespace App\Controller;
 
 use App\Controller\AppController;
 use Cake\Datasource\ConnectionManager;
+use Cake\Network\Exception\NotFoundException;
 use Cake\ORM\TableRegistry;
 use Cake\Filesystem\Folder;
 use Cake\Filesystem\File;
+use Cake\ORM\Query;
+
 
 
 /**
@@ -18,16 +21,10 @@ class ClazzesController extends AppController
 
 	public function isAuthorized($user)
 	{
-		if (in_array($this->request->action, ['edit', 'delete', 'add'])) {
-            if($this->loggedUser !== false && $this->loggedUser->isCoordinator()) {
-                return True;
-            }
-		}
-
-		if (in_array($this->request->action, ['listOpenedClazzes'])) {
-            if($this->loggedUser !== false) {
-                return True;
-            }
+		// Need to be logged
+        $loggedActions = ['listOpenedClazzes', 'view', 'index'];
+        if (in_array($this->request->action, $loggedActions) && $this->loggedUser !== false) {
+            return True;
 		}
 
         // Need to be logged ONLY by a teacher
@@ -49,14 +46,22 @@ class ClazzesController extends AppController
      */
     public function index()
     {
-        $this->paginate = [
-            'contain' => ['Processes', 'Subjects', 'ClazzesTeachers.Teachers.Users']
-        ];
-        $this->set('clazzes', $this->paginate($this->Clazzes));
+        $this->request->data = $this->request->query;
+
+        $clazzes = $this->Clazzes->findByFilters($this->request->query);
+
+        $this->set('isFiltered', !empty($clazzes->__debugInfo()['params']));
+        $this->set('status', ['' => __('[Selecione]'), 'OPENED' => __('Aberto'), 'CONFLICT' => _('Em conflito'), 'CLOSED' => __('Fechado')]);
+        $this->set('subjects', array_replace([0 => __('[Selecione]')], $this->Clazzes->Subjects->find('list')->toArray()));
+        $this->set('processes', array_replace([0 => __('[Selecione]')], $this->Clazzes->Processes->find('list')->toArray()));
+        $this->set('knowledges', array_replace([0 => __('[Selecione]')], $this->Clazzes->Subjects->Knowledges->find('list')->toArray()));
+
+        $this->Clazzes->ClazzesTeachers->Teachers->displayField('user.name');
+        $this->set('teachers', $this->Clazzes->ClazzesTeachers->Teachers->find('list')->contain(['Users'])->toArray());
+
+        $this->set('clazzes', $this->paginate($clazzes));
         $this->set('_serialize', ['clazzes']);
-
     }
-
 
     /**
      * View method
@@ -73,6 +78,38 @@ class ClazzesController extends AppController
                 'ClazzesSchedulesLocals.Locals', 'ClazzesSchedulesLocals.Schedules'
             ]
         ]);
+
+        if ($this->request->is('post') && $this->loggedUser->isClazzAdmin($clazz)) {
+            $selectedTeachers = isset($this->request->data['selected_teachers']) ?
+                $this->request->data['selected_teachers'] : [];
+
+            if(empty($selectedTeachers)) {
+                $this->Flash->error(__('Nenhum docente foi selecionado para ser alocado a turma.'));
+                return $this->redirect(['action' => 'view', $id]);
+            }
+
+            $this->Clazzes->ClazzesTeachers->updateAll([
+                'status' => 'REJECTED'
+            ], [
+                'clazz_id' => $id
+            ]);
+
+            $this->Clazzes->ClazzesTeachers->updateAll([
+                'status' => 'SELECTED'
+            ], [
+                'teacher_id IN' => $selectedTeachers,
+                'clazz_id' => $id
+            ]);
+
+            $this->Flash->success(__('Docentes alocados à turma com sucesso.'));
+            $clazz = $this->Clazzes->get($id, [
+                'contain' => [
+                    'Processes', 'Subjects.Knowledges', 'ClazzesTeachers.Teachers.Users',
+                    'ClazzesSchedulesLocals.Locals', 'ClazzesSchedulesLocals.Schedules'
+                ]
+            ]);
+        }
+
         $this->set('clazz', $clazz);
         $this->set('_serialize', ['clazz']);
     }
@@ -288,6 +325,7 @@ class ClazzesController extends AppController
         return $this->redirect(['action' => 'view', $id]);
     }
 
+    /** END Basics */
 
 	/**
 	*
@@ -563,7 +601,6 @@ class ClazzesController extends AppController
 			return $query->all();
 
 		}
-
 	}
 	
 	public function finalizarTurma($id = null)

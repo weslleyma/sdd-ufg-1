@@ -89,6 +89,11 @@ class Clazze extends Entity
         return '<span class="label label-'.$lblClass.'">'.$displayName.'</span>';
     }
 
+    public function _getIsClosed()
+    {
+        return ($this->status == 'CLOSED');
+    }
+
     public function _getSelectedTeachers()
     {
         if(!isset($this->intents) || empty($this->intents)) {
