@@ -33,10 +33,12 @@
 							<?php
 								echo $this->Form->input('registry', ['label' => 'Matrícula', 'placeholder' => 'Matrícula']);
 								echo $this->Form->input('rg', ['label' => 'RG', 'placeholder' => 'RG']);
-								echo $this->Form->input('cpf', ['label' => 'Núcleo de conhecimento', 'placeholder' => 'CPF']);
-								echo $this->Form->input('birth_date', ['label' => 'Data de Nascimento', 'placeholder' => 'Data de Nascimento']);
+								echo $this->Form->input('cpf', ['label' => 'CPF', 'placeholder' => 'CPF']);
+								echo $this->Form->input('birth_date', [ 'label' => 'Data de Nascimento', 'placeholder' => 'Data de Nascimento',
+                                    'type' => 'text', 'class' => 'datepicker', 'data-date-format' => 'dd/mm/yyyy']);
 								echo $this->Form->input('url_lattes', ['label' => 'URL Lattes', 'placeholder' => 'URL Lattes']);
-								echo $this->Form->input('entry_date', ['label' => 'Data de Ingresso', 'placeholder' => 'Data de Ingresso']);
+								echo $this->Form->input('entry_date', [ 'label' => 'Data de Ingresso', 'placeholder' => 'Data de Ingresso',
+                                    'type' => 'text', 'class' => 'datepicker', 'data-date-format' => 'dd/mm/yyyy']);
 								echo $this->Form->input('formation', ['label' => 'Formação', 'placeholder' => 'Formação']);
 								echo $this->Form->input('workload', ['label' => 'Carga Horária', 'placeholder' => 'Carga Horária']);
 								echo $this->Form->input('about', ['label' => 'Sobre', 'placeholder' => 'Sobre']);
