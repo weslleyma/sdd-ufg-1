@@ -84,9 +84,9 @@
                     </tr>
                     </thead>
                     <tbody>
-                    <?php if(empty($clazzes)): ?>
+                    <?php if($clazzes->isEmpty()): ?>
                         <tr>
-                            <td colspan="7" class="text-center">Não existe nenhuma turma cadastrada</td>
+                            <td colspan="7" class="text-center">Nenhuma turma encontrada</td>
                         </tr>
                     <?php else: ?>
                         <?php foreach ($clazzes as $clazz): ?>
