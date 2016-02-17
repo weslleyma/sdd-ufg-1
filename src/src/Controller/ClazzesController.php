@@ -1,11 +1,7 @@
 <?php
 namespace App\Controller;
 
-use App\Controller\AppController;
-use Cake\Datasource\ConnectionManager;
-use Cake\Network\Exception\NotFoundException;
 use Cake\ORM\TableRegistry;
-use Cake\ORM\Query;
 
 
 /**
@@ -43,6 +39,13 @@ class ClazzesController extends AppController
      */
     public function index()
     {
+        $this->paginate = [
+            'limit' => 25,
+            'order' => [
+                'Clazzes.id' => 'DESC'
+            ]
+        ];
+
         $this->request->data = $this->request->query;
 
         $clazzes = $this->Clazzes->findByFilters($this->request->query);

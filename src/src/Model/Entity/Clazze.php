@@ -3,6 +3,8 @@ namespace App\Model\Entity;
 
 use Cake\ORM\Entity;
 use Cake\ORM\TableRegistry;
+use Cake\View\Helper\HtmlHelper;
+use Cake\View\View;
 
 /**
  * Clazze Entity.
@@ -139,26 +141,22 @@ class Clazze extends Entity
         return $selectedTeachers;
     }
 
-    public function _getEffectiveTeachers() {
-        if(!isset($this->teachers) || empty($this->teachers)) {
-            return [];
-        }
+    public function _getSelectedTeachersNames() {
+        $display = '<a class="teachers-names">' . __("Sem docente atribuído") . '</a>';
 
-        $effectiveTeachers = [];
-        foreach($this->teachers as $teacher) {
-            if($teacher->_joinData->status == 'APPROVED') {
-                $effectiveTeachers[] = $teacher;
+        if(!empty($this->selectedTeachers)) {
+            $display = "";
+            $htmlHelper = new HtmlHelper(new View());
+            foreach($this->selectedTeachers as $teacher) {
+                $display .= $htmlHelper->link($teacher->user->name, [
+                    'controller' => 'Teachers',
+                    'action' => 'view', $teacher->id
+                ], [
+                    'class' => 'teachers-names'
+                ]);
             }
         }
 
-        return $effectiveTeachers;
-    }
-
-    public function _getDisplayEffectiveTeachers() {
-        $display = "";
-        foreach($this->effectiveTeachers as $teacher) {
-            $display .= $teacher->user->name . '<br>';
-        }
         return $display;
     }
 }

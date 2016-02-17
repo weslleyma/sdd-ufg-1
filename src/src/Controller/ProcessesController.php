@@ -14,6 +14,18 @@ use Cake\Event\Event;
  */
 class ProcessesController extends AppController
 {
+
+    public function isAuthorized($user)
+    {
+        // Need to be logged
+        $loggedActions = ['index'];
+        if (in_array($this->request->action, $loggedActions) && $this->loggedUser !== false) {
+            return True;
+        }
+
+        return parent::isAuthorized($user);
+    }
+
     /**
      * Index method
      *
