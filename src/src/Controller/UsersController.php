@@ -112,11 +112,7 @@ class UsersController extends AppController
             $user = $this->Auth->identify();
             if ($user) {
                 $this->Auth->setUser($user);
-				$this->request->session()->write('UserInfo', $this->Users->get($user['id'], [
-							'contain' => [
-								'Teachers', 'Teachers.Roles'
-							]
-						]));
+
                 return $this->redirect($this->Auth->redirectUrl());
             }
             $this->Flash->error(__('Usuário e/ou senha inválidos, tente novamente.'));

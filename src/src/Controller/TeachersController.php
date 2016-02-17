@@ -14,28 +14,19 @@ use Cake\View\Helper\SessionHelper;
 class TeachersController extends AppController
 {
 	
-	private $_userInfo;
 	private $_userRoles;
 
 	public function initialize()
     {
         parent::initialize();
-        $this->loadComponent('RequestHandler');
 		
-		$userInfo = $this->request->session()->read('UserInfo');
-		
-		if (!$userInfo) {
-			return redirect(['controller' => 'Users', 'action' => 'logout']);
-		}
-		
-		$this->_userInfo = $userInfo;
 		$roles = array();
-		
-		foreach($this->_userInfo->teacher->roles as $r) {
+		foreach ($this->loggedUser->teacher->roles as $r) {
 			$roles[] = $r->type;
 		}
 		
-		$this->_userRoles = $roles;
+		$this->userRoles = $roles;
+			
     }
 	
 	public function isAuthorized($user)
@@ -49,8 +40,7 @@ class TeachersController extends AppController
 			if ($user['id'] === $teacherId || $user['is_admin'] || in_array('COORDINATOR', $this->_userRoles)) {
 				return true;
 			}
-			
-			$this->Flash->warning(__('Você não tem permissão para editar esse docente.'));
+
 			return false;
 		}
 		

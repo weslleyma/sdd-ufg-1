@@ -214,33 +214,37 @@ class ProcessesController extends AppController
 	public function reuseProcess($id)
     {
         $originalProcess = $this->Processes->get($id, [
-            'contain' => ['Clazzes', 'Clazzes.Schedules', 'Clazzes.Locals', 'Clazzes.ClazzesTeachers', 'ProcessConfigurations']
+            'contain' => ['Clazzes', 'Clazzes.ClazzesTeachers', 'ProcessConfigurations'],
         ]);
 
-		$originalProcess->id = null;
+		unset($originalProcess->id);
 		$originalProcess->status = 'OPENED';
 		
 		foreach($originalProcess->clazzes as $item => $value) {
-			$originalProcess->clazzes[$item]->id = null; 
+
+			unset($originalProcess->clazzes[$item]->id);
+			unset($originalProcess->clazzes[$item]->process_id);
 			
-			foreach($value->locals as $key => $l) {
-				$originalProcess->clazzes[$item]->locals[$key]->id = null; 
-			}
-			
-			foreach($value->schedules as $key => $l) {
-				$originalProcess->clazzes[$item]->schedules[$key]->id = null; 
+			foreach($value->intents as $i => $v) {
+				unset($originalProcess->clazzes[$item]->intents[$i]->clazz_id);
 			}
 		}
 
 		foreach($originalProcess->process_configurations as $item => $value) {
-			$originalProcess->processConfigurations[$item]->id = null; 
+			unset($originalProcess->process_configurations[$item]->id); 
+			unset($originalProcess->process_configurations[$item]->process_id); 
+			unset($originalProcess->process_configurations[$item]->process_configuration_id); 
 		}
 		
-		$clonedProcess = $this->Processes->newEntity($originalProcess->toArray()
-			, ['associations' => ['Clazzes', 'Clazzes.Schedules', 'Clazzes.Locals', 'ProcessConfigurations']]);
+		$clonedProcess = $this->Processes->newEntity($originalProcess->toArray(),
+				['associated' => ['Clazzes', 'Clazzes.ClazzesTeachers', 'ProcessConfigurations']]);
 		
+		$clonedProcess->clazzes = $originalProcess->clazzes;
+		
+		print_r($clonedProcess);exit();
+
 		if ($this->Processes->save($clonedProcess)) {
-            $this->Flash->success(__('Processo Clonado Com Sucesso!'));
+            $this->Flash->success(__('Processo clonado com sucesso!'));
         } else {
             $this->Flash->error(__('Ocorreu um erro ao tentar clonar o Processo. Por favor, tente novamente.'));
         }

@@ -293,11 +293,11 @@ class ClazzesController extends AppController
 	*/
 	public function myIntents()
     {
-		$clazzes = $this->Clazzes->ClazzesTeachers->getIntentsByTeacher($this->_userInfo->teacher->id);
+		$clazzes = $this->Clazzes->ClazzesTeachers->getIntentsByTeacher($this->loggedUser->teacher->id);
 
 		$this->set('clazzes', $this->paginate($clazzes));
 		$this->set('_serialize', ['clazzes']);
-		$this->set('teacherId', $this->_userInfo->teacher->id);
+		$this->set('teacherId', $this->loggedUser->teacher->id);
     }
 
 
@@ -369,13 +369,14 @@ class ClazzesController extends AppController
 
         }
 
-		if (!in_array('COORDINATOR', $this->_userRoles) && in_array('FACILITATOR', $this->_userRoles)) {
-
-			if (count($this->_userKnowledges) < 1) {
-				return;
-			}
+		$roles = array();
+		foreach ($this->loggedUser->teacher->roles as $r) {
+			$roles[] = $r->type;
+		}
+		
+		if (!in_array('COORDINATOR', $roles) && in_array('FACILITATOR', $roles)) {
 			$data->innerJoinWith('Subjects.Knowledges', function($q) {
-				return $q->where(['Knowledges.id IN ' => $this->_userKnowledges]);
+				return $q->where(['Knowledges.id IN ' => $roles]);
 			});
 		}
 
