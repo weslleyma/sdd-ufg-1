@@ -6,6 +6,48 @@
 
 <div class="row">
     <div class="col-xs-12">
+        <div class="box box-primary <?= !$isFiltered ? 'collapsed-box' : '' ?>">
+            <div class="box-header with-border">
+                <button class="btn btn-primary btn-xs pull-left" style="margin-right: 5px" data-widget="collapse" data-original-title="Collapse">
+                    <i class="fa <?= !$isFiltered ? 'fa-plus' : 'fa-minus' ?>"></i>
+                </button>
+
+                <h3 class="box-title" style="vertical-align: middle"> <?= __('Filtros') ?></h3>
+            </div>
+
+            <div class="box-body" <?= !$isFiltered ? 'style="display: none;"' : '' ?>>
+                <?= $this->Form->create(null, ['type' => 'get']) ?>
+
+                <div class="row">
+                    <div class="col-lg-9 col-sm-12">
+                        <div class="row">
+                            <div class="col-sm-3">
+                                <?= $this->Form->input('status', array('label' => __("Status"), 'options' => $status)) ?>
+                            </div>
+                            <div class="col-sm-3">
+                                <?=	$this->Form->input('process', array('label' => __('Processo de distribuição'), 'options' => $processes)) ?>
+                            </div>
+                            <div class="col-sm-3">
+                                <?= $this->Form->input('subject', array('label' => __('Disciplina'), 'options' => $subjects)) ?>
+                            </div>
+                            <div class="col-sm-3">
+                                <?= $this->Form->input('knowledge', array('label' => __('Núcleo de conhecimento'), 'options' => $knowledges)) ?>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="box-footer" <?= !$isFiltered ? 'style="display: none;"' : '' ?>>
+                <?= $this->Form->button(__('Filtrar'), ['class' => 'btn btn-success']) ?>
+                <a id="empty" class="btn btn-default"><?= __('Limpar') ?></a>
+            </div>
+            <?= $this->Form->end() ?>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-xs-12">
         <div class="box box-primary">
             <div class="box-header">
                 <h3 class="box-title">Lista de turmas</h3>
@@ -37,7 +79,7 @@
                     </tr>
                     </thead>
                     <tbody>
-                    <?php if($clazzes->isEmpty()): ?>
+                    <?php if(empty($clazzes)): ?>
                         <tr>
                             <td colspan="7" class="text-center">Não existe nenhuma turma cadastrada</td>
                         </tr>

@@ -3,6 +3,7 @@ namespace App\Controller;
 
 use App\Controller\AppController;
 use Cake\Datasource\ConnectionManager;
+use Cake\Network\Exception\NotFoundException;
 use Cake\ORM\TableRegistry;
 
 
@@ -16,16 +17,10 @@ class ClazzesController extends AppController
 
 	public function isAuthorized($user)
 	{
-		if (in_array($this->request->action, ['edit', 'delete', 'add'])) {
-            if($this->loggedUser !== false && $this->loggedUser->isCoordinator()) {
-                return True;
-            }
-		}
-
-		if (in_array($this->request->action, ['listOpenedClazzes'])) {
-            if($this->loggedUser !== false) {
-                return True;
-            }
+		// Need to be logged
+        $loggedActions = ['listOpenedClazzes', 'view', 'index'];
+        if (in_array($this->request->action, $loggedActions) && $this->loggedUser !== false) {
+            return True;
 		}
 
         // Need to be logged ONLY by a teacher
@@ -47,14 +42,93 @@ class ClazzesController extends AppController
      */
     public function index()
     {
-        $this->paginate = [
-            'contain' => ['Processes', 'Subjects', 'ClazzesTeachers.Teachers.Users']
-        ];
-        $this->set('clazzes', $this->paginate($this->Clazzes));
+        $contain = ['Processes', 'Subjects.Knowledges', 'ClazzesTeachers.Teachers.Users'];
+        $conditions = [];
+        if($this->request->is('get')) {
+            $filters = $this->request->query;
+            $this->request->data = $filters;
+
+            if(isset($filters)) {
+                if(isset($filters['process']) && $filters['process'] != 0) {
+                    $conditions['Clazzes.process_id'] = $filters['process'];
+                }
+
+                if(isset($filters['knowledge']) && $filters['knowledge'] != 0) {
+                    $conditions['Subjects.knowledge_id'] = $filters['knowledge'];
+                }
+
+                if(isset($filters['subject']) && $filters['subject'] != 0) {
+                    $conditions['Subjects.id'] = $filters['subject'];
+                }
+
+                if(isset($filters['status']) && !empty($filters['status'])) {
+                    $closedClazzesId = [];
+                    $conflictClazzesId = [];
+
+                    if($filters['status'] == 'CLOSED' || $filters['status'] == 'OPENED') {
+                        $closedClazzes = $this->Clazzes->find()->select(['Clazzes.id'])
+                            ->contain($contain)->matching('ClazzesTeachers')
+                            ->where([
+                                'or' => [
+                                    [
+                                        'ClazzesTeachers.status' => 'SELECTED'
+                                    ],
+                                    [
+                                        'ClazzesTeachers.status' => 'REJECTED'
+                                    ]
+                                ]
+                            ])
+                            ->group(['Clazzes.id']);
+
+                        foreach($closedClazzes as $closedClazz) {
+                            $closedClazzesId[] = $closedClazz->id;
+                        }
+
+                        if($filters['status'] == 'CLOSED') {
+                            $conditions['Clazzes.id IN'] = $closedClazzesId;
+                        }
+                    }
+
+                    if($filters['status'] == 'CONFLICT' || $filters['status'] == 'OPENED') {
+                        $conflictClazzes = $this->Clazzes->find()
+                            ->select(['Clazzes.id', 'Clazzes__count' => 'count(Clazzes.id)'])
+                            ->contain($contain)->matching('ClazzesTeachers')
+                            ->where([
+                                'ClazzesTeachers.status' => 'PENDING'
+                            ])
+                            ->having([
+                                'Clazzes__count >' => 1
+                            ])
+                            ->group(['Clazzes.id']);
+
+                        foreach($conflictClazzes as $conflictClazz) {
+                            $conflictClazzesId[] = $conflictClazz->id;
+                        }
+
+                        if($filters['status'] == 'CONFLICT') {
+                            $conditions['Clazzes.id IN'] = $conflictClazzesId;
+                        }
+                    }
+
+                    if($filters['status'] == 'OPENED') {
+                        $notOppened = array_merge($closedClazzesId, $conflictClazzesId);
+                        $conditions['Clazzes.id NOT IN'] = $notOppened;
+                    }
+                }
+            }
+        }
+
+        $clazzes = $this->Clazzes->find('all')->where($conditions)->contain($contain);
+
+        $this->set('isFiltered', !empty($conditions));
+        $this->set('status', ['' => __('[Selecione]'), 'OPENED' => __('Aberto'), 'CONFLICT' => _('Em conflito'), 'CLOSED' => __('Fechado')]);
+        $this->set('subjects', array_replace([0 => __('[Selecione]')], $this->Clazzes->Subjects->find('list')->toArray()));
+        $this->set('processes', array_replace([0 => __('[Selecione]')], $this->Clazzes->Processes->find('list')->toArray()));
+        $this->set('knowledges', array_replace([0 => __('[Selecione]')], $this->Clazzes->Subjects->Knowledges->find('list')->toArray()));
+
+        $this->set('clazzes', $this->paginate($clazzes));
         $this->set('_serialize', ['clazzes']);
-
     }
-
 
     /**
      * View method
@@ -71,6 +145,38 @@ class ClazzesController extends AppController
                 'ClazzesSchedulesLocals.Locals', 'ClazzesSchedulesLocals.Schedules'
             ]
         ]);
+
+        if ($this->request->is('post') && $this->loggedUser->isClazzAdmin($clazz)) {
+            $selectedTeachers = isset($this->request->data['selected_teachers']) ?
+                $this->request->data['selected_teachers'] : [];
+
+            if(empty($selectedTeachers)) {
+                $this->Flash->error(__('Nenhum docente foi selecionado para ser alocado a turma.'));
+                return $this->redirect(['action' => 'view', $id]);
+            }
+
+            $this->Clazzes->ClazzesTeachers->updateAll([
+                'status' => 'REJECTED'
+            ], [
+                'clazz_id' => $id
+            ]);
+
+            $this->Clazzes->ClazzesTeachers->updateAll([
+                'status' => 'SELECTED'
+            ], [
+                'teacher_id IN' => $selectedTeachers,
+                'clazz_id' => $id
+            ]);
+
+            $this->Flash->success(__('Docentes alocados à turma com sucesso.'));
+            $clazz = $this->Clazzes->get($id, [
+                'contain' => [
+                    'Processes', 'Subjects.Knowledges', 'ClazzesTeachers.Teachers.Users',
+                    'ClazzesSchedulesLocals.Locals', 'ClazzesSchedulesLocals.Schedules'
+                ]
+            ]);
+        }
+
         $this->set('clazz', $clazz);
         $this->set('_serialize', ['clazz']);
     }
@@ -286,6 +392,7 @@ class ClazzesController extends AppController
         return $this->redirect(['action' => 'view', $id]);
     }
 
+    /** END Basics */
 
 	/**
 	*
@@ -560,6 +667,5 @@ class ClazzesController extends AppController
 			return $query->all();
 
 		}
-
 	}
 }

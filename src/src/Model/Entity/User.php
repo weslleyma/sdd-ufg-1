@@ -1,6 +1,7 @@
 <?php
 namespace App\Model\Entity;
 
+use App\Model\Table\ClazzesTable;
 use Cake\Auth\DefaultPasswordHasher;
 use Cake\ORM\Entity;
 use Cake\ORM\TableRegistry;
@@ -101,14 +102,16 @@ class User extends Entity
             return false;
         }
 
+        /** @var ClazzesTable $clazzModel */
         $clazzModel = TableRegistry::get('Clazzes');
-        $subscribed = $clazzModel->find('all')
-            ->matching('ClazzesTeachers')
-            ->where([
-                'ClazzesTeachers.teacher_id' => $this->teacher->id,
-                'ClazzesTeachers.clazz_id' => $clazzId
-            ])->toArray();
+        return $clazzModel->isTeacherSubscribed($this->teacher->id, $clazzId);
+    }
 
-        return !empty($subscribed);
+    public function isClazzAdmin($clazz)
+    {
+        $knowledge = (isset($clazz->subject) && isset($clazz->subject->knowledge_id)) ?
+            $clazz->subject->knowledge_id : 0;
+
+        return ($this->is_admin === true || $this->isCoordinator() || $this->isFacilitatorOf($knowledge));
     }
 }
