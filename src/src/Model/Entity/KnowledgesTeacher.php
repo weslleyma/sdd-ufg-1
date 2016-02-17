@@ -4,19 +4,15 @@ namespace App\Model\Entity;
 use Cake\ORM\Entity;
 
 /**
- * Subject Entity.
+ * KnowledgesTeacher Entity.
  *
- * @property int $id
- * @property string $name
- * @property int $teoric_workload
- * @property int $practical_workload
+ * @property int $teacher_id
+ * @property \App\Model\Entity\Teacher $teacher
  * @property int $knowledge_id
  * @property \App\Model\Entity\Knowledge $knowledge
- * @property int $course_id
- * @property \App\Model\Entity\Course $course
- * @property \App\Model\Entity\Clazze[] $clazzes
+ * @property int $level
  */
-class Subject extends Entity
+class KnowledgesTeacher extends Entity
 {
 
     /**
@@ -29,12 +25,6 @@ class Subject extends Entity
      * @var array
      */
     protected $_accessible = [
-        '*' => true,
-        'id' => false,
+        '*' => true
     ];
-
-    public function _getWorkload()
-    {
-        return $this->theoretical_workload + $this->practical_workload;
-    }
 }

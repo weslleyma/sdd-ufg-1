@@ -85,6 +85,8 @@ class ClazzesTable extends Table
 
         $validator
             ->add('vacancies', 'valid', ['rule' => 'numeric'])
+            ->add('vacancies', 'stocking', ['rule' => ['range', 1, 'null'],
+                'message' => __('O número de vagas não pode menor ou igual a zero')])
             ->requirePresence('vacancies', 'create')
             ->notEmpty('vacancies');
 
@@ -128,15 +130,27 @@ class ClazzesTable extends Table
             new IsUnique(['name', 'process_id', 'subject_id']),
             [
                 'errorField' => 'name',
-                'message' => __('Já existe uma turma para esta disciplina cadastrada neste processo de distribuição')
+                'message' => __('Essa turma já está cadastrada neste processo de distribuição')
             ]
         );
 
         return $rules;
     }
 
-	
-	public function getAllClazzesNotTeachers(){
+    public function isTeacherSubscribed($teacherId, $clazzId)
+    {
+        $isSubscribed = $this->find('all')->matching('ClazzesTeachers')
+            ->where([
+                'ClazzesTeachers.teacher_id' => $teacherId,
+                'ClazzesTeachers.clazz_id' => $clazzId
+            ])->toArray();
+
+        return !empty($isSubscribed);
+    }
+
+
+	public function getAllClazzesNotTeachers()
+    {
 		$clazzesTemp = $this
 			->find('all')
 			->contain([
@@ -150,18 +164,19 @@ class ClazzesTable extends Table
 				}
 			])
 			->hydrate(false)->toArray();
-			
+
 		$clazzes = [];
 		foreach($clazzesTemp as $clazzTemp){
 			if($clazzTemp['teachers'] == null){
 				$clazzes[] = $clazzTemp;
 			}
 		}
-		
+
 		return $clazzes;
 	}
-	
-	public function getAllClazzesWithSubjctsTeachers(){
+
+	public function getAllClazzesWithSubjctsTeachers()
+    {
 		return $this
 			->find('all')
 			->contain([
