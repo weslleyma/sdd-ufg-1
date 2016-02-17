@@ -8,7 +8,7 @@
             <a href="#"><i class="fa fa-gavel"></i> <span><?= __('Distribuição de disciplinas') ?></span> <i class="fa fa-angle-left pull-right"></i></a>
             <ul class="treeview-menu">
                 <li><?= $this->Html->link('<i class="fa fa-circle-o"></i> ' . __('Processos em aberto'), ['controller' => 'processes', 'action' => 'opened'], ['escape' => false]) ?></li>
-                <li><?= $this->Html->link('<i class="fa fa-circle-o"></i> ' . __('Turmas em aberto'), ['controller' => 'clazzes', 'action' => 'listOpenedClazzes'], ['escape' => false]) ?></li>
+                <li><?= $this->Html->link('<i class="fa fa-circle-o"></i> ' . __('Turmas em aberto'), ['controller' => 'clazzes', 'action' => 'index', '?' => ['status' => 'OPENED']], ['escape' => false]) ?></li>
 				<li><?= $this->Html->link('<i class="fa fa-circle-o"></i> ' . __('Minhas inscrições'), ['controller' => 'clazzes', 'action' => 'my_intents'], ['escape' => false]) ?></li>
             </ul>
         </li>

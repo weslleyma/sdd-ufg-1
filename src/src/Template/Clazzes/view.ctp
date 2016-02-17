@@ -17,13 +17,20 @@
                                     $this->Gravatar->generate(
                                         $teacher->user->email,
                                         [
-                                            'image-options' => ['class' => 'profile-user-img img-responsive img-circle'],
+                                            'image-options' => [
+                                                'class' => 'profile-user-img img-responsive img-circle',
+                                                'title' => $teacher->user->name,
+                                                'data-toggle' => 'tooltip',
+                                                'data-original-title' => $teacher->user->name
+                                            ],
                                             'size' => 160,
                                             'default' => 'mm'
                                         ]
                                     ),
                                     ['controller' => 'Teachers', 'action' => 'view', $teacher->id],
-                                    ['escape' => false]
+                                    [
+                                        'escape' => false
+                                    ]
                                 );
                             }
                         ?>
@@ -47,7 +54,7 @@
                 <div class="table-responsive no-padding">
                     <table class="table-profile">
                         <tr>
-                            <td width="170px"><b><?= __('ID') ?></b></td></td>
+                            <td width="170px"><b><?= __('ID') ?></b></td>
                             <td><a><?= $this->Number->format($clazz->id) ?></a></td>
                         </tr>
                         <tr>
@@ -100,9 +107,15 @@
             </ul>
             <div class="tab-content no-padding">
                 <div class="tab-pane table-responsive active" id="subscribes">
+                    <?php if(!$clazz->is_closed && $loggedUser->isClazzAdmin($clazz)): ?>
+                        <?= $this->Form->create() ?>
+                    <?php endif; ?>
                     <table id="datatable" class="table table-striped table-valign-middle" style="margin-bottom: 5px;">
                         <thead>
                         <tr>
+                            <?php if(!$clazz->is_closed && $loggedUser->isClazzAdmin($clazz)): ?>
+                                <th width="20px"></th>
+                            <?php endif; ?>
                             <th><?= __('Nome') ?></th>
                             <th><?= __('Índice de prioridade') ?></th>
                             <th><?= __('Status') ?></th>
@@ -112,6 +125,22 @@
                         <?php if(!empty($clazz->intents)): ?>
                             <?php foreach ($clazz->intents as $intent): ?>
                                 <tr>
+                                    <?php if(!$clazz->is_closed && $loggedUser->isClazzAdmin($clazz)): ?>
+                                        <td style="text-align: center;">
+                                            <?php
+                                                $selected = false;
+                                                if(isset($this->request->data['selected_teachers']) && is_array($this->request->data['selected_teachers'])) {
+                                                    foreach($this->request->data['selected_teachers'] as $select) {
+                                                        if($select == $intent->teacher_id) {
+                                                            $selected = true;
+                                                            break;
+                                                        }
+                                                    }
+                                                }
+                                            ?>
+                                            <input type="checkbox" name="selected_teachers[]" value="<?= $intent->teacher_id ?>" <?= $selected ? 'checked' : '' ?>>
+                                        </td>
+                                    <?php endif; ?>
                                     <td><?= $this->Html->link($intent->teacher->user->name, ['controller' => 'Teachers', 'action' => 'view', $intent->teacher_id]) ?></td>
                                     <td><?= $intent->priority ?></td>
                                     <td><?= $intent->displayStatus ?></td>
@@ -121,8 +150,17 @@
                         </tbody>
                     </table>
 
-                    <?php if($clazz->status != 'CLOSED' && isset($loggedUser->teacher) && $loggedUser->teacher != null): ?>
-                        <div class="tab-inside-box">
+                    <div class="tab-inside-box">
+                        <?php if(!$clazz->is_closed && $loggedUser->isClazzAdmin($clazz)): ?>
+                            <?= $this->Form->button(__('Alocar (0) docentes a turma'), [
+                                'id' => 'alocate',
+                                'class' => 'btn btn-sm btn-primary',
+                                'disabled'
+                            ]) ?>
+                            <?= $this->Form->end() ?>
+                        <?php endif; ?>
+
+                        <?php if(!$clazz->is_closed && isset($loggedUser->teacher) && $loggedUser->teacher != null): ?>
                             <?php if($loggedUser->isSubscribed($clazz->id)): ?>
                                 <?= $this->Form->postLink(
                                     '<i class="fa fa-close"></i> Cancelar inscrição',
@@ -148,8 +186,8 @@
                                     ]
                                 ) ?>
                             <?php endif; ?>
-                        </div>
-                    <?php endif; ?>
+                        <?php endif; ?>
+                    </div>
                 </div>
                 <div class="tab-pane" id="schedules" style="padding: 10px;">
                     <div class="content week-box" style="padding-bottom: 0;">
@@ -192,8 +230,29 @@
 
 <script>
     <?php $this->Html->scriptStart(['block' => true]); ?>
+        var actionsDiv = $('.tab-inside-box');
+        if(actionsDiv.html().trim() == '') {
+            actionsDiv.hide();
+        }
+
+        $('input[name="selected_teachers[]"]').click(function(e) {
+            var quantity = $('input[name="selected_teachers[]"]:checked').length;
+            if (e.originalEvent.isTrusted == false) {
+                e.preventDefault();
+                quantity = $('input[name="selected_teachers[]"][checked]').length;
+            }
+
+            var isDisabled = !(quantity > 0);
+            $('#alocate').prop("disabled", isDisabled).html("Alocar ("+quantity+") docentes a turma");
+        }).first().trigger('click');
+
         $(document).ready(function() {
             $('#datatable').DataTable({
+                <?php if(!$clazz->is_closed && $loggedUser->isClazzAdmin($clazz)): ?>
+                "columnDefs": [
+                    { "orderable": false, "targets": 0 }
+                ],
+                <?php endif; ?>
                 "order": [[ 1, "desc" ]],
                 "paging": true,
                 "lengthChange": false,
