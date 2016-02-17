@@ -82,6 +82,16 @@
                                             'data-original-title' => __('Remover'),
                                         ]
                                     ) ?>
+									<?= $this->Html->link(
+                                        '',
+                                        ['action' => 'finalizarTurma', $clazz->id],
+                                        [
+                                            'title' => __('Finalizar Turma'),
+                                            'class' => 'btn btn-sm btn-default glyphicon glyphicon-check',
+                                            'data-toggle' => 'tooltip',
+                                            'data-original-title' => __('Finalizar Turma'),
+                                        ]
+                                    ) ?>
                                 </td>
                             </tr>
                         <?php endforeach; ?>

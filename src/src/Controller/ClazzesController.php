@@ -4,6 +4,8 @@ namespace App\Controller;
 use App\Controller\AppController;
 use Cake\Datasource\ConnectionManager;
 use Cake\ORM\TableRegistry;
+use Cake\Filesystem\Folder;
+use Cake\Filesystem\File;
 
 
 /**
@@ -562,5 +564,90 @@ class ClazzesController extends AppController
 
 		}
 
+	}
+	
+	public function finalizarTurma($id = null)
+	{
+        $clazze = $this->Clazzes->get($id, [
+            'contain' => []
+        ]);
+		
+		$clazzes_dir = $this->checa_dir(WWW_ROOT.'/finishedClazzes');
+		$dir = $this->checa_dir(WWW_ROOT.'/finishedClazzes/clazz-' . $id);
+		
+		$files = $dir->find();
+		
+		if ($this->request->is('post')) {
+			foreach ($files as $file) {
+				$file = new File($dir->pwd() . DS . $file);
+				$file->delete();
+				$file->close();
+			}
+			
+			$data = $this->request->data;
+			$invalidNames = false;
+			
+			foreach ($data as $file) {
+				if (!$this->checa_nome($file['name'])) {
+					$this->Flash->error(__('Um ou mais nomes de arquivos são inválidos. Verifique e tente novamente. ' . 
+							'(Nome inválido: ' . $file['name'] .  ')'));
+					$invalidNames = true;
+					break;
+				}
+			}
+			
+			$error = false;
+			
+			if (!$invalidNames) {
+				foreach ($data as $file) {
+					
+					if (!move_uploaded_file($file['tmp_name'], $dir->pwd() . DS . $file['name'])) {
+						$this->Flash->error(__('Ocorreu um erro ao fazer o upload de um ou mais arquivos. Tente novamente.'));
+						$error = true;
+						break;
+					}
+				}
+			}
+			
+			if (!$invalidNames && !$error) {
+				$this->Flash->success(__('Arquivos de Finalização de Turma salvos com sucesso!'));
+				return $this->redirect(['action' => 'index']);
+			}
+			
+		}
+		
+		$this->set('files', $files);
+        $this->set('clazze', $clazze);
+        $this->set('_serialize', ['clazze']);
+	}
+	
+	/**
+	 * Verifica se o nome do arquivo é válido
+	 * @access public
+	 * @param Array $imagem
+	 * @param String $data
+	 * @return nome da imagem
+	*/ 
+	private function checa_nome($fileName)
+	{
+		return (bool) ((preg_match("`^[-0-9A-Z_\.\\s]+$`i",$fileName) && mb_strlen($fileName,"UTF-8") < 225) ? true : false);
+	}
+
+	
+	/**
+	 * Verifica se o diretório existe, se não ele cria.
+	 * @access public
+	 * @param Array $imagem
+	 * @param String $data
+	*/ 
+	private function checa_dir($dir)
+	{
+		if (!is_dir($dir)){
+			$folder = new Folder();
+			$folder->create($dir);
+			return $folder;
+		} else {
+			return new Folder($dir);
+		}
 	}
 }
