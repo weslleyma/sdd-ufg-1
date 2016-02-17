@@ -158,15 +158,24 @@
     color: #000;
 }
 
-.profile-username-box .profile-username:after {
+.profile-username-box .profile-username:after, .teachers-names:after {
     margin: 0 5px;
     content: "/";
     visibility: visible;
+    color: #000;
 }
 
-.profile-username-box .profile-username:last-child:after {
+.profile-username-box .profile-username:last-child:after, .teachers-names:last-child:after {
     visibility: hidden;
     margin: 0;
+}
+
+.teachers-names {
+    display: inline-block;
+}
+
+.teachers-names:not([href]) {
+    color: #000;
 }
 
 .table-responsive {

@@ -14,6 +14,18 @@ use Cake\Event\Event;
  */
 class ProcessesController extends AppController
 {
+
+    public function isAuthorized($user)
+    {
+        // Need to be logged
+        $loggedActions = ['index'];
+        if (in_array($this->request->action, $loggedActions) && $this->loggedUser !== false) {
+            return True;
+        }
+
+        return parent::isAuthorized($user);
+    }
+
     /**
      * Index method
      *
@@ -241,7 +253,6 @@ class ProcessesController extends AppController
 				['associated' => ['Clazzes', 'Clazzes.ClazzesTeachers', 'ProcessesProcessConfigurations']]);
 		
 		$clonedProcess->clazzes = $originalProcess->clazzes;
-		//print_r($clonedProcess);exit();
 
 		if ($this->Processes->save($clonedProcess)) {
             $this->Flash->success(__('Processo clonado com sucesso!'));

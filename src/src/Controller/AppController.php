@@ -93,10 +93,8 @@ class AppController extends Controller
      */
     public function isAuthorized($user)
     {
-        return true;
-
-        // Admin can access every action
-        if (isset($user['is_admin']) && $user['is_admin'] === true) {
+        // Admin can access all actions
+        if ($this->loggedUser !== false && $this->loggedUser->canAdmin()) {
             return true;
         }
 
