@@ -43,6 +43,8 @@ class ClazzesController extends AppController
     public function index()
     {
         $contain = ['Processes', 'Subjects.Knowledges', 'ClazzesTeachers.Teachers.Users'];
+        $clazzes = $this->Clazzes->find('all')->contain($contain);
+
         $conditions = [];
         if($this->request->is('get')) {
             $filters = $this->request->query;
@@ -115,16 +117,25 @@ class ClazzesController extends AppController
                         $conditions['Clazzes.id NOT IN'] = $notOppened;
                     }
                 }
+
+                if(isset($filters['teachers']) && is_array($filters['teachers'])) {
+                    $clazzes->matching('ClazzesTeachers')->group(['Clazzes.id']);
+                    $conditions['AND']['ClazzesTeachers.teacher_id IN'] = $filters['teachers'];
+                    $conditions['AND']['ClazzesTeachers.status'] = 'SELECTED';
+                }
             }
         }
 
-        $clazzes = $this->Clazzes->find('all')->where($conditions)->contain($contain);
+        $clazzes->where($conditions);
 
         $this->set('isFiltered', !empty($conditions));
         $this->set('status', ['' => __('[Selecione]'), 'OPENED' => __('Aberto'), 'CONFLICT' => _('Em conflito'), 'CLOSED' => __('Fechado')]);
         $this->set('subjects', array_replace([0 => __('[Selecione]')], $this->Clazzes->Subjects->find('list')->toArray()));
         $this->set('processes', array_replace([0 => __('[Selecione]')], $this->Clazzes->Processes->find('list')->toArray()));
         $this->set('knowledges', array_replace([0 => __('[Selecione]')], $this->Clazzes->Subjects->Knowledges->find('list')->toArray()));
+
+        $this->Clazzes->ClazzesTeachers->Teachers->displayField('user.name');
+        $this->set('teachers', $this->Clazzes->ClazzesTeachers->Teachers->find('list')->contain(['Users'])->toArray());
 
         $this->set('clazzes', $this->paginate($clazzes));
         $this->set('_serialize', ['clazzes']);

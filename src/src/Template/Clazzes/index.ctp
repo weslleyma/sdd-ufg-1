@@ -15,23 +15,28 @@
                 <h3 class="box-title" style="vertical-align: middle"> <?= __('Filtros') ?></h3>
             </div>
 
+            <?= $this->Form->create(null, ['type' => 'get']) ?>
             <div class="box-body" <?= !$isFiltered ? 'style="display: none;"' : '' ?>>
-                <?= $this->Form->create(null, ['type' => 'get']) ?>
-
                 <div class="row">
                     <div class="col-lg-9 col-sm-12">
                         <div class="row">
-                            <div class="col-sm-3">
-                                <?= $this->Form->input('status', array('label' => __("Status"), 'options' => $status)) ?>
+                            <div class="col-sm-4">
+                                <?= $this->Form->input('status', ['label' => __("Status"), 'options' => $status]) ?>
                             </div>
-                            <div class="col-sm-3">
-                                <?=	$this->Form->input('process', array('label' => __('Processo de distribuição'), 'options' => $processes)) ?>
+                            <div class="col-sm-4">
+                                <?=	$this->Form->input('process', ['label' => __('Processo de distribuição'), 'options' => $processes]) ?>
                             </div>
-                            <div class="col-sm-3">
-                                <?= $this->Form->input('subject', array('label' => __('Disciplina'), 'options' => $subjects)) ?>
+                            <div class="col-sm-4">
+                                <?= $this->Form->input('subject', ['label' => __('Disciplina'), 'options' => $subjects]) ?>
                             </div>
-                            <div class="col-sm-3">
-                                <?= $this->Form->input('knowledge', array('label' => __('Núcleo de conhecimento'), 'options' => $knowledges)) ?>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-4">
+                                <?= $this->Form->input('knowledge', ['label' => __('Núcleo de conhecimento'), 'options' => $knowledges]) ?>
+                            </div>
+                            <div class="col-sm-8">
+                                <?= $this->Form->input('teachers[]', ['label' => __('Docentes alocados'), 'options' => $teachers,
+                                    'multiple', 'data-placeholder' => 'Selecione o docente', 'class' => 'select2']) ?>
                             </div>
                         </div>
                     </div>
@@ -141,3 +146,27 @@
         </div>
     </div>
 </div>
+
+<script>
+    <?php $this->Html->scriptStart(['block' => true]); ?>
+        $(document).ready(function() {
+            $(".select2").select2({
+                width: '100%'
+            });
+
+            $("#empty").click(function() {
+                var form = $(this).closest('form');
+                form.find("input[type=text], textarea").val("");
+
+                form.find("select").each(function(elem) {
+                    if($(this).prop('multiple') == true) {
+                        $(this).find("option:selected").prop("selected", false);
+                        $(this).select2('val', '');
+                    } else {
+                        $(this).find('option').first().prop('selected', true);
+                    }
+                });
+            });
+        });
+    <?php $this->Html->scriptEnd(); ?>
+</script>
