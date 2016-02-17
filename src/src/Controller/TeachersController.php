@@ -24,7 +24,7 @@ class TeachersController extends AppController
 			$roles[] = $r->type;
 		}
 		
-		$this->userRoles = $roles;
+		$this->_userRoles = $roles;
 			
     }
 
@@ -61,7 +61,7 @@ class TeachersController extends AppController
 			$this->set('teachers', $this->paginate($this->Teachers->find('all')
 				->contain(['Users' ])
 				->innerJoinWith('Users', function($q) {
-					return $q->where(['Users.id' => $this->_userInfo->id]);
+					return $q->where(['Users.id' => $this->loggedUser->teacher->id]);
 				})
 			));
 		}

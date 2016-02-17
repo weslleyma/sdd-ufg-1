@@ -214,34 +214,34 @@ class ProcessesController extends AppController
 	public function reuseProcess($id)
     {
         $originalProcess = $this->Processes->get($id, [
-            'contain' => ['Clazzes', 'Clazzes.ClazzesTeachers', 'ProcessConfigurations'],
+            'contain' => ['Clazzes', 'Clazzes.ClazzesTeachers', 'ProcessesProcessConfigurations'],
         ]);
 
 		unset($originalProcess->id);
 		$originalProcess->status = 'OPENED';
+		$originalProcess->name = $originalProcess->name . '(Clonado)';
 		
 		foreach($originalProcess->clazzes as $item => $value) {
 
 			unset($originalProcess->clazzes[$item]->id);
 			unset($originalProcess->clazzes[$item]->process_id);
+			$originalProcess->clazzes[$item]->isNew(true);
 			
 			foreach($value->intents as $i => $v) {
 				unset($originalProcess->clazzes[$item]->intents[$i]->clazz_id);
+				$originalProcess->clazzes[$item]->intents[$i]->isNew(true);
 			}
 		}
 
-		foreach($originalProcess->process_configurations as $item => $value) {
-			unset($originalProcess->process_configurations[$item]->id); 
-			unset($originalProcess->process_configurations[$item]->process_id); 
-			unset($originalProcess->process_configurations[$item]->process_configuration_id); 
+		foreach($originalProcess->processes_process_configurations as $item => $value) {
+			unset($originalProcess->processes_process_configurations[$item]->process_id); 
 		}
 		
 		$clonedProcess = $this->Processes->newEntity($originalProcess->toArray(),
-				['associated' => ['Clazzes', 'Clazzes.ClazzesTeachers', 'ProcessConfigurations']]);
+				['associated' => ['Clazzes', 'Clazzes.ClazzesTeachers', 'ProcessesProcessConfigurations']]);
 		
 		$clonedProcess->clazzes = $originalProcess->clazzes;
-		
-		print_r($clonedProcess);exit();
+		//print_r($clonedProcess);exit();
 
 		if ($this->Processes->save($clonedProcess)) {
             $this->Flash->success(__('Processo clonado com sucesso!'));
