@@ -120,7 +120,21 @@
                                             'data-original-title' => __('Visualizar'),
                                         ]
                                     ) ?>
-
+									<?= $this->Html->link(
+                                        '',
+                                        ['action' => 'finishClazze', $clazz->id],
+                                        [
+                                            'title' => (count($files) == 3) ? 
+												__('Finalizar Turma (Já existem arquivos enviados)') : 
+												((count($files) > 0 && count($files) < 3) ? __('Finalizar Turma (Arquivos incompletos)') : __('Finalizar Turma')),
+                                            'class' => (count($files) == 3) ? 'btn btn-sm btn-default glyphicon glyphicon-folder-close' 
+														: 'btn btn-sm btn-default glyphicon glyphicon-folder-open',
+                                            'data-toggle' => 'tooltip',
+                                            'data-original-title' => (count($files) == 3) ? 
+												__('Finalizar Turma (Já existem arquivos enviados)') : 
+												((count($files) > 0 && count($files) < 3) ? __('Finalizar Turma (Arquivos incompletos)') : __('Finalizar Turma')),
+                                        ]
+                                    ) ?>
                                     <?php if($loggedUser !== false && $loggedUser->canAdmin()): ?>
                                     <?= $this->Html->link(
                                         '',
@@ -141,21 +155,6 @@
                                             'class' => 'btn btn-sm btn-danger glyphicon glyphicon-trash',
                                             'data-toggle' => 'tooltip',
                                             'data-original-title' => __('Remover'),
-                                        ]
-                                    ) ?>
-									<?= $this->Html->link(
-                                        '',
-                                        ['action' => 'finishClazze', $clazz->id],
-                                        [
-                                            'title' => (count($files) == 3) ? 
-												__('Finalizar Turma (Já existem arquivos enviados)') : 
-												((count($files) > 0 && count($files) < 3) ? __('Finalizar Turma (Arquivos incompletos)') : __('Finalizar Turma')),
-                                            'class' => (count($files) == 3) ? 'btn btn-sm btn-default glyphicon glyphicon-folder-close' 
-														: 'btn btn-sm btn-default glyphicon glyphicon-folder-open',
-                                            'data-toggle' => 'tooltip',
-                                            'data-original-title' => (count($files) == 3) ? 
-												__('Finalizar Turma (Já existem arquivos enviados)') : 
-												((count($files) > 0 && count($files) < 3) ? __('Finalizar Turma (Arquivos incompletos)') : __('Finalizar Turma')),
                                         ]
                                     ) ?>
                                     <?php endif; ?>

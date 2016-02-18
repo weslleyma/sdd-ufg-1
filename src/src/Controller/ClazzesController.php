@@ -16,7 +16,7 @@ class ClazzesController extends AppController
 {
 
 	public function isAuthorized($user)
-	{return true;
+	{
 		// Need to be logged
         $loggedActions = ['listOpenedClazzes', 'view', 'index'];
         if (in_array($this->request->action, $loggedActions) && $this->loggedUser !== false) {
@@ -31,6 +31,20 @@ class ClazzesController extends AppController
 
             return False;
         }
+		
+		//Only teacher can finish his/her clazz
+		if (in_array($this->request->action, ['finishClazze'])) {
+			$clazzId = (int)$this->request->params['pass'][0];
+
+			$teacherId = $this->Clazzes->ClazzesTeachers->find('all', 
+				['conditions' => ['clazz_id' => $clazzId, 'status' => 'SELECTED']])->toArray()[0]['teacher_id'];
+			
+			if ($this->loggedUser->teacher->id === $teacherId) {
+				return true;
+			}
+
+			return false;
+		}
 
 		return parent::isAuthorized($user);
 	}
