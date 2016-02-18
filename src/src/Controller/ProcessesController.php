@@ -16,7 +16,7 @@ class ProcessesController extends AppController
 {
 
     public function isAuthorized($user)
-    {
+    {return true;
         // Need to be logged
         $loggedActions = ['index'];
         if (in_array($this->request->action, $loggedActions) && $this->loggedUser !== false) {
@@ -226,7 +226,7 @@ class ProcessesController extends AppController
 	public function reuseProcess($id)
     {
         $originalProcess = $this->Processes->get($id, [
-            'contain' => ['Clazzes', 'Clazzes.ClazzesTeachers', 'ProcessesProcessConfigurations'],
+            'contain' => ['Clazzes', 'Clazzes.ClazzesTeachers', 'Clazzes.ClazzesSchedulesLocals', 'ProcessesProcessConfigurations'],
         ]);
 
 		unset($originalProcess->id);
@@ -243,6 +243,11 @@ class ProcessesController extends AppController
 				unset($originalProcess->clazzes[$item]->intents[$i]->clazz_id);
 				$originalProcess->clazzes[$item]->intents[$i]->isNew(true);
 			}
+			
+			foreach($value->scheduleLocals as $i => $v) {
+				unset($originalProcess->clazzes[$item]->scheduleLocals[$i]->clazz_id); 
+				$originalProcess->clazzes[$item]->scheduleLocals[$i]->isNew(true);
+			}
 		}
 
 		foreach($originalProcess->processes_process_configurations as $item => $value) {
@@ -250,7 +255,7 @@ class ProcessesController extends AppController
 		}
 		
 		$clonedProcess = $this->Processes->newEntity($originalProcess->toArray(),
-				['associated' => ['Clazzes', 'Clazzes.ClazzesTeachers', 'ProcessesProcessConfigurations']]);
+				['associated' => ['Clazzes', 'Clazzes.ClazzesTeachers', 'Clazzes.ClazzesSchedulesLocals', 'ProcessesProcessConfigurations']]);
 		
 		$clonedProcess->clazzes = $originalProcess->clazzes;
 

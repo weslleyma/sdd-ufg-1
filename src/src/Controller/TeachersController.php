@@ -20,8 +20,10 @@ class TeachersController extends AppController
         parent::initialize();
 		
 		$roles = array();
-		foreach ($this->loggedUser->teacher->roles as $r) {
-			$roles[] = $r->type;
+		if ($this->loggedUser) {
+			foreach ($this->loggedUser->teacher->roles as $r) {
+				$roles[] = $r->type;
+			}
 		}
 		
 		$this->_userRoles = $roles;
@@ -212,8 +214,7 @@ class TeachersController extends AppController
         ]);
 
 		$processes = $table_processes->find('list')
-            ->where(['initial_date <= ' => 'CURDATE()', 'final_date >= ' => 'CURDATE()'])
-            ->orWhere(['status' => 'OPENED'])
+            ->where(['status' => 'OPENED'])
             ->toArray();
 
         $processes = array_replace(['' => __('[Selecione]')], $processes);
