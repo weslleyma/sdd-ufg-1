@@ -35,9 +35,15 @@ class ClazzesController extends AppController
 		//Only teacher can finish his/her clazz
 		if (in_array($this->request->action, ['finishClazze'])) {
 			$clazzId = (int)$this->request->params['pass'][0];
-
-			$teacherId = $this->Clazzes->ClazzesTeachers->find('all', 
-				['conditions' => ['clazz_id' => $clazzId, 'status' => 'SELECTED']])->toArray()[0]['teacher_id'];
+			
+			$teacherId = null;
+			
+			$teachers = $this->Clazzes->ClazzesTeachers->find('all', 
+				['conditions' => ['clazz_id' => $clazzId, 'status' => 'SELECTED']])->toArray();
+				
+			if (count($teachers) > 0) {
+				$teacherId = $teachers[0]['teacher_id'];
+			}
 			
 			if ($this->loggedUser->teacher->id === $teacherId) {
 				return true;

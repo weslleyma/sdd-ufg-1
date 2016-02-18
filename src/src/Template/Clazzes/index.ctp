@@ -120,6 +120,7 @@
                                             'data-original-title' => __('Visualizar'),
                                         ]
                                     ) ?>
+									<?php if(count($clazz->selectedTeachers) > 0): ?>
 									<?= $this->Html->link(
                                         '',
                                         ['action' => 'finishClazze', $clazz->id],
@@ -135,6 +136,7 @@
 												((count($files) > 0 && count($files) < 3) ? __('Finalizar Turma (Arquivos incompletos)') : __('Finalizar Turma')),
                                         ]
                                     ) ?>
+									<?php endif; ?>
                                     <?php if($loggedUser !== false && $loggedUser->canAdmin()): ?>
                                     <?= $this->Html->link(
                                         '',
