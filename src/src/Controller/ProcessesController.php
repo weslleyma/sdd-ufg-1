@@ -20,7 +20,7 @@ class ProcessesController extends AppController
         // Need to be logged
         $loggedActions = ['index'];
         if (in_array($this->request->action, $loggedActions) && $this->loggedUser !== false) {
-            return True;
+            return true;
         }
 
         return parent::isAuthorized($user);
@@ -220,6 +220,52 @@ class ProcessesController extends AppController
 
         $this->set(compact('$process'));
         $this->set('_serialize', ['$process']);
+    }
+	
+	
+	public function reuseProcess($id)
+    {
+        $originalProcess = $this->Processes->get($id, [
+            'contain' => ['Clazzes', 'Clazzes.ClazzesTeachers', 'Clazzes.ClazzesSchedulesLocals', 'ProcessesProcessConfigurations'],
+        ]);
+
+		unset($originalProcess->id);
+		$originalProcess->status = 'OPENED';
+		$originalProcess->name = $originalProcess->name . '(Clonado)';
+		
+		foreach($originalProcess->clazzes as $item => $value) {
+
+			unset($originalProcess->clazzes[$item]->id);
+			unset($originalProcess->clazzes[$item]->process_id);
+			$originalProcess->clazzes[$item]->isNew(true);
+			
+			foreach($value->intents as $i => $v) {
+				unset($originalProcess->clazzes[$item]->intents[$i]->clazz_id);
+				$originalProcess->clazzes[$item]->intents[$i]->isNew(true);
+			}
+			
+			foreach($value->scheduleLocals as $i => $v) {
+				unset($originalProcess->clazzes[$item]->scheduleLocals[$i]->clazz_id); 
+				$originalProcess->clazzes[$item]->scheduleLocals[$i]->isNew(true);
+			}
+		}
+
+		foreach($originalProcess->processes_process_configurations as $item => $value) {
+			unset($originalProcess->processes_process_configurations[$item]->process_id); 
+		}
+		
+		$clonedProcess = $this->Processes->newEntity($originalProcess->toArray(),
+				['associated' => ['Clazzes', 'Clazzes.ClazzesTeachers', 'Clazzes.ClazzesSchedulesLocals', 'ProcessesProcessConfigurations']]);
+		
+		$clonedProcess->clazzes = $originalProcess->clazzes;
+
+		if ($this->Processes->save($clonedProcess)) {
+            $this->Flash->success(__('Processo clonado com sucesso!'));
+        } else {
+            $this->Flash->error(__('Ocorreu um erro ao tentar clonar o Processo. Por favor, tente novamente.'));
+        }
+        return $this->redirect(['action' => 'index']);
+		
     }
 
 }

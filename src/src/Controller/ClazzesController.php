@@ -2,6 +2,9 @@
 namespace App\Controller;
 
 use Cake\ORM\TableRegistry;
+use Cake\Filesystem\Folder;
+use Cake\Filesystem\File;
+use Cake\ORM\Query;
 
 
 /**
@@ -28,6 +31,26 @@ class ClazzesController extends AppController
 
             return False;
         }
+		
+		//Only teacher can finish his/her clazz
+		if (in_array($this->request->action, ['finishClazze'])) {
+			$clazzId = (int)$this->request->params['pass'][0];
+			
+			$teacherId = null;
+			
+			$teachers = $this->Clazzes->ClazzesTeachers->find('all', 
+				['conditions' => ['clazz_id' => $clazzId, 'status' => 'SELECTED']])->toArray();
+				
+			if (count($teachers) > 0) {
+				$teacherId = $teachers[0]['teacher_id'];
+			}
+			
+			if ($this->loggedUser->teacher->id === $teacherId) {
+				return true;
+			}
+
+			return false;
+		}
 
 		return parent::isAuthorized($user);
 	}
@@ -333,11 +356,11 @@ class ClazzesController extends AppController
 	*/
 	public function myIntents()
     {
-		$clazzes = $this->Clazzes->ClazzesTeachers->getIntentsByTeacher($this->_userInfo->teacher->id);
+		$clazzes = $this->Clazzes->ClazzesTeachers->getIntentsByTeacher($this->loggedUser->teacher->id);
 
 		$this->set('clazzes', $this->paginate($clazzes));
 		$this->set('_serialize', ['clazzes']);
-		$this->set('teacherId', $this->_userInfo->teacher->id);
+		$this->set('teacherId', $this->loggedUser->teacher->id);
     }
 
 
@@ -409,13 +432,14 @@ class ClazzesController extends AppController
 
         }
 
-		if (!in_array('COORDINATOR', $this->_userRoles) && in_array('FACILITATOR', $this->_userRoles)) {
-
-			if (count($this->_userKnowledges) < 1) {
-				return;
-			}
+		$roles = array();
+		foreach ($this->loggedUser->teacher->roles as $r) {
+			$roles[] = $r->type;
+		}
+		
+		if (!in_array('COORDINATOR', $roles) && in_array('FACILITATOR', $roles)) {
 			$data->innerJoinWith('Subjects.Knowledges', function($q) {
-				return $q->where(['Knowledges.id IN ' => $this->_userKnowledges]);
+				return $q->where(['Knowledges.id IN ' => $roles]);
 			});
 		}
 
@@ -599,6 +623,96 @@ class ClazzesController extends AppController
 
 			return $query->all();
 
+		}
+	}
+	
+	/**
+     * Finish the selected clazze
+     *
+     * @param string|null $id Clazze id.
+     * @return void
+     */
+	public function finishClazze($id = null)
+	{
+        $clazze = $this->Clazzes->get($id, [
+            'contain' => []
+        ]);
+		
+		$clazzes_dir = $this->checkDirectory(WWW_ROOT.'/finishedClazzes');
+		$dir = $this->checkDirectory(WWW_ROOT.'/finishedClazzes/clazz-' . $id);
+		
+		$files = $dir->find();
+		
+		if ($this->request->is('post')) {
+			foreach ($files as $file) {
+				$file = new File($dir->pwd() . DS . $file);
+				$file->delete();
+				$file->close();
+			}
+			
+			$data = $this->request->data;
+			$invalidNames = false;
+			
+			foreach ($data as $file) {
+				if (!$this->checkName($file['name'])) {
+					$this->Flash->error(__('Um ou mais nomes de arquivos são inválidos. Verifique e tente novamente. ' . 
+							'(Nome inválido: ' . $file['name'] .  ')'));
+					$invalidNames = true;
+					break;
+				}
+			}
+			
+			$error = false;
+			
+			if (!$invalidNames) {
+				foreach ($data as $file) {
+					
+					if (!move_uploaded_file($file['tmp_name'], $dir->pwd() . DS . $file['name'])) {
+						$this->Flash->error(__('Ocorreu um erro ao fazer o upload de um ou mais arquivos. Tente novamente.'));
+						$error = true;
+						break;
+					}
+				}
+			}
+			
+			if (!$invalidNames && !$error) {
+				$this->Flash->success(__('Arquivos de Finalização de Turma salvos com sucesso!'));
+				return $this->redirect(['action' => 'index']);
+			}
+			
+		}
+		
+		$this->set('files', $files);
+        $this->set('clazze', $clazze);
+        $this->set('_serialize', ['clazze']);
+	}
+	
+	/**
+	 * Check if the file name is valid.
+	 * @access public
+	 * @param String $fileName
+	 * @return if the image is valid
+	*/ 
+	private function checkName($fileName)
+	{
+		return (bool) ((preg_match("`^[-0-9A-Z_\.\\s]+$`i",$fileName) && mb_strlen($fileName,"UTF-8") < 225) ? true : false);
+	}
+
+	
+	/**
+	 * Check if the directory exists. If not, then the system will create it.
+	 * @access public
+	 * @param String $dir
+	 * @return the selected folder
+	*/ 
+	private function checkDirectory($dir)
+	{
+		if (!is_dir($dir)){
+			$folder = new Folder();
+			$folder->create($dir);
+			return $folder;
+		} else {
+			return new Folder($dir);
 		}
 	}
 }
