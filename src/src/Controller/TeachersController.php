@@ -318,7 +318,10 @@ class TeachersController extends AppController
                 'Subjects.Courses', 'Subjects.Knowledges',
                 'ClazzesSchedulesLocals.Locals', 'ClazzesSchedulesLocals.Schedules',
                 'Processes'
-        ]);
+			])
+			->innerJoinWith('Processes', function ($q) use ($params) {
+				return $q->where(['Processes.status' => 'OPENED']);
+			});
 
         if($params !== null) {
 
@@ -334,7 +337,7 @@ class TeachersController extends AppController
 						return $q->where(['Knowledges.name LIKE ' => '%' . $params['knowledge_name'] . '%']);
 					},
 					'Processes' => function ($q) use ($params) {
-						return $q->where(['Clazzes.process_id LIKE ' => '%' . $params['process'] . '%']);
+						return $q->where(['Processes.id LIKE ' => '%' . $params['process'] . '%']);
 					},
 					'ClazzesSchedulesLocals.Locals', 'ClazzesSchedulesLocals.Schedules'
 				])
@@ -345,7 +348,10 @@ class TeachersController extends AppController
 				->innerJoinWith('ClazzesSchedulesLocals.Schedules', function ($q) use ($params) {
 						return $q->where(['Schedules.start_time >= ' => $params['start_time']['hour'] . ':' . $params['start_time']['minute'],
 								'Schedules.end_time <= ' => $params['end_time']['hour'] . ':' . $params['end_time']['minute']]);
-					});
+					})
+				->innerJoinWith('Processes', function ($q) use ($params) {
+					return $q->where(['Processes.status' => 'OPENED']);
+				});
 
 			if (!empty($params['week_day'])) {
 				$data->where(['week_day' => $params['week_day']]);
