@@ -32,9 +32,9 @@
             <div class="login-logo"><b>SDD-UFG</b></div>
 
             <?= $this->Flash->render() ?>
+            <?= $this->Flash->render('auth') ?>
 
             <div class="login-box-body">
-                <?= $this->Flash->render('auth') ?>
                 <?= $this->fetch('content') ?>
             </div>
         </div>

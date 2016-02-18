@@ -213,7 +213,7 @@
                                         <?php if($scheduledLocal->week_day == $week_day): ?>
                                             <div class="label label-primary schedule-data-div">
                                             <span class="text-ellipsis" style="max-width: calc(100% - 15px);">
-                                                <?= $scheduledLocal->schedule->period ?>: <?= $scheduledLocal->local->fullPath ?>
+                                                <?= $scheduledLocal->name ?>
                                             </span>
                                             </div>
                                         <?php endif; ?>

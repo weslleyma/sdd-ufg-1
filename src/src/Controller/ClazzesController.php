@@ -47,7 +47,6 @@ class ClazzesController extends AppController
         ];
 
         $this->request->data = $this->request->query;
-
         $clazzes = $this->Clazzes->findByFilters($this->request->query);
 
         $this->set('isFiltered', !empty($clazzes->__debugInfo()['params']));
@@ -58,6 +57,7 @@ class ClazzesController extends AppController
 
         $this->Clazzes->ClazzesTeachers->Teachers->displayField('user.name');
         $this->set('teachers', $this->Clazzes->ClazzesTeachers->Teachers->find('list')->contain(['Users'])->toArray());
+        $this->set('schedules', $this->Clazzes->ClazzesSchedulesLocals->find('list')->contain(['Schedules', 'Locals'])->toArray());
 
         $this->set('clazzes', $this->paginate($clazzes));
         $this->set('_serialize', ['clazzes']);
