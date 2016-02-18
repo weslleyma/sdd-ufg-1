@@ -1,8 +1,6 @@
 <?php
 namespace App\Controller;
 
-use App\Controller\AppController;
-use Cake\Datasource\ConnectionManager;
 use Cake\ORM\TableRegistry;
 
 
@@ -14,6 +12,26 @@ use Cake\ORM\TableRegistry;
 class ClazzesController extends AppController
 {
 
+	public function isAuthorized($user)
+	{
+		// Need to be logged
+        $loggedActions = ['listOpenedClazzes', 'view', 'index'];
+        if (in_array($this->request->action, $loggedActions) && $this->loggedUser !== false) {
+            return True;
+		}
+
+        // Need to be logged ONLY by a teacher
+        if(in_array($this->request->action, ['subscribe', 'unsubscribe'])) {
+            if(isset($this->loggedUser->teacher) && $this->loggedUser->teacher != null) {
+                return True;
+            }
+
+            return False;
+        }
+
+		return parent::isAuthorized($user);
+	}
+
     /**
      * Index method
      *
@@ -22,9 +40,26 @@ class ClazzesController extends AppController
     public function index()
     {
         $this->paginate = [
-            'contain' => ['Processes', 'Subjects', 'ClazzesTeachers.Teachers.Users']
+            'limit' => 25,
+            'order' => [
+                'Clazzes.id' => 'DESC'
+            ]
         ];
-        $this->set('clazzes', $this->paginate($this->Clazzes));
+
+        $this->request->data = $this->request->query;
+
+        $clazzes = $this->Clazzes->findByFilters($this->request->query);
+
+        $this->set('isFiltered', !empty($clazzes->__debugInfo()['params']));
+        $this->set('status', ['' => __('[Selecione]'), 'OPENED' => __('Aberto'), 'CONFLICT' => _('Em conflito'), 'CLOSED' => __('Fechado')]);
+        $this->set('subjects', array_replace([0 => __('[Selecione]')], $this->Clazzes->Subjects->find('list')->toArray()));
+        $this->set('processes', array_replace([0 => __('[Selecione]')], $this->Clazzes->Processes->find('list')->toArray()));
+        $this->set('knowledges', array_replace([0 => __('[Selecione]')], $this->Clazzes->Subjects->Knowledges->find('list')->toArray()));
+
+        $this->Clazzes->ClazzesTeachers->Teachers->displayField('user.name');
+        $this->set('teachers', $this->Clazzes->ClazzesTeachers->Teachers->find('list')->contain(['Users'])->toArray());
+
+        $this->set('clazzes', $this->paginate($clazzes));
         $this->set('_serialize', ['clazzes']);
     }
 
@@ -39,10 +74,42 @@ class ClazzesController extends AppController
     {
         $clazz = $this->Clazzes->get($id, [
             'contain' => [
-                'Processes', 'Subjects', 'ClazzesTeachers.Teachers.Users',
+                'Processes', 'Subjects.Knowledges', 'ClazzesTeachers.Teachers.Users',
                 'ClazzesSchedulesLocals.Locals', 'ClazzesSchedulesLocals.Schedules'
             ]
         ]);
+
+        if ($this->request->is('post') && $this->loggedUser->isClazzAdmin($clazz)) {
+            $selectedTeachers = isset($this->request->data['selected_teachers']) ?
+                $this->request->data['selected_teachers'] : [];
+
+            if(empty($selectedTeachers)) {
+                $this->Flash->error(__('Nenhum docente foi selecionado para ser alocado a turma.'));
+                return $this->redirect(['action' => 'view', $id]);
+            }
+
+            $this->Clazzes->ClazzesTeachers->updateAll([
+                'status' => 'REJECTED'
+            ], [
+                'clazz_id' => $id
+            ]);
+
+            $this->Clazzes->ClazzesTeachers->updateAll([
+                'status' => 'SELECTED'
+            ], [
+                'teacher_id IN' => $selectedTeachers,
+                'clazz_id' => $id
+            ]);
+
+            $this->Flash->success(__('Docentes alocados à turma com sucesso.'));
+            $clazz = $this->Clazzes->get($id, [
+                'contain' => [
+                    'Processes', 'Subjects.Knowledges', 'ClazzesTeachers.Teachers.Users',
+                    'ClazzesSchedulesLocals.Locals', 'ClazzesSchedulesLocals.Schedules'
+                ]
+            ]);
+        }
+
         $this->set('clazz', $clazz);
         $this->set('_serialize', ['clazz']);
     }
@@ -199,6 +266,168 @@ class ClazzesController extends AppController
         return $this->redirect(['action' => 'index']);
     }
 
+    /**
+     * Subscribe method
+     *
+     * @param string|null $id Clazz id.
+     * @return \Cake\Network\Response|null Redirects to index.
+     * @throws \Cake\Network\Exception\NotFoundException When record not found.
+     */
+    public function subscribe($id = null)
+    {
+        $this->request->allowMethod(['post']);
+        if($this->Clazzes->isTeacherSubscribed($this->loggedUser->teacher->id, $id)) {
+            $this->Flash->error(__('Você já está inscrito nesta turma.'));
+            return $this->redirect(['action' => 'view', $id]);
+        }
+
+        $clazzTeacher = $this->Clazzes->ClazzesTeachers->newEntity([
+            'teacher_id' => $this->loggedUser->teacher->id,
+            'clazz_id' => $id,
+            'status' => 'PENDING'
+        ]);
+
+        if($this->Clazzes->ClazzesTeachers->save($clazzTeacher)) {
+            $this->Flash->success(__('Inscrição realizada com sucesso.'));
+        } else {
+            $this->Flash->error(__('Não foi possível realizar sua inscrição, tente novamente.'));
+        }
+
+        return $this->redirect(['action' => 'view', $id]);
+    }
+
+    /**
+     * Unsubscribe method
+     *
+     * @param string|null $id Clazz id.
+     * @return \Cake\Network\Response|null Redirects to index.
+     * @throws \Cake\Network\Exception\NotFoundException When record not found.
+     */
+    public function unsubscribe($id = null)
+    {
+        $this->request->allowMethod(['post']);
+        if(!$this->Clazzes->isTeacherSubscribed($this->loggedUser->teacher->id, $id)) {
+            $this->Flash->error(__('Você não está inscrito nesta turma.'));
+            return $this->redirect(['action' => 'view', $id]);
+        }
+
+        $deleteConditions = [
+            'teacher_id' => $this->loggedUser->teacher->id,
+            'clazz_id' => $id
+        ];
+
+        if($this->Clazzes->ClazzesTeachers->deleteAll($deleteConditions)) {
+            $this->Flash->success(__('Inscrição cancelada com sucesso.'));
+        } else {
+            $this->Flash->error(__('Não foi possível cancelar sua inscrição, tente novamente.'));
+        }
+
+        return $this->redirect(['action' => 'view', $id]);
+    }
+
+    /** END Basics */
+
+	/**
+	*
+	* Show current user/teacher 's intents
+	*/
+	public function myIntents()
+    {
+		$clazzes = $this->Clazzes->ClazzesTeachers->getIntentsByTeacher($this->_userInfo->teacher->id);
+
+		$this->set('clazzes', $this->paginate($clazzes));
+		$this->set('_serialize', ['clazzes']);
+		$this->set('teacherId', $this->_userInfo->teacher->id);
+    }
+
+
+	/**
+	*
+	* List opened clazzes
+	*/
+	public function listOpenedClazzes()
+	{
+		$processes = $this->Clazzes->Processes->find('list')
+            ->where(['initial_date <= ' => 'CURDATE()', 'final_date >= ' => 'CURDATE()'])
+            ->orWhere(['status' => 'OPENED'])
+            ->toArray();
+
+        $processes = array_replace(['' => __('[Selecione]')], $processes);
+
+		if (count($processes) < 2) {
+			$this->Flash->info(__('Não existe nenhum Processo de Distribuição de Disciplinas aberto.'));
+			$this->set('process_exists', false);
+			$this->set('_serialize', ['process_exists']);
+			$this->set('clazzes', array());
+			$this->set('_serialize', ['clazzes']);
+			$this->set('processes', array());
+			$this->set('_serialize', ['processes']);
+
+		} else {
+			$clazzes = $this->getOpenedClazzes();
+
+			/* Filters */
+			if ($this->request->is('post')) {
+				$data = $this->request->data;
+				$clazzes = $this->getOpenedClazzes($data);
+				echo json_encode($clazzes);
+				die();
+			}
+
+			$this->set('clazzes', $clazzes);
+			$this->set('_serialize', ['clazzes']);
+			$this->set('processes', $processes);
+			$this->set('_serialize', ['processes']);
+			$this->set('process_exists', true);
+			$this->set('_serialize', ['process_exists']);
+		}
+	}
+
+
+	private function getOpenedClazzes($params = null)
+	{
+
+		$data = $this->Clazzes->find('all')
+					->contain([
+						'Subjects.Courses', 'Subjects.Knowledges',
+						'ClazzesSchedulesLocals.Locals', 'ClazzesSchedulesLocals.Schedules',
+						'Processes',
+					]);
+
+        if($params !== null) {
+
+			$data = $this->Clazzes->find('all')
+					->contain([
+						'Subjects.Courses', 'Subjects.Knowledges' => function ($q) use ($params) {
+							return $q->where(["Knowledges.name LIKE " => "%" . $params['knowledge_name'] . "%"]);
+						},
+						'ClazzesSchedulesLocals.Locals', 'ClazzesSchedulesLocals.Schedules',
+						'Processes' => function ($q) use ($params) {
+							return $q->where(["Clazzes.process_id LIKE " => "%" . $params['process'] . "%"]);
+						}
+					]);
+
+        }
+
+		if (!in_array('COORDINATOR', $this->_userRoles) && in_array('FACILITATOR', $this->_userRoles)) {
+
+			if (count($this->_userKnowledges) < 1) {
+				return;
+			}
+			$data->innerJoinWith('Subjects.Knowledges', function($q) {
+				return $q->where(['Knowledges.id IN ' => $this->_userKnowledges]);
+			});
+		}
+
+		foreach($data as $clazz => $value) {
+			if ($value->_getStatus() == 'CLOSED') {
+				unset($data[$clazz]);
+			}
+		}
+
+        return $data->toArray();
+	}
+
 	/**
 	* Allocate Teacher method
 	*
@@ -231,7 +460,7 @@ class ClazzesController extends AppController
 
 					$query = $table_clazzes_teachers->query();
 					$query->update()
-							->set(['status' => 'PENDING'])
+							->set(['status' => 'REJECTED'])
 							->where([
 							'clazz_id' => $clazz_id,
 							'teacher_id != ' => $teacher_id
@@ -247,7 +476,7 @@ class ClazzesController extends AppController
 					$query->insert(['clazz_id', 'teacher_id', 'status'])->values([
 							'clazz_id' => $clazz_id,
 							'teacher_id' => $teacher_id,
-							'status' => 'ACTIVE'
+							'status' => 'SELECTED'
 						])->execute();
 
 					if ($query) {
@@ -263,8 +492,7 @@ class ClazzesController extends AppController
 					$query->update()
 							->set(['status' => 'PENDING'])
 							->where([
-							'clazz_id' => $clazz_id,
-							'teacher_id' => $teacher_id
+							'clazz_id' => $clazz_id
 					])->execute();
 
 					if ($query) {
@@ -372,65 +600,5 @@ class ClazzesController extends AppController
 			return $query->all();
 
 		}
-
-	}
-
-	public function listOpenedClazzes()
-	{
-		$processes = $this->Clazzes->Processes->find('list')
-            ->where(['initial_date <= ' => 'CURDATE()', 'final_date >= ' => 'CURDATE()'])
-            ->orWhere(['status' => 'OPEN'])
-            ->toArray();
-
-        $processes = array_replace(['' => __('[Selecione]')], $processes);
-
-		if (count($processes) < 2) {
-			$this->Flash->info(__('Não existe nenhum Processo de Distribuição de Disciplinas aberto.'));
-			$this->set('process_exists', false);
-			$this->set('_serialize', ['process_exists']);
-			$this->set('clazzes', array());
-			$this->set('_serialize', ['clazzes']);
-			$this->set('processes', array());
-			$this->set('_serialize', ['processes']);
-			$this->set('process_options', array());
-			$this->set('_serialize', ['process_options']);
-		} else {
-			$clazzes = $this->getClazzes();
-
-			/* Filters */
-			if ($this->request->is('post')) {
-				$data = $this->request->data;
-				$clazzes = $this->getClazzes($data);
-				echo json_encode($clazzes);
-				die();
-			}
-
-			$this->set('clazzes', $clazzes);
-			$this->set('_serialize', ['clazzes']);
-			$this->set('processes', $processes);
-			$this->set('_serialize', ['processes']);
-			$this->set('process_exists', true);
-			$this->set('_serialize', ['process_exists']);
-		}
-	}
-
-
-	public function getClazzes($params = null)
-	{
-        $data = $this->Clazzes->find('all')
-            ->contain([
-                'Subjects.Courses', 'Subjects.Knowledges',
-                'ClazzesSchedulesLocals.Locals', 'ClazzesSchedulesLocals.Schedules',
-                'Processes'
-            ]);
-
-        if($params !== null) {
-            $data->where([
-                "Knowledges.name LIKE" => "%" . $params['knowledge_name'] . "%",
-                "Clazzes.process_id" => $params['process']
-            ]);
-        }
-
-        return $data->toArray();
 	}
 }

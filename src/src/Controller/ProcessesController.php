@@ -14,6 +14,18 @@ use Cake\Event\Event;
  */
 class ProcessesController extends AppController
 {
+
+    public function isAuthorized($user)
+    {
+        // Need to be logged
+        $loggedActions = ['index'];
+        if (in_array($this->request->action, $loggedActions) && $this->loggedUser !== false) {
+            return True;
+        }
+
+        return parent::isAuthorized($user);
+    }
+
 	public function beforeFilter(Event $event)
     {
         parent::beforeFilter($event);
@@ -68,7 +80,7 @@ class ProcessesController extends AppController
         $process = $this->Processes->newEntity();
         if ($this->request->is('post')) {
             $process = $this->Processes->patchEntity($process, $this->request->data);
-            $process->status = 'OPEN';
+            $process->status = 'OPENED';
             if ($this->Processes->save($process)) {
                 $this->Flash->success(__('O processo foi salvo.'));
                 return $this->redirect(['action' => 'index']);
@@ -152,7 +164,7 @@ class ProcessesController extends AppController
 		Soma o prática e teórica da disciplina da turma e divide por 16
 		E vê se o valor da ao menos oq ta no workload do docente que e na maioria 8
 	*/
-	
+
 	public function prototypeDistribute(){
 		//http://localhost:8765/processes/prototype-distribute
 		$this->autoRender = false;
@@ -164,19 +176,19 @@ class ProcessesController extends AppController
 		$clazzes = $this->Processes->Clazzes->getAllClazzesWithSubjctsTeachers();
 		$this->response->body(json_encode($clazzes, JSON_PRETTY_PRINT));
 	}
-	
+
 	public function distribute(){
         $clazzes = $this->Processes->Clazzes->find('all')->contain(['ClazzesTeachers.Teachers.Users', 'Locals', 'Subjects']);
         $clazzes = $this->paginate($clazzes);
         $this->set('clazzes', $clazzes);
 	}
-	
+
 	public function simulate(){
         $clazzes = $this->Processes->Clazzes->find('all')->contain(['ClazzesTeachers.Teachers.Users', 'Locals', 'Subjects']);
         $clazzes = $this->paginate($clazzes);
         $this->set('clazzes', $clazzes);
 	}
-	
+
 	public function revert(){
         $this->paginate = [
             'contain' => []
@@ -185,7 +197,7 @@ class ProcessesController extends AppController
         $this->set('_serialize', ['processes']);
 	}
 
-    
+
     public function cloneProcess($id = null)
     {
         $clonedProcess = $this->Processes->get($id, [
@@ -194,7 +206,7 @@ class ProcessesController extends AppController
 
         if ($this->request->is('post')) {
             $process = $this->Processes->patchEntity($process, $this->request->data);
-            $process->status = 'OPEN';
+            $process->status = 'OPENED';
             if ($this->Processes->save($process)) {
                 $this->Flash->success(__('O processo foi clonado.'));
                 return $this->redirect(['action' => 'index']);
