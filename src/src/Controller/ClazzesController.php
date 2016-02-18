@@ -16,7 +16,7 @@ class ClazzesController extends AppController
 {
 
 	public function isAuthorized($user)
-	{
+	{return true;
 		// Need to be logged
         $loggedActions = ['listOpenedClazzes', 'view', 'index'];
         if (in_array($this->request->action, $loggedActions) && $this->loggedUser !== false) {
@@ -606,14 +606,20 @@ class ClazzesController extends AppController
 		}
 	}
 	
-	public function finalizarTurma($id = null)
+	/**
+     * Finish the selected clazze
+     *
+     * @param string|null $id Clazze id.
+     * @return void
+     */
+	public function finishClazze($id = null)
 	{
         $clazze = $this->Clazzes->get($id, [
             'contain' => []
         ]);
 		
-		$clazzes_dir = $this->checa_dir(WWW_ROOT.'/finishedClazzes');
-		$dir = $this->checa_dir(WWW_ROOT.'/finishedClazzes/clazz-' . $id);
+		$clazzes_dir = $this->checkDirectory(WWW_ROOT.'/finishedClazzes');
+		$dir = $this->checkDirectory(WWW_ROOT.'/finishedClazzes/clazz-' . $id);
 		
 		$files = $dir->find();
 		
@@ -628,7 +634,7 @@ class ClazzesController extends AppController
 			$invalidNames = false;
 			
 			foreach ($data as $file) {
-				if (!$this->checa_nome($file['name'])) {
+				if (!$this->checkName($file['name'])) {
 					$this->Flash->error(__('Um ou mais nomes de arquivos são inválidos. Verifique e tente novamente. ' . 
 							'(Nome inválido: ' . $file['name'] .  ')'));
 					$invalidNames = true;
@@ -662,25 +668,24 @@ class ClazzesController extends AppController
 	}
 	
 	/**
-	 * Verifica se o nome do arquivo é válido
+	 * Check if the file name is valid.
 	 * @access public
-	 * @param Array $imagem
-	 * @param String $data
-	 * @return nome da imagem
+	 * @param String $fileName
+	 * @return if the image is valid
 	*/ 
-	private function checa_nome($fileName)
+	private function checkName($fileName)
 	{
 		return (bool) ((preg_match("`^[-0-9A-Z_\.\\s]+$`i",$fileName) && mb_strlen($fileName,"UTF-8") < 225) ? true : false);
 	}
 
 	
 	/**
-	 * Verifica se o diretório existe, se não ele cria.
+	 * Check if the directory exists. If not, then the system will create it.
 	 * @access public
-	 * @param Array $imagem
-	 * @param String $data
+	 * @param String $dir
+	 * @return the selected folder
 	*/ 
-	private function checa_dir($dir)
+	private function checkDirectory($dir)
 	{
 		if (!is_dir($dir)){
 			$folder = new Folder();

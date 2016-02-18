@@ -5,7 +5,7 @@
 <li class="active">Finalizaçao de Turma</li>
 <?php $this->end(); ?>
 
-<?= $this->Form->create('Clazzes', ['action' => 'finalizar_turma/' . $clazze->id, 'type' => 'file'
+<?= $this->Form->create('Clazzes', ['action' => 'finishClazze/' . $clazze->id, 'type' => 'file'
 	, 'onsubmit' => "return confirm(\"Ao confirmar todos os arquivos atualmente na pasta (se houverem) serão apagados. Deseja prosseguir com a operação? \");"]) ?>
 <div class="row">
 	<div class="col-xs-8">
@@ -20,10 +20,16 @@
 					</a>
 					<div id="collapseOne" class="panel-collapse collapse" aria-expanded="false" style="height: 0px;">
 						<div class="box-body">
-						  *Os nomes dos arquivos não poderão conter mais de 225 caracteres e nem possuir os seguintes 
-							caracteres: ^,~,´,`,/,\,',". Além disso, todos os campos deverão ser preenchidos com um arquivo para upload. 
-							*Se já existirem arquivos na pasta da turma, estes serão excluídos para dar lugar aos novos em caso de confirmação da finalização de turma. 
-							*Não insira arquivos de mesmo nome e extensão. Nesse caso, somente será salvo um dos arquivos, e os documentos da turma estarão incompletos.
+							<p>*Os nomes dos arquivos não poderão conter mais de 225 caracteres e nem possuir os seguintes 
+							caracteres: ^,~,´,`,/,\,',". Além disso, todos os campos deverão ser preenchidos com um arquivo 
+							para upload. </p> 
+							<p>*Se já existirem arquivos na pasta da turma, estes serão excluídos para dar lugar aos novos em 
+							caso de nova confirmação da finalização de turma. </p> 
+							<p>*Não insira arquivos de mesmo nome e extensão. Nesse caso, somente será salvo um dos arquivos, 
+							e os documentos da turma estarão incompletos. </p> 
+							<p>*O upload dos três arquivos deve ser feito no mesmo momento, pois arquivos remanescentes na pasta 
+							serão sempre excluídos em caso de novos uploads, para economia de espaço.</p> 
+							<p>*Todos os arquivos deverão estar em formato PDF.</p> 
 						</div>
 					</div>
 				</div>

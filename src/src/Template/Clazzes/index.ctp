@@ -1,3 +1,4 @@
+<?php use Cake\Filesystem\Folder; ?>
 <?php $this->assign('title', 'Turmas'); ?>
 <?php $this->start('breadcrumb'); ?>
 <li><?= $this->Html->link('<i class="fa fa-dashboard"></i>' . __('Dashboard'), '/', ['escape' => false]) ?></li>
@@ -93,6 +94,13 @@
                         </tr>
                     <?php else: ?>
                         <?php foreach ($clazzes as $clazz): ?>
+							<?php 
+								$files = array();
+								$dir = new Folder(WWW_ROOT.'/finishedClazzes/clazz-' . $clazz->id);
+								if ($dir) {
+									$files = $dir->find(); 
+								}
+							?>
                             <tr>
                                 <td><?= $this->Number->format($clazz->id) ?></td>
                                 <td><?= $this->Html->link($clazz->process->name, ['controller' => 'Processes', 'action' => 'view', $clazz->process->id]) ?></td>
@@ -137,12 +145,17 @@
                                     ) ?>
 									<?= $this->Html->link(
                                         '',
-                                        ['action' => 'finalizarTurma', $clazz->id],
+                                        ['action' => 'finishClazze', $clazz->id],
                                         [
-                                            'title' => __('Finalizar Turma'),
-                                            'class' => 'btn btn-sm btn-default glyphicon glyphicon-check',
+                                            'title' => (count($files) == 3) ? 
+												__('Finalizar Turma (Já existem arquivos enviados)') : 
+												((count($files) > 0 && count($files) < 3) ? __('Finalizar Turma (Arquivos incompletos)') : __('Finalizar Turma')),
+                                            'class' => (count($files) == 3) ? 'btn btn-sm btn-default glyphicon glyphicon-folder-close' 
+														: 'btn btn-sm btn-default glyphicon glyphicon-folder-open',
                                             'data-toggle' => 'tooltip',
-                                            'data-original-title' => __('Finalizar Turma'),
+                                            'data-original-title' => (count($files) == 3) ? 
+												__('Finalizar Turma (Já existem arquivos enviados)') : 
+												((count($files) > 0 && count($files) < 3) ? __('Finalizar Turma (Arquivos incompletos)') : __('Finalizar Turma')),
                                         ]
                                     ) ?>
                                     <?php endif; ?>
