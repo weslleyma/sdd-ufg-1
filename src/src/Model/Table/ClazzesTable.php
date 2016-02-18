@@ -158,7 +158,8 @@ class ClazzesTable extends Table
     {
         /** @var Query $clazzes */
         $clazzes = $this->find('all')->contain([
-            'Processes', 'Subjects.Knowledges', 'ClazzesTeachers.Teachers.Users'
+            'Processes', 'Subjects.Knowledges', 'ClazzesTeachers.Teachers.Users',
+            'ClazzesSchedulesLocals.Locals', 'ClazzesSchedulesLocals.Schedules'
         ]);
 
         $conditions = [];
@@ -234,7 +235,22 @@ class ClazzesTable extends Table
             if(isset($filters['teachers']) && is_array($filters['teachers'])) {
                 $clazzes->matching('ClazzesTeachers')->group(['Clazzes.id']);
                 $conditions['AND']['ClazzesTeachers.teacher_id IN'] = $filters['teachers'];
-                $conditions['AND']['ClazzesTeachers.status'] = 'SELECTED';
+
+                if(isset($filters['only-selected']) && $filters['only-selected'] == true) {
+                    $conditions['AND']['ClazzesTeachers.status'] = 'SELECTED';
+                }
+            }
+
+            if(isset($filters['schedules']) && is_array($filters['schedules'])) {
+                $clazzes->matching('ClazzesSchedulesLocals')->group(['Clazzes.id']);
+                foreach($filters['schedules'] as $schedule) {
+                    $schedule = explode(";", $schedule);
+                    $conditions['AND']['OR'][] = [
+                        'ClazzesSchedulesLocals.schedule_id' => $schedule[1],
+                        'ClazzesSchedulesLocals.local_id' => $schedule[2]
+                        //'ClazzesSchedulesLocals.week_day' => $schedule[3]
+                    ];
+                }
             }
         }
 

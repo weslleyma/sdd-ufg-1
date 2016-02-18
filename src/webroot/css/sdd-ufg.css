@@ -17,7 +17,7 @@
     background-color: #e5e5e5;
 }
 
-.simple-table{
+.simple-table {
 	border-collapse:collapse
 }
 
@@ -25,7 +25,7 @@
 	border:1px solid #000
 }
 
-.simple-table thead{
+.simple-table thead {
 	font-weight:bold;
 	background-color:#855E42
 }
@@ -58,6 +58,7 @@
 }
 
 .week-day {
+    background-color: #fff;
     min-height: 100px;
     padding: 5px 5px 27px;
 }
@@ -260,4 +261,21 @@
     cursor: default;
     background-color: #337ab7;
     border-color: #337ab7;
+}
+
+.fa-glyph {
+    padding: 6px 9px;
+    margin-top: 2px;
+}
+
+.table-second-hidden tbody tr:nth-child(4n+1) {
+    background-color: #f9f9f9;
+}
+
+.table-second-hidden tbody tr:nth-child(4n+3) {
+    background-color: #fff;
+}
+
+tr[data-clazz-schedule] {
+    background-color: #eee;
 }
