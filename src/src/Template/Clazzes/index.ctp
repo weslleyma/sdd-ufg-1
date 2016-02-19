@@ -123,7 +123,7 @@
                                     <button data-clazz-id="<?= $clazz->id ?>" class="btn btn-sm btn-info fa fa-glyph fa-calendar-plus-o"
                                             title ="<?= __('Locais/horários de aula') ?>"
                                             data-toggle="tooltip" data-original-title="<?= __('Locais/horários de aula') ?>"></button>
-									<?php if(count($clazz->selectedTeachers) > 0): ?>
+									<?php if(count($clazz->selectedTeachers) > 0 && in_array($loggedUser->teacher->id, $clazz->selectedTeachersIds)): ?>
 									<?= $this->Html->link(
                                         '',
                                         ['action' => 'finishClazze', $clazz->id],

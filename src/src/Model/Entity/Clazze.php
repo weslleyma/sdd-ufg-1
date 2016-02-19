@@ -161,6 +161,16 @@ class Clazze extends Entity
         return $display;
     }
 	
+	public function _getSelectedTeachersIds() {
+		$ids = array();
+        if(!empty($this->selectedTeachers)) {
+            foreach($this->selectedTeachers as $teacher) {
+                $ids[] = $teacher->id;
+            }
+        }
+        return $ids;
+    }
+	
 	public function _getFiles()
     {
         $files = array();
