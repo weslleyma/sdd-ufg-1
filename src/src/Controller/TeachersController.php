@@ -13,32 +13,13 @@ use Cake\View\Helper\SessionHelper;
  */
 class TeachersController extends AppController
 {
-	private $_userRoles;
-
-	public function initialize()
-    {
-        parent::initialize();
-		
-		$roles = array();
-		if ($this->loggedUser) {
-			foreach ($this->loggedUser->teacher->roles as $r) {
-				$roles[] = $r->type;
-			}
-		}
-		
-		$this->_userRoles = $roles;
-			
-    }
-
 	public function isAuthorized($user)
 	{
-		return true; //remove line on production
-
 		//Only admin or teacher itself can edit the teacher
 		if (in_array($this->request->action, ['edit', 'allocateClazzes'])) {
 			$teacherId = (int)$this->request->params['pass'][0];
 
-			if ($user['id'] === $teacherId || $user['is_admin'] || in_array('COORDINATOR', $this->_userRoles)) {
+			if ($this->loggedUser->teacher->id === $teacherId || $this->loggedUser->canAdmin()) {
 				return true;
 			}
 
@@ -58,7 +39,7 @@ class TeachersController extends AppController
 
 		$this->set('teachers', $this->paginate($this->Teachers->find('all')->contain(['Users'])));
 
-		if (!in_array('COORDINATOR', $this->_userRoles)) {
+		if (!$this->loggedUser->isCoordinator()) {
 
 			$this->set('teachers', $this->paginate($this->Teachers->find('all')
 				->contain(['Users' ])
