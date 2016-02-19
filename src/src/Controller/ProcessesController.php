@@ -18,7 +18,7 @@ class ProcessesController extends AppController
     public function isAuthorized($user)
     {
         // Need to be logged
-        $loggedActions = ['index'];
+        $loggedActions = ['index', 'view'];
         if (in_array($this->request->action, $loggedActions) && $this->loggedUser !== false) {
             return true;
         }
