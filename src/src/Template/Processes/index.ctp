@@ -60,6 +60,7 @@
                                             'data-original-title' => __('Visualizar'),
                                         ]
                                     ) ?>
+									<?php if($loggedUser !== false && $loggedUser->canAdmin()): ?>
                                     <?php if($process->status == 'OPENED' ): ?>
                                         <?= $this->Html->link(
                                             '',
@@ -106,6 +107,7 @@
                                                 'data-original-title' => __('Clonar Processo'),
                                             ]
                                         ) ?>
+									<?php endif; ?>
 									<?php endif; ?>
                                 </td>
                             </tr>
