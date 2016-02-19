@@ -13,7 +13,6 @@ use Cake\ORM\Query;
  */
 class ClazzesController extends AppController
 {
-
 	public function isAuthorized($user)
 	{
 		// Need to be logged
@@ -21,7 +20,24 @@ class ClazzesController extends AppController
         if (in_array($this->request->action, $loggedActions) && $this->loggedUser !== false) {
             return True;
 		}
-
+		
+		// Need to be logged as admin or coordinator/facilitator
+        $adminOrCoordinator = ['allocateTeacher'];
+        if (in_array($this->request->action, $adminOrCoordinator) && ($this->loggedUser !== false)) {	
+			$clazzId = (int)$this->request->params['pass'][0];
+			$clazz = $this->Clazzes->get($clazzId, [
+				'contain' => [
+					'Subjects'
+				]
+			]);
+			$knowledgeId = $clazz->subject->knowledge_id;
+			
+			if($this->loggedUser->canAdmin() || $this->loggedUser->isFacilitatorOf($knowledgeId)) {
+				return True;
+			}
+			return false;
+		}
+		
         // Need to be logged ONLY by a teacher
         if(in_array($this->request->action, ['subscribe', 'unsubscribe'])) {
             if(isset($this->loggedUser->teacher) && $this->loggedUser->teacher != null) {
@@ -35,16 +51,16 @@ class ClazzesController extends AppController
 		if (in_array($this->request->action, ['finishClazze'])) {
 			$clazzId = (int)$this->request->params['pass'][0];
 			
-			$teacherId = null;
+			$teacherIds = array();
 			
 			$teachers = $this->Clazzes->ClazzesTeachers->find('all', 
 				['conditions' => ['clazz_id' => $clazzId, 'status' => 'SELECTED']])->toArray();
 				
-			if (count($teachers) > 0) {
-				$teacherId = $teachers[0]['teacher_id'];
+			foreach($teachers as $t) {
+				$teacherIds[] = $t['teacher_id'];
 			}
 			
-			if ($this->loggedUser->teacher->id === $teacherId) {
+			if (in_array($this->loggedUser->teacher->id, $teacherIds)) {
 				return true;
 			}
 
@@ -472,6 +488,15 @@ class ClazzesController extends AppController
         ]);
 
 		$teachers = $this->getTeachers();
+		
+		$recomendedTeacher = null;
+		$maior = 0;
+		foreach ($clazzesTeachers->all() as $c) {
+			if ($maior < $c->priority) {
+				$maior = $c->priority;
+				$recomendedTeacher = $c->teacher_id;
+			}
+		}
 
 		if ($clazz_id != null && $teacher_id != null) {
 
@@ -549,6 +574,7 @@ class ClazzesController extends AppController
 		$this->set('_serialize', ['teachers']);
 		$this->set('clazzesTeachers', $clazzesTeachers);
 		$this->set('_serialize', ['clazzesTeachers']);
+		$this->set('recomendedTeacher', $recomendedTeacher);
 	}
 
 	private function getTeachers($params = null) {

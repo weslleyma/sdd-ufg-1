@@ -163,6 +163,18 @@
                                         ]
                                     ) ?>
                                     <?php endif; ?>
+									<?php if($loggedUser !== false && ($loggedUser->canAdmin() || $loggedUser->isFacilitatorOf($clazz->subject->knowledge_id))): ?>
+									<?= $this->Html->link(
+										'',
+										['controller' => 'Clazzes', 'action' => 'allocateTeacher', $clazz->id],
+										[
+											'title' => __('Alocar Docente'),
+											'class' => 'btn btn-sm btn-primary glyphicon glyphicon-education',
+											'data-toggle' => 'tooltip',
+											'data-original-title' => __('Alocar docente para ministrar a Turma'),
+										]
+									) ?>
+									<?php endif; ?>
                                 </td>
                             </tr>
 

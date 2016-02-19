@@ -64,7 +64,7 @@ class RolesTable extends Table
                         $roles = $this->find('all', [
                             'conditions' => ['type' => 'COORDINATOR', 'teacher_id' => $context['data']['teacher_id']]
                         ]);
-                        if ($roles && count($roles) > 0) {
+                        if ($roles && count($roles->toArray()) > 0) {
                             return false;
                         }
                     }
