@@ -6,7 +6,6 @@ use Cake\Filesystem\Folder;
 use Cake\Filesystem\File;
 use Cake\ORM\Query;
 
-
 /**
  * Clazzes Controller
  *
@@ -82,6 +81,17 @@ class ClazzesController extends AppController
         $this->set('teachers', $this->Clazzes->ClazzesTeachers->Teachers->find('list')->contain(['Users'])->toArray());
         $this->set('schedules', $this->Clazzes->ClazzesSchedulesLocals->find('list')->contain(['Schedules', 'Locals'])->toArray());
 
+		$files = array();
+		$clazzes_arr = $this->paginate($clazzes)->toArray();
+		foreach($clazzes_arr as $clazz) {
+			$dir = new Folder(WWW_ROOT.'/finishedClazzes/clazz-' . $clazz->id);
+			if ($dir) {
+				$dir_files = $dir->find(); 
+				$files[$clazz->id] = $dir_files;
+			}
+		}
+		
+		$this->set('files', $files);
         $this->set('clazzes', $this->paginate($clazzes));
         $this->set('_serialize', ['clazzes']);
     }
@@ -638,8 +648,8 @@ class ClazzesController extends AppController
             'contain' => []
         ]);
 		
-		$clazzes_dir = $this->checkDirectory(WWW_ROOT.'/finishedClazzes');
-		$dir = $this->checkDirectory(WWW_ROOT.'/finishedClazzes/clazz-' . $id);
+		$clazzes_dir = $this->Clazzes->checkDirectory(WWW_ROOT.'/finishedClazzes');
+		$dir = $this->Clazzes->checkDirectory(WWW_ROOT.'/finishedClazzes/clazz-' . $id);
 		
 		$files = $dir->find();
 		
@@ -654,7 +664,7 @@ class ClazzesController extends AppController
 			$invalidNames = false;
 			
 			foreach ($data as $file) {
-				if (!$this->checkName($file['name'])) {
+				if (!$this->Clazzes->checkName($file['name'])) {
 					$this->Flash->error(__('Um ou mais nomes de arquivos são inválidos. Verifique e tente novamente. ' . 
 							'(Nome inválido: ' . $file['name'] .  ')'));
 					$invalidNames = true;
@@ -686,33 +696,5 @@ class ClazzesController extends AppController
         $this->set('clazze', $clazze);
         $this->set('_serialize', ['clazze']);
 	}
-	
-	/**
-	 * Check if the file name is valid.
-	 * @access public
-	 * @param String $fileName
-	 * @return if the image is valid
-	*/ 
-	private function checkName($fileName)
-	{
-		return (bool) ((preg_match("`^[-0-9A-Z_\.\\s]+$`i",$fileName) && mb_strlen($fileName,"UTF-8") < 225) ? true : false);
-	}
 
-	
-	/**
-	 * Check if the directory exists. If not, then the system will create it.
-	 * @access public
-	 * @param String $dir
-	 * @return the selected folder
-	*/ 
-	private function checkDirectory($dir)
-	{
-		if (!is_dir($dir)){
-			$folder = new Folder();
-			$folder->create($dir);
-			return $folder;
-		} else {
-			return new Folder($dir);
-		}
-	}
 }
