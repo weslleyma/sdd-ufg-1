@@ -60,6 +60,9 @@ class AppController extends Controller
             ],
             'authorize' => ['Controller'],
             'authError' => __('Você não possui permissão para acessar esta página'),
+            'flash' => [
+                'element' => 'Elements/Flash/warning'
+            ],
             'loginRedirect' => '/',
             'logoutRedirect' => [
                 'controller' => 'Users',

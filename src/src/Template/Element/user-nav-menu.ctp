@@ -64,7 +64,7 @@
                 </li>
                 <li class="user-footer">
                     <div class="pull-left">
-                        <?= $this->Html->link(__('Minha conta'), ['controller' => 'users', 'action' => 'my_account'], ['class' => 'btn btn-default btn-flat']) ?>
+                        <?= $this->Html->link(__('Minha conta'), ['controller' => 'users', 'action' => 'myAccount'], ['class' => 'btn btn-default btn-flat']) ?>
                     </div>
                     <div class="pull-right">
                         <?= $this->Html->link(__('Sair'), ['controller' => 'users', 'action' => 'logout'], ['class' => 'btn btn-default btn-flat']) ?>

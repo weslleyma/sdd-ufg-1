@@ -64,6 +64,7 @@
 
                 <section class="content">
                     <?= $this->Flash->render() ?>
+                    <?= $this->Flash->render('auth') ?>
                     <?= $this->fetch('content') ?>
                 </section>
             </div>

@@ -133,9 +133,9 @@
 									</tr>
 								<?php endif; ?>
 								<?php foreach ($teachers as $teacher): ?>
-									<tr id="<?php echo $teacher->id; ?>">
+									<tr style="<?php echo ($teacher->id == $recomendedTeacher) ? 'background-color:lightblue;' : ''; ?>">
 										<td><?= h($teacher->id) ?></td>
-										<td><?= h($teacher->user->name) ?></td>
+										<td><?= h(($teacher->id == $recomendedTeacher) ? $teacher->user->name . ' (Recomendado)' : $teacher->user->name) ?></td>
 										<td><?= h($teacher->registry) ?></td>
 										<td><?= h($teacher->workload) ?></td>
 										<td><?= h($teacher->formation) ?></td>

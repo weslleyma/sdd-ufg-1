@@ -8,6 +8,8 @@ use Cake\ORM\Rule\IsUnique;
 use Cake\ORM\RulesChecker;
 use Cake\ORM\Table;
 use Cake\Validation\Validator;
+use Cake\Filesystem\Folder;
+use Cake\Filesystem\File;
 
 /**
  * Clazzes Model
@@ -164,7 +166,8 @@ class ClazzesTable extends Table
     {
         /** @var Query $clazzes */
         $clazzes = $this->find('all')->contain([
-            'Processes', 'Subjects.Knowledges', 'ClazzesTeachers.Teachers.Users'
+            'Processes', 'Subjects.Knowledges', 'ClazzesTeachers.Teachers.Users',
+            'ClazzesSchedulesLocals.Locals', 'ClazzesSchedulesLocals.Schedules'
         ]);
 
         $conditions = [];
@@ -240,7 +243,22 @@ class ClazzesTable extends Table
             if(isset($filters['teachers']) && is_array($filters['teachers'])) {
                 $clazzes->matching('ClazzesTeachers')->group(['Clazzes.id']);
                 $conditions['AND']['ClazzesTeachers.teacher_id IN'] = $filters['teachers'];
-                $conditions['AND']['ClazzesTeachers.status'] = 'SELECTED';
+
+                if(isset($filters['only-selected']) && $filters['only-selected'] == true) {
+                    $conditions['AND']['ClazzesTeachers.status'] = 'SELECTED';
+                }
+            }
+
+            if(isset($filters['schedules']) && is_array($filters['schedules'])) {
+                $clazzes->matching('ClazzesSchedulesLocals')->group(['Clazzes.id']);
+                foreach($filters['schedules'] as $schedule) {
+                    $schedule = explode(";", $schedule);
+                    $conditions['AND']['OR'][] = [
+                        'ClazzesSchedulesLocals.schedule_id' => $schedule[1],
+                        'ClazzesSchedulesLocals.local_id' => $schedule[2]
+                        //'ClazzesSchedulesLocals.week_day' => $schedule[3]
+                    ];
+                }
             }
         }
 
@@ -297,6 +315,35 @@ class ClazzesTable extends Table
 			$this->save($clazz);
 			//$result = $clazz->dirty('teachers', true);
 			//echo $result . '<br>';
+		}
+	}
+	
+	/**
+	 * Check if the file name is valid.
+	 * @access public
+	 * @param String $fileName
+	 * @return if the image is valid
+	*/ 
+	public function checkName($fileName)
+	{
+		return (bool) ((preg_match("`^[-0-9A-Z_\.\\s]+$`i",$fileName) && mb_strlen($fileName,"UTF-8") < 225) ? true : false);
+	}
+
+	
+	/**
+	 * Check if the directory exists. If not, then the system will create it.
+	 * @access public
+	 * @param String $dir
+	 * @return the selected folder
+	*/ 
+	public function checkDirectory($dir)
+	{
+		if (!is_dir($dir)){
+			$folder = new Folder();
+			$folder->create($dir);
+			return $folder;
+		} else {
+			return new Folder($dir);
 		}
 	}
 }

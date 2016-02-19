@@ -18,25 +18,33 @@
             <?= $this->Form->create(null, ['type' => 'get']) ?>
             <div class="box-body" <?= !$isFiltered ? 'style="display: none;"' : '' ?>>
                 <div class="row">
-                    <div class="col-lg-9 col-sm-12">
+                    <div class="col-lg-12 col-sm-12">
                         <div class="row">
-                            <div class="col-sm-4">
+                            <div class="col-sm-3">
                                 <?= $this->Form->input('status', ['label' => __("Status"), 'options' => $status]) ?>
                             </div>
-                            <div class="col-sm-4">
+                            <div class="col-sm-3">
                                 <?=	$this->Form->input('process', ['label' => __('Processo de distribuição'), 'options' => $processes]) ?>
                             </div>
-                            <div class="col-sm-4">
+                            <div class="col-sm-3">
+                                <?= $this->Form->input('knowledge', ['label' => __('Núcleo de conhecimento'), 'options' => $knowledges]) ?>
+                            </div>
+                            <div class="col-sm-3">
                                 <?= $this->Form->input('subject', ['label' => __('Disciplina'), 'options' => $subjects]) ?>
                             </div>
                         </div>
-                        <div class="row">
-                            <div class="col-sm-4">
-                                <?= $this->Form->input('knowledge', ['label' => __('Núcleo de conhecimento'), 'options' => $knowledges]) ?>
+                        <div class="row" style="display: flex; align-items: center;">
+                            <div class="col-sm-5">
+                                <?= $this->Form->input('schedules[]', ['label' => __('Locais/Horários de aula'), 'options' => $schedules,
+                                    'multiple', 'data-placeholder' => 'Selecione o horário da aula', 'class' => 'select2']) ?>
                             </div>
-                            <div class="col-sm-8">
+                            <div class="col-sm-4">
                                 <?= $this->Form->input('teachers[]', ['label' => __('Docentes alocados'), 'options' => $teachers,
                                     'multiple', 'data-placeholder' => 'Selecione o docente', 'class' => 'select2']) ?>
+                            </div>
+                            <div class="col-sm-3">
+                                <?= $this->Form->checkbox('only-selected', ['value' => true, 'hiddenField' => false]) ?>
+                                <b><?= __('Apenas turmas ao qual foi selecionado?') ?></b>
                             </div>
                         </div>
                     </div>
@@ -73,7 +81,7 @@
                 <?php endif; ?>
             </div>
             <div class="box-body table-responsive no-padding">
-                <table class="table table-striped table-valign-middle">
+                <table class="table table-striped table-second-hidden table-valign-middle">
                     <thead>
                     <tr>
                         <th><?= $this->Paginator->sort('id', __('#ID')) ?></th>
@@ -83,13 +91,13 @@
                         <th><?= $this->Paginator->sort('subject_id', __('Disciplina')) ?></th>
                         <th><?= __('Status') ?></th>
                         <th><?= __('Docente(s) alocado(s)') ?></th>
-                        <th width="<?= ($loggedUser !== false && $loggedUser->canAdmin()) ? '150px' : '75px' ?>"><?= __('Ações') ?></th>
+                        <th width="<?= ($loggedUser !== false && $loggedUser->canAdmin()) ? '175px' : '100px' ?>"><?= __('Ações') ?></th>
                     </tr>
                     </thead>
                     <tbody>
                     <?php if($clazzes->isEmpty()): ?>
                         <tr>
-                            <td colspan="7" class="text-center">Nenhuma turma encontrada</td>
+                            <td colspan="8" class="text-center">Nenhuma turma encontrada</td>
                         </tr>
                     <?php else: ?>
                         <?php foreach ($clazzes as $clazz): ?>
@@ -112,7 +120,26 @@
                                             'data-original-title' => __('Visualizar'),
                                         ]
                                     ) ?>
-
+                                    <button data-clazz-id="<?= $clazz->id ?>" class="btn btn-sm btn-info fa fa-glyph fa-calendar-plus-o"
+                                            title ="<?= __('Locais/horários de aula') ?>"
+                                            data-toggle="tooltip" data-original-title="<?= __('Locais/horários de aula') ?>"></button>
+									<?php if(count($clazz->selectedTeachers) > 0 && in_array($loggedUser->teacher->id, $clazz->selectedTeachersIds)): ?>
+									<?= $this->Html->link(
+                                        '',
+                                        ['action' => 'finishClazze', $clazz->id],
+                                        [
+                                            'title' => (count($clazz->files) == 3) ? 
+												__('Finalizar Turma (Já existem arquivos enviados)') : 
+												((count($clazz->files) > 0 && count($clazz->files) < 3) ? __('Finalizar Turma (Arquivos incompletos)') : __('Finalizar Turma')),
+                                            'class' => (count($clazz->files) == 3) ? 'btn btn-sm btn-default glyphicon glyphicon-folder-close' 
+														: 'btn btn-sm btn-default glyphicon glyphicon-folder-open',
+                                            'data-toggle' => 'tooltip',
+                                            'data-original-title' => (count($clazz->files) == 3) ? 
+												__('Finalizar Turma (Já existem arquivos enviados)') : 
+												((count($clazz->files) > 0 && count($clazz->files) < 3) ? __('Finalizar Turma (Arquivos incompletos)') : __('Finalizar Turma')),
+                                        ]
+                                    ) ?>
+									<?php endif; ?>
                                     <?php if($loggedUser !== false && $loggedUser->canAdmin()): ?>
                                     <?= $this->Html->link(
                                         '',
@@ -136,6 +163,55 @@
                                         ]
                                     ) ?>
                                     <?php endif; ?>
+									<?php if($loggedUser !== false && ($loggedUser->canAdmin() || $loggedUser->isFacilitatorOf($clazz->subject->knowledge_id))): ?>
+									<?= $this->Html->link(
+										'',
+										['controller' => 'Clazzes', 'action' => 'allocateTeacher', $clazz->id],
+										[
+											'title' => __('Alocar Docente'),
+											'class' => 'btn btn-sm btn-primary glyphicon glyphicon-education',
+											'data-toggle' => 'tooltip',
+											'data-original-title' => __('Alocar docente para ministrar a Turma'),
+										]
+									) ?>
+									<?php endif; ?>
+                                </td>
+                            </tr>
+
+                            <tr data-clazz-schedule="<?= $clazz->id ?>" style="display: none;">
+                                <td colspan="8">
+                                    <div class="content week-box" style="padding-bottom: 0;">
+                                        <?php
+                                        $index = 0;
+                                        foreach($this->Utils->daysOfWeek() as $week_day => $name):
+                                            if(!is_numeric($week_day) || $week_day < 2) {
+                                                continue;
+                                            }
+
+                                            if(($index % 3) == 0) {
+                                                if($index != 0) {
+                                                    echo '</div>';
+                                                }
+                                                echo '<div class="row">';
+                                            }
+                                            $index++;
+                                            ?>
+                                            <div class="col-sm-4 week-day-box">
+                                                <div class="week-title"><?= h($name) ?></div>
+                                                <div class="week-day" data-week-day="<?= $week_day ?>">
+                                                    <?php foreach ($clazz->scheduleLocals as $scheduledLocal): ?>
+                                                        <?php if($scheduledLocal->week_day == $week_day): ?>
+                                                            <div class="label label-primary schedule-data-div">
+                                            <span class="text-ellipsis" style="max-width: calc(100% - 15px);">
+                                                <?= $scheduledLocal->name ?>
+                                            </span>
+                                                            </div>
+                                                        <?php endif; ?>
+                                                    <?php endforeach; ?>
+                                                </div>
+                                            </div>
+                                        <?php endforeach; ?>
+                                    </div>
                                 </td>
                             </tr>
                         <?php endforeach; ?>
@@ -173,6 +249,24 @@
                         $(this).find('option').first().prop('selected', true);
                     }
                 });
+            });
+
+            $("button[data-clazz-id]").click(function() {
+                var clazzId = $(this).data('clazz-id');
+                var scheduleTr = $('tr[data-clazz-schedule='+clazzId+']');
+
+                var opened = $(this).data('opened');
+                if(!opened) {
+                    $(this).removeClass('fa-calendar-plus-o').addClass('fa-calendar-minus-o')
+                        .removeClass('btn-info').addClass('btn-warning');
+                    scheduleTr.show();
+                } else {
+                    $(this).addClass('fa-calendar-plus-o').removeClass('fa-calendar-minus-o')
+                        .addClass('btn-info').removeClass('btn-warning');
+                    scheduleTr.hide();
+                }
+
+                $(this).data('opened', !opened);
             });
         });
     <?php $this->Html->scriptEnd(); ?>

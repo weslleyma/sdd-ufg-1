@@ -5,6 +5,7 @@ use Cake\ORM\Entity;
 use Cake\ORM\TableRegistry;
 use Cake\View\Helper\HtmlHelper;
 use Cake\View\View;
+use Cake\Filesystem\Folder;
 
 /**
  * Clazze Entity.
@@ -158,5 +159,26 @@ class Clazze extends Entity
         }
 
         return $display;
+    }
+	
+	public function _getSelectedTeachersIds() {
+		$ids = array();
+        if(!empty($this->selectedTeachers)) {
+            foreach($this->selectedTeachers as $teacher) {
+                $ids[] = $teacher->id;
+            }
+        }
+        return $ids;
+    }
+	
+	public function _getFiles()
+    {
+        $files = array();
+		$dir = new Folder(WWW_ROOT.'/finishedClazzes/clazz-' . $this->id);
+		if ($dir) {
+			$files = $dir->find();
+		}
+		
+		return $files;
     }
 }
