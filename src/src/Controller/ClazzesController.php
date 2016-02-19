@@ -81,17 +81,6 @@ class ClazzesController extends AppController
         $this->set('teachers', $this->Clazzes->ClazzesTeachers->Teachers->find('list')->contain(['Users'])->toArray());
         $this->set('schedules', $this->Clazzes->ClazzesSchedulesLocals->find('list')->contain(['Schedules', 'Locals'])->toArray());
 
-		$files = array();
-		$clazzes_arr = $this->paginate($clazzes)->toArray();
-		foreach($clazzes_arr as $clazz) {
-			$dir = new Folder(WWW_ROOT.'/finishedClazzes/clazz-' . $clazz->id);
-			if ($dir) {
-				$dir_files = $dir->find(); 
-				$files[$clazz->id] = $dir_files;
-			}
-		}
-		
-		$this->set('files', $files);
         $this->set('clazzes', $this->paginate($clazzes));
         $this->set('_serialize', ['clazzes']);
     }

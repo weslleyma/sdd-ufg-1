@@ -128,15 +128,15 @@
                                         '',
                                         ['action' => 'finishClazze', $clazz->id],
                                         [
-                                            'title' => (count($files[$clazz->id]) == 3) ? 
+                                            'title' => (count($clazz->files) == 3) ? 
 												__('Finalizar Turma (Já existem arquivos enviados)') : 
-												((count($files[$clazz->id]) > 0 && count($files[$clazz->id]) < 3) ? __('Finalizar Turma (Arquivos incompletos)') : __('Finalizar Turma')),
-                                            'class' => (count($files[$clazz->id]) == 3) ? 'btn btn-sm btn-default glyphicon glyphicon-folder-close' 
+												((count($clazz->files) > 0 && count($clazz->files) < 3) ? __('Finalizar Turma (Arquivos incompletos)') : __('Finalizar Turma')),
+                                            'class' => (count($clazz->files) == 3) ? 'btn btn-sm btn-default glyphicon glyphicon-folder-close' 
 														: 'btn btn-sm btn-default glyphicon glyphicon-folder-open',
                                             'data-toggle' => 'tooltip',
-                                            'data-original-title' => (count($files[$clazz->id]) == 3) ? 
+                                            'data-original-title' => (count($clazz->files) == 3) ? 
 												__('Finalizar Turma (Já existem arquivos enviados)') : 
-												((count($files[$clazz->id]) > 0 && count($files[$clazz->id]) < 3) ? __('Finalizar Turma (Arquivos incompletos)') : __('Finalizar Turma')),
+												((count($clazz->files) > 0 && count($clazz->files) < 3) ? __('Finalizar Turma (Arquivos incompletos)') : __('Finalizar Turma')),
                                         ]
                                     ) ?>
 									<?php endif; ?>
