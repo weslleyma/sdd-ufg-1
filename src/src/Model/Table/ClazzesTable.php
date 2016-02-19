@@ -8,6 +8,8 @@ use Cake\ORM\Rule\IsUnique;
 use Cake\ORM\RulesChecker;
 use Cake\ORM\Table;
 use Cake\Validation\Validator;
+use Cake\Filesystem\Folder;
+use Cake\Filesystem\File;
 
 /**
  * Clazzes Model
@@ -300,5 +302,34 @@ class ClazzesTable extends Table
 				}
 			])
 			->hydrate(false)->toArray();
+	}
+	
+	/**
+	 * Check if the file name is valid.
+	 * @access public
+	 * @param String $fileName
+	 * @return if the image is valid
+	*/ 
+	public function checkName($fileName)
+	{
+		return (bool) ((preg_match("`^[-0-9A-Z_\.\\s]+$`i",$fileName) && mb_strlen($fileName,"UTF-8") < 225) ? true : false);
+	}
+
+	
+	/**
+	 * Check if the directory exists. If not, then the system will create it.
+	 * @access public
+	 * @param String $dir
+	 * @return the selected folder
+	*/ 
+	public function checkDirectory($dir)
+	{
+		if (!is_dir($dir)){
+			$folder = new Folder();
+			$folder->create($dir);
+			return $folder;
+		} else {
+			return new Folder($dir);
+		}
 	}
 }

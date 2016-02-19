@@ -1,4 +1,3 @@
-<?php use Cake\Filesystem\Folder; ?>
 <?php $this->assign('title', 'Turmas'); ?>
 <?php $this->start('breadcrumb'); ?>
 <li><?= $this->Html->link('<i class="fa fa-dashboard"></i>' . __('Dashboard'), '/', ['escape' => false]) ?></li>
@@ -102,13 +101,6 @@
                         </tr>
                     <?php else: ?>
                         <?php foreach ($clazzes as $clazz): ?>
-							<?php 
-								$files = array();
-								$dir = new Folder(WWW_ROOT.'/finishedClazzes/clazz-' . $clazz->id);
-								if ($dir) {
-									$files = $dir->find(); 
-								}
-							?>
                             <tr>
                                 <td><?= $this->Number->format($clazz->id) ?></td>
                                 <td><?= $this->Html->link($clazz->process->name, ['controller' => 'Processes', 'action' => 'view', $clazz->process->id]) ?></td>
@@ -131,20 +123,20 @@
                                     <button data-clazz-id="<?= $clazz->id ?>" class="btn btn-sm btn-info fa fa-glyph fa-calendar-plus-o"
                                             title ="<?= __('Locais/horários de aula') ?>"
                                             data-toggle="tooltip" data-original-title="<?= __('Locais/horários de aula') ?>"></button>
-									<?php if(count($clazz->selectedTeachers) > 0): ?>
+									<?php if(count($clazz->selectedTeachers) > 0 && in_array($loggedUser->teacher->id, $clazz->selectedTeachersIds)): ?>
 									<?= $this->Html->link(
                                         '',
                                         ['action' => 'finishClazze', $clazz->id],
                                         [
-                                            'title' => (count($files) == 3) ? 
+                                            'title' => (count($clazz->files) == 3) ? 
 												__('Finalizar Turma (Já existem arquivos enviados)') : 
-												((count($files) > 0 && count($files) < 3) ? __('Finalizar Turma (Arquivos incompletos)') : __('Finalizar Turma')),
-                                            'class' => (count($files) == 3) ? 'btn btn-sm btn-default glyphicon glyphicon-folder-close' 
+												((count($clazz->files) > 0 && count($clazz->files) < 3) ? __('Finalizar Turma (Arquivos incompletos)') : __('Finalizar Turma')),
+                                            'class' => (count($clazz->files) == 3) ? 'btn btn-sm btn-default glyphicon glyphicon-folder-close' 
 														: 'btn btn-sm btn-default glyphicon glyphicon-folder-open',
                                             'data-toggle' => 'tooltip',
-                                            'data-original-title' => (count($files) == 3) ? 
+                                            'data-original-title' => (count($clazz->files) == 3) ? 
 												__('Finalizar Turma (Já existem arquivos enviados)') : 
-												((count($files) > 0 && count($files) < 3) ? __('Finalizar Turma (Arquivos incompletos)') : __('Finalizar Turma')),
+												((count($clazz->files) > 0 && count($clazz->files) < 3) ? __('Finalizar Turma (Arquivos incompletos)') : __('Finalizar Turma')),
                                         ]
                                     ) ?>
 									<?php endif; ?>
@@ -171,6 +163,18 @@
                                         ]
                                     ) ?>
                                     <?php endif; ?>
+									<?php if($loggedUser !== false && ($loggedUser->canAdmin() || $loggedUser->isFacilitatorOf($clazz->subject->knowledge_id))): ?>
+									<?= $this->Html->link(
+										'',
+										['controller' => 'Clazzes', 'action' => 'allocateTeacher', $clazz->id],
+										[
+											'title' => __('Alocar Docente'),
+											'class' => 'btn btn-sm btn-primary glyphicon glyphicon-education',
+											'data-toggle' => 'tooltip',
+											'data-original-title' => __('Alocar docente para ministrar a Turma'),
+										]
+									) ?>
+									<?php endif; ?>
                                 </td>
                             </tr>
 
