@@ -12,6 +12,18 @@ use Cake\Event\Event;
  */
 class UsersController extends AppController
 {
+	
+	public function isAuthorized($user)
+	{
+		//Must be logged as teacher
+		if (in_array($this->request->action, ['myAccount'])) {
+			if(isset($this->loggedUser->teacher) && $this->loggedUser->teacher != null) {
+                return True;
+            }
+		}
+
+		return parent::isAuthorized($user);
+	}
 
     public function beforeFilter(Event $event)
     {
@@ -112,11 +124,7 @@ class UsersController extends AppController
             $user = $this->Auth->identify();
             if ($user) {
                 $this->Auth->setUser($user);
-				$this->request->session()->write('UserInfo', $this->Users->get($user['id'], [
-							'contain' => [
-								'Teachers', 'Teachers.Roles'
-							]
-						]));
+
                 return $this->redirect($this->Auth->redirectUrl());
             }
             $this->Flash->error(__('Usuário e/ou senha inválidos, tente novamente.'));
@@ -175,5 +183,16 @@ class UsersController extends AppController
             $this->Flash->error(__('Não foi possível remover o usuário, tente novamente.'));
         }
         return $this->redirect(['action' => 'index']);
+    }
+	
+	/**
+     * My Account method
+     *
+     * @param string|null $id User id.
+     * @return \Cake\Network\Response|null Redirects to Teachers/edit/<teacher_id>.
+     */
+    public function myAccount()
+    {	
+        return $this->redirect(['controller' => 'Teachers', 'action' => 'edit', $this->loggedUser->teacher->id]);
     }
 }

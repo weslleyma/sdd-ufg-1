@@ -49,7 +49,8 @@
                                     ['value' => '1', 'text' => 'Sim'],
                                     ['value' => '0', 'text' => 'Não'],
 
-                                ], ['hiddenField' => false, 'label' => 'É Administrador', 'disabled' => true]);
+                                ], ['hiddenField' => false, 'label' => 'É Administrador', 
+									'disabled' => (($loggedUser !== false && $loggedUser->canAdmin()) ? false : true)]);
                             ?>
                             </label>
                         </fieldset>

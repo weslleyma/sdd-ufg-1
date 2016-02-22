@@ -38,6 +38,11 @@ class ProcessesTable extends Table
             'targetForeignKey' => 'process_configuration_id',
             'joinTable' => 'processes_process_configurations'
         ]);
+		
+		$this->hasMany('ProcessesProcessConfigurations', [
+            'foreignKey' => 'process_id',
+            'propertyName' => 'processes_process_configurations'
+        ]);
     }
 
     /**

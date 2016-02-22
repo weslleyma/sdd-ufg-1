@@ -13,11 +13,11 @@
                 <h3 class="box-title">Editar docente #<?= $teacher->id ?></h3>
 				<div class="pull-right box-tools">
 					<?= $this->Html->link(
-						'',
+						'Escolher Turmas de Interesse',
 						['action' => 'allocateClazzes', $teacher->id],
 						[
 							'title' => __('Turmas de Interesse'),
-							'class' => 'btn btn-sm btn-default glyphicon glyphicon-education',
+							'class' => 'btn btn-sm btn-primary',
 							'data-toggle' => 'tooltip',
 							'data-original-title' => __('Escolher turmas de interesse para concorrer em Processo de Distribuição'),
 						]
@@ -67,7 +67,8 @@
 									['value' => '1', 'text' => 'Sim'],
 									['value' => '0', 'text' => 'Não'],
 
-								], ['hiddenField' => false, 'label' => 'É Administrador', 'disabled' => true]);
+								], ['hiddenField' => false, 'label' => 'É Administrador', 
+									'disabled' => (($loggedUser !== false && $loggedUser->canAdmin()) ? false : true)]);
 							?>
 							</label>
 						</fieldset>

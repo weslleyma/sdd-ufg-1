@@ -142,7 +142,7 @@ class TeachersTable extends Table
                     $currentDate = (new \DateTime())->getTimestamp();
                     $entryDate = strtotime($context['data']['entry_date']);
                     $birthDate = strtotime($context['data']['birth_date']);
-                    if (($currentDate - $entryDate) < 0 || ($entryDate - $birthDate) < 0) {
+                    if ($entryDate > $currentDate || $entryDate < $birthDate) {
                         return false;
                     }
                     return true;

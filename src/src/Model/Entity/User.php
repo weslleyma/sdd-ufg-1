@@ -114,4 +114,9 @@ class User extends Entity
 
         return ($this->is_admin === true || $this->isCoordinator() || $this->isFacilitatorOf($knowledge));
     }
+
+    public function canAdmin()
+    {
+        return ($this->is_admin === true || $this->isCoordinator());
+    }
 }
