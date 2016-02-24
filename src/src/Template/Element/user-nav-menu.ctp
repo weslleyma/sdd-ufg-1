@@ -1,33 +1,32 @@
-<?php
-    $notifications = !isset($notifications) ? [] : $notifications;
-    $notificationLabel = count($notifications) > 0 ? '<span class="label label-warning">'.count($notifications).'</span>' : '';
-?>
 <div class="navbar-custom-menu">
     <ul class="nav navbar-nav">
         <!-- Notifications Menu -->
         <li class="dropdown notifications-menu">
             <a href="#" class="dropdown-toggle" data-toggle="dropdown">
                 <i class="fa fa-bell-o"></i>
-                <?= $notificationLabel ?>
+                <?php if(!empty($loggedUser->latest_notifications)): ?>
+                    <span class="label label-warning"><?= count($loggedUser->latest_notifications) ?></span>
+                <?php endif; ?>
             </a>
             <ul class="dropdown-menu">
-                <li class="header"><?= __(sprintf('Você possui %d notificações', count($notifications))) ?></li>
+                <li class="header"><?= __(sprintf('Você possui %d notificações', count($loggedUser->latest_notifications))) ?></li>
                 <li>
                     <ul class="menu">
-                        <?php if(count($notifications) < 1): ?>
+                        <?php if(count($loggedUser->latest_notifications) < 1): ?>
                         <li>
                             <a href="#">
                                 <i class="fa fa-circle-o text-yellow"></i> <?= __('Nenhuma notificação pendente') ?>
                             </a>
                         </li>
-                        <?php endif; ?>
-                        <?php foreach($notifications as $notification): ?>
+                        <?php else: ?>
+                        <?php foreach($loggedUser->latest_notifications as $notification): ?>
                         <li>
                             <a href="#">
-                                <i class="fa fa-circle-o text-blue"></i> <?= $notification ?>
+                                <i class="fa fa-circle-o text-blue"></i> <?= $notification->description ?>
                             </a>
                         </li>
                         <?php endforeach; ?>
+                        <?php endif; ?>
                     </ul>
                 </li>
                 <li class="footer"><a href="#"><?= __('Visualizar todas') ?></a></li>
@@ -38,19 +37,19 @@
         <li class="dropdown user user-menu">
             <a href="#" class="dropdown-toggle" data-toggle="dropdown">
                 <?= $this->Gravatar->generate(
-                    $this->Auth->get("User.email"),
+                    $loggedUser->email,
                     [
                         'image-options' => ['class' => 'user-image'],
                         'size' => 160,
                         'default' => 'mm'
                     ]
                 ) ?>
-                <span class="hidden-xs"><?= $this->Auth->get("User.name") ?></span>
+                <span class="hidden-xs"><?= $loggedUser->name ?></span>
             </a>
             <ul class="dropdown-menu">
                 <li class="user-header">
                     <?= $this->Gravatar->generate(
-                        $this->Auth->get("User.email"),
+                        $loggedUser->email,
                         [
                             'image-options' => ['class' => 'img-circle'],
                             'size' => 160,
@@ -58,7 +57,7 @@
                         ]
                     ) ?>
                     <p>
-                        <?= $this->Auth->get("User.name") ?>
+                        <?= $loggedUser->name ?>
                         <small>Administrador</small>
                     </p>
                 </li>

@@ -119,7 +119,7 @@ class AppController extends Controller
         $userModel = $this->loadModel('Users');
 
         $this->loggedUser = $userModel->get($authUser['id'], [
-            'contain' => ['Teachers.Roles']
+            'contain' => ['Teachers.Roles', 'Notifications']
         ]);
 
         $this->set('loggedUser', $this->loggedUser);

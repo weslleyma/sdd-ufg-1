@@ -80,7 +80,7 @@
                 </div>
                 <?php endif; ?>
             </div>
-            <div class="box-body table-responsive no-padding">
+            <div class="box-body no-padding">
                 <table class="table table-striped table-second-hidden table-valign-middle">
                     <thead>
                     <tr>
@@ -91,7 +91,7 @@
                         <th><?= $this->Paginator->sort('subject_id', __('Disciplina')) ?></th>
                         <th><?= __('Status') ?></th>
                         <th><?= __('Docente(s) alocado(s)') ?></th>
-                        <th width="<?= ($loggedUser !== false && $loggedUser->canAdmin()) ? '175px' : '100px' ?>"><?= __('Ações') ?></th>
+                        <th width="125px"><?= __('Ações') ?></th>
                     </tr>
                     </thead>
                     <tbody>
@@ -123,58 +123,51 @@
                                     <button data-clazz-id="<?= $clazz->id ?>" class="btn btn-sm btn-info fa fa-glyph fa-calendar-plus-o"
                                             title ="<?= __('Locais/horários de aula') ?>"
                                             data-toggle="tooltip" data-original-title="<?= __('Locais/horários de aula') ?>"></button>
-									<?php if(count($clazz->selectedTeachers) > 0 && in_array($loggedUser->teacher->id, $clazz->selectedTeachersIds)): ?>
-									<?= $this->Html->link(
-                                        '',
-                                        ['action' => 'finishClazze', $clazz->id],
-                                        [
-                                            'title' => (count($clazz->files) == 3) ? 
-												__('Finalizar Turma (Já existem arquivos enviados)') : 
-												((count($clazz->files) > 0 && count($clazz->files) < 3) ? __('Finalizar Turma (Arquivos incompletos)') : __('Finalizar Turma')),
-                                            'class' => (count($clazz->files) == 3) ? 'btn btn-sm btn-default glyphicon glyphicon-folder-close' 
-														: 'btn btn-sm btn-default glyphicon glyphicon-folder-open',
-                                            'data-toggle' => 'tooltip',
-                                            'data-original-title' => (count($clazz->files) == 3) ? 
-												__('Finalizar Turma (Já existem arquivos enviados)') : 
-												((count($clazz->files) > 0 && count($clazz->files) < 3) ? __('Finalizar Turma (Arquivos incompletos)') : __('Finalizar Turma')),
-                                        ]
-                                    ) ?>
-									<?php endif; ?>
-                                    <?php if($loggedUser !== false && $loggedUser->canAdmin()): ?>
-                                    <?= $this->Html->link(
-                                        '',
-                                        ['action' => 'edit', $clazz->id],
-                                        [
-                                            'title' => __('Editar'),
-                                            'class' => 'btn btn-sm btn-primary glyphicon glyphicon-pencil',
-                                            'data-toggle' => 'tooltip',
-                                            'data-original-title' => __('Editar'),
-                                        ]
-                                    ) ?>
-                                    <?= $this->Form->postLink(
-                                        '',
-                                        ['action' => 'delete', $clazz->id],
-                                        [
-                                            'confirm' => __('Você tem certeza de que deseja remover a turma "{0}/{1}"?', $clazz->name, $clazz->process->name),
-                                            'title' => __('Remover'),
-                                            'class' => 'btn btn-sm btn-danger glyphicon glyphicon-trash',
-                                            'data-toggle' => 'tooltip',
-                                            'data-original-title' => __('Remover'),
-                                        ]
-                                    ) ?>
-                                    <?php endif; ?>
-									<?php if($loggedUser !== false && ($loggedUser->canAdmin() || $loggedUser->isFacilitatorOf($clazz->subject->knowledge_id))): ?>
-									<?= $this->Html->link(
-										'',
-										['controller' => 'Clazzes', 'action' => 'allocateTeacher', $clazz->id],
-										[
-											'title' => __('Alocar Docente'),
-											'class' => 'btn btn-sm btn-primary glyphicon glyphicon-education',
-											'data-toggle' => 'tooltip',
-											'data-original-title' => __('Alocar docente para ministrar a Turma'),
-										]
-									) ?>
-									<?php endif; ?>
+
+                                    <div class="btn-group" data-toggle="tooltip" title="<?= __('Mais ações') ?>" data-original-title="<?= __('Mais ações') ?>">
+                                        <i class="fa fa-ellipsis-v dropdown-toggle ellipsis-menu" data-toggle="dropdown"></i>
+                                        <ul class="dropdown-menu pull-right" role="menu">
+                                            <?php if(count($clazz->selectedTeachers) > 0 && in_array($loggedUser->teacher->id, $clazz->selectedTeachersIds)): ?>
+                                                <li>
+                                                    <?= $this->Html->link(
+                                                        '<i class="glyphicon glyphicon-folder-open"></i> Finalizar turma',
+                                                        ['action' => 'finishClazze', $clazz->id],
+                                                        ['escape' => false]
+                                                    ) ?>
+                                                </li>
+                                            <?php endif; ?>
+
+                                            <?php if($loggedUser !== false && $loggedUser->canAdmin()): ?>
+                                                <li>
+                                                    <?= $this->Html->link(
+                                                        '<i class="glyphicon glyphicon-pencil"></i> Editar',
+                                                        ['action' => 'edit', $clazz->id],
+                                                        ['escape' => false]
+                                                    ) ?>
+                                                </li>
+                                                <li>
+                                                    <?= $this->Form->postLink(
+                                                        '<i class="glyphicon glyphicon-trash"></i> Remover',
+                                                        ['action' => 'delete', $clazz->id],
+                                                        [
+                                                            'escape' => false,
+                                                            'confirm' => __('Você tem certeza de que deseja remover a turma "{0}/{1}"?', $clazz->name, $clazz->process->name),
+                                                        ]
+                                                    ) ?>
+                                                </li>
+                                            <?php endif; ?>
+
+                                            <?php if($loggedUser !== false && ($loggedUser->canAdmin() || $loggedUser->isFacilitatorOf($clazz->subject->knowledge_id))): ?>
+                                                <li>
+                                                    <?= $this->Html->link(
+                                                        '<i class="glyphicon glyphicon-education"></i> Alocar docente',
+                                                        ['controller' => 'Clazzes', 'action' => 'allocateTeacher', $clazz->id],
+                                                        ['escape' => false]
+                                                    ) ?>
+                                                </li>
+                                            <?php endif; ?>
+                                        </ul>
+                                    </div>
                                 </td>
                             </tr>
 
@@ -268,6 +261,15 @@
 
                 $(this).data('opened', !opened);
             });
+
+            var dropdown = $('.ellipsis-menu').parent().find('.dropdown-menu');
+            dropdown.each(function(index, element) {
+                if($(element).html().trim() == '') {
+                    $(element).parent().hide();
+                }
+            });
+
+            $('.select2-search__field').css('width', '100%');
         });
     <?php $this->Html->scriptEnd(); ?>
 </script>
