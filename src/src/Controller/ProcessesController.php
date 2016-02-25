@@ -33,6 +33,8 @@ class ProcessesController extends AppController
 					&& $process->status == 'CLOSED') {
 				return true;
 			}
+			
+			return false;
 		}
 
         return parent::isAuthorized($user);
