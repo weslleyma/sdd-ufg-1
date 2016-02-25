@@ -11,6 +11,7 @@
             <div class="box-header">
                 <h3 class="box-title">Informações da processo</h3>
                 <div class="pull-right box-tools">
+					<?php if($loggedUser !== false && $loggedUser->canAdmin()): ?>
                     <?php if($process->status != 'CANCELLED'): ?>
                         <?= $this->Html->link(
                             __('Editar'),
@@ -23,9 +24,10 @@
                         );
                         ?>
                     <?php endif; ?>
+					<?php if($process->status == 'CLOSED'): ?>
                     <?= $this->Html->link(
                         __('Clonar'),
-                        ['action' => 'cloneProcess', $process->id],
+                        ['action' => 'reuseProcess', $process->id],
                         [
                             'data-toggle' => 'tooltip',
                             'data-original-title' => __('Clonar'),
@@ -33,6 +35,8 @@
                         ]
                     );
                     ?>
+					<?php endif; ?>
+					<?php endif; ?>
                 </div>
             </div>
             <div class="box-body table-responsive no-padding">
