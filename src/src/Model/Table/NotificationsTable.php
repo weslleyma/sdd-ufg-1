@@ -75,4 +75,19 @@ class NotificationsTable extends Table
         $rules->add($rules->existsIn(['user_id'], 'Users'));
         return $rules;
     }
+
+    /**
+     * Finds Latest notifications by user
+     *
+     * @param Query $query
+     * @param array $options
+     * @return $this
+     */
+    public function findLatestByUser(Query $query, array $options)
+    {
+        $query->where(['Notifications.read' => false])
+            ->limit(10)
+            ->orderDesc('Notifications.id');
+        return $query;
+    }
 }
