@@ -93,6 +93,7 @@ class ProcessesController extends AppController
         $process = $this->Processes->get($id, [
             'contain' => ['ProcessConfigurations', 'Clazzes']
         ]);
+
         if ($this->request->is(['patch', 'post', 'put'])) {
             $process = $this->Processes->patchEntity($process, $this->request->data);
             if ($this->Processes->save($process)) {
