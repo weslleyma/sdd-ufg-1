@@ -15,6 +15,7 @@
 namespace App\Controller;
 
 use App\Model\Entity\User;
+use App\Model\Table\NotificationsTable;
 use Cake\Controller\Controller;
 use Cake\Event\Event;
 
