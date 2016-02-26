@@ -10,6 +10,7 @@
                 <li><?= $this->Html->link('<i class="fa fa-circle-o"></i> ' . __('Processos em aberto'), ['controller' => 'processes', 'action' => 'index'], ['escape' => false]) ?></li>
                 <li><?= $this->Html->link('<i class="fa fa-circle-o"></i> ' . __('Turmas em aberto'), ['controller' => 'clazzes', 'action' => 'index', '?' => ['status' => 'OPENED']], ['escape' => false]) ?></li>
 				<li><?= $this->Html->link('<i class="fa fa-circle-o"></i> ' . __('Minhas inscrições'), ['controller' => 'clazzes', 'action' => 'index', '?' => ['teachers' => [$loggedUser->teacher->id]]], ['escape' => false]) ?></li>
+				<li><?= $this->Html->link('<i class="fa fa-circle-o"></i> ' . __('Professores sub alocados'), ['controller' => 'teachers', 'action' => 'getSubAllocatedTeachers'], ['escape' => false]) ?></li>
             </ul>
         </li>
         <?php if($loggedUser !== false && $loggedUser->canAdmin()): ?>

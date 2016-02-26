@@ -109,7 +109,7 @@
 				</div>
 				<br>
 				<div class="row">
-					<div class="col-xs-12">
+					<div class="col-xs-12 table-responsive">
 						<fieldset>
 							<legend>Turmas em Aberto</legend>
 							<table class="table table-striped table-valign-middle">

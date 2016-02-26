@@ -2,6 +2,8 @@
 namespace App\Model\Table;
 
 use App\Model\Entity\Teacher;
+use App\Model\Entity\Process;
+use Cake\Datasource\ConnectionManager;
 use Cake\ORM\Query;
 use Cake\ORM\RulesChecker;
 use Cake\ORM\Rule\IsUnique;
@@ -142,7 +144,7 @@ class TeachersTable extends Table
                     $currentDate = (new \DateTime())->getTimestamp();
                     $entryDate = strtotime($context['data']['entry_date']);
                     $birthDate = strtotime($context['data']['birth_date']);
-                    if (($currentDate - $entryDate) < 0 || ($entryDate - $birthDate) < 0) {
+                    if ($entryDate > $currentDate || $entryDate < $birthDate) {
                         return false;
                     }
                     return true;
@@ -188,4 +190,23 @@ class TeachersTable extends Table
 			])
 			->hydrate(false)->toArray();
 	}
+    
+    public function getSubAllocated(Process $process) {
+
+        $connection = ConnectionManager::get('default');
+        $sql = "
+            select 
+    (select users.name from users where users.id = t.user_id) name,
+    t.workload,
+     (select COALESCE(SUM(subject_workload), 0) from (select c.id, COALESCE(SUM(s.theoretical_workload)+SUM(s.practical_workload),0) subject_workload from 
+    (clazzes c inner join subjects s on s.id = c.subject_id) group by c.id) ch inner join clazzes_teachers ct on ct.clazz_id = ch.id where ct.teacher_id = t.id) as subject_workload,
+    clazzes.process_id
+from teachers t
+left join (clazzes_teachers inner join clazzes on clazzes.id = clazzes_teachers.clazz_id) on clazzes_teachers.teacher_id = t.id
+where (t.workload - (select COALESCE(SUM(subject_workload), 0) from (select c.id, COALESCE(SUM(s.theoretical_workload)+SUM(s.practical_workload),0) subject_workload from 
+    (clazzes c inner join subjects s on s.id = c.subject_id) group by c.id) ch inner join clazzes_teachers ct on ct.clazz_id = ch.id where ct.teacher_id = t.id)) > 0 and (clazzes.process_id is null or clazzes.process_id = :id)";
+        
+        $results = $connection->execute($sql,[ "id" => $process->id])->fetchAll('assoc');
+        return $results;
+    }
 }
