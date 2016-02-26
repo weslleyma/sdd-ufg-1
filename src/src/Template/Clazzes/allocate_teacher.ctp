@@ -110,7 +110,7 @@
 				</div>
 				<br>
 				<div class="row">
-					<div class="col-xs-12">
+					<div class="col-xs-12 table-responsive">
 						<fieldset>
 							<legend>Docentes</legend>
 							<table class="table table-striped table-valign-middle">
@@ -309,27 +309,12 @@ function allocateTeacher(clazz, teacher, allocate) {
 		success: function(tab){
 			if ($.trim(tab) == 'success') {
 				$('#message').empty();
-				$('div[id^=\'situation\']').each(function() {
-					$(this).empty();
-				});
 
 				if (allocate == 'allocate') {
 
-					$("button.btn-danger").each(function() {
-						var id = $(this).attr('id').substring(7, $(this).attr('id').length);
-						$(this).removeClass('btn-danger').addClass('btn-success');
-						$(this).attr('onclick', 'allocateTeacher(' + clazz + ', ' + id + ', ' + '\'allocate\'' + ')');
-						$(this).attr('title', 'Alocar docente para ministrar a Turma');
-						$(this).attr('data-original-title', 'Alocar docente para ministrar a Turma');
-					});
-
-					$("i.fa-remove").each(function() {
-						$(this).removeClass('fa-remove').addClass('fa-check');
-					});
-
 					$('#message').removeClass('alert-warning').removeClass('alert-error');
 					$('#message').addClass('alert-success');
-					$('#message').append('Interesse na disciplina registrado com sucesso!');
+					$('#message').append('Docente alocado com sucesso!');
 					$('#button-' + teacher).removeClass('btn-success').addClass('btn-danger');
 					$('#button-' + teacher).attr('onclick', 'allocateTeacher(' + clazz + ', ' + teacher + ', ' + '\'deallocate\'' + ')');
 					$('#button-' + teacher).attr('title', 'Cancelar inscricao do docente para ministrar Turma');
@@ -341,13 +326,13 @@ function allocateTeacher(clazz, teacher, allocate) {
 
 					$('#message').removeClass('alert-success').removeClass('alert-error');
 					$('#message').addClass('alert-warning');
-					$('#message').append('Interesse na disciplina cancelado com sucesso!');
+					$('#message').append('Docente desalocado com sucesso!');
 					$('#button-' + teacher).removeClass('btn-danger').addClass('btn-success');
 					$('#button-' + teacher).attr('onclick', 'allocateTeacher(' + clazz + ', ' + teacher + ', ' + '\'allocate\'' + ')');
 					$('#button-' + teacher).attr('title', 'Alocar docente para ministrar a Turma');
 					$('#button-' + teacher).attr('data-original-title', 'Alocar docente para ministrar a Turma');
 					$('#icon-' + teacher).removeClass('fa-remove').addClass('fa-check');
-					$('#situation-' + teacher).append('');
+					$('#situation-' + teacher).empty();
 				}
 
 			} else {

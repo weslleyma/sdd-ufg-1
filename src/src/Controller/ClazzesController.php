@@ -484,6 +484,7 @@ class ClazzesController extends AppController
 				, 'Subjects.Knowledges'
 				, 'Subjects.Courses'
 				, 'ClazzesSchedulesLocals'
+				, 'ClazzesTeachers'
 			]
         ]);
 
@@ -511,7 +512,8 @@ class ClazzesController extends AppController
 							->set(['status' => 'REJECTED'])
 							->where([
 							'clazz_id' => $clazz_id,
-							'teacher_id != ' => $teacher_id
+							'teacher_id != ' => $teacher_id,
+							'status' => 'PENDING'
 					])->execute();
 
 					$query = $table_clazzes_teachers->query();
@@ -536,12 +538,30 @@ class ClazzesController extends AppController
 					die();
 				} else if ($teacher_id != null && $clazz_id != null && $allocate == 'deallocate') {
 
-					$query = $table_clazzes_teachers->query();
-					$query->update()
-							->set(['status' => 'PENDING'])
-							->where([
-							'clazz_id' => $clazz_id
-					])->execute();
+					if (count($clazz->selectedTeachersIds) >= 1) {
+						$query = $table_clazzes_teachers->query();
+						$query->update()
+								->set(['status' => 'REJECTED'])
+								->where([
+								'clazz_id' => $clazz_id,
+								'teacher_id' => $teacher_id
+						])->execute();
+						
+						$query->update()
+								->set(['status' => 'REJECTED'])
+								->where([
+								'clazz_id' => $clazz_id,
+								'status' => 'PENDING'
+						])->execute();
+					} else {
+						$query = $table_clazzes_teachers->query();
+						$query->update()
+								->set(['status' => 'PENDING'])
+								->where([
+								'clazz_id' => $clazz_id,
+								'status != ' => 'SELECTED'
+						])->execute();
+					}
 
 					if ($query) {
 						echo 'success';
