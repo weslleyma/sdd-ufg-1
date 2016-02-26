@@ -196,6 +196,64 @@ class ProcessesController extends AppController
         $clazzes = $this->Processes->Clazzes->find('all')->contain(['ClazzesTeachers.Teachers.Users', 'Locals', 'Subjects']);
         $clazzes = $this->paginate($clazzes);
         $this->set('clazzes', $clazzes);
+
+        $teachers = $this->Processes->Clazzes->ClazzesTeachers->Teachers->find('all')->contain(['Users']);
+        $teachers = $this->paginate($teachers);
+        $this->set('teachers', $teachers);
+
+        // ---------------------------- INICIO PEGAR CARGA HORÁRIA
+
+        // Hashmap com key=idProfessor e value=cargaHoráriaAtual
+        $teachersCurrentWorkload = [];
+
+        // Inicializando o hashmap de carga horária
+        foreach ($teachers as $teacher) {
+            $teachersCurrentWorkload[$teacher->id] = 0;
+        }
+
+        foreach ($teachers as $teacher) {
+            foreach ($clazzes as $clazz) {
+                foreach ($clazz->intents as $intent) {
+                    // Se o id do professor estiver em alguns dos intents da turma, soma o sumTheoreticalPratical no hashmap do professor
+                    if($teacher->id == $intent->teacher_id){
+                        
+                        // Pega a soma da carga prática e teórica da disciplina
+                        $sumTheoreticalPratical = ($clazz->subject->theoretical_workload + $clazz->subject->practical_workload);
+
+                        // Pega a quantidade atual de horas que o professor já dá de aulas
+                        $currentWorkload = $teachersCurrentWorkload[$teacher->id];
+
+                        // Soma a quantidade de horas desta nova disciplina à quantidade atual já ministrada pelo professor
+                        $teachersCurrentWorkload[$teacher->id] = ($currentWorkload + $sumTheoreticalPratical);
+                    }
+                } 
+            }
+        }
+
+        // OK - Está pegando o id e a carga horária do docente
+        $this->set('teachersCurrentWorkload', $teachersCurrentWorkload);
+
+        // ---------------------------- FIM PEGAR CARGA HORÁRIA
+
+        // ---------------------------- INICIO COMPARANDO CARGA HORÁRIA REAL COM A CARGA HORÁRIA PREVISTA
+
+        // Comparando a carga atual do docente com a carga anual total prevista para o docente
+        $resultsResponse = [];
+        foreach ($teachers as $teacher) {
+            // Se a carga atual for maior que a carga total anual - SUPERALOCADO
+            if($teachersCurrentWorkload[$teacher->id] > $teacher->workload){
+                $resultsResponse[$teacher->id] = 'SUPERALOCADO';
+            } else if ($teachersCurrentWorkload[$teacher->id] < $teacher->workload){
+                $resultsResponse[$teacher->id] = 'SUBALOCADO';
+            } else {
+                $resultsResponse[$teacher->id] = 'NA RISCA';
+            }
+        }
+
+        $this->set('resultsResponse', $resultsResponse);
+
+        // ---------------------------- FIM COMPARANDO CARGA HORÁRIA REAL COM A CARGA HORÁRIA PREVISTA
+
 	}
 
 	public function simulate(){
@@ -300,6 +358,10 @@ class ProcessesController extends AppController
         }
         return $this->redirect(['action' => 'index']);
 		
+    }
+
+    private function sub_or_super_allocated_teachers() {
+        
     }
 
 }

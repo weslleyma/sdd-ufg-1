@@ -7,6 +7,10 @@
 <!-- FIRST TABLE -->
 <div class="row">
     <div class="col-xs-12">
+        <?= debug($resultsResponse) ?>
+        <?= debug($teachersCurrentWorkload) ?>
+        <?= debug($clazzes) ?>
+        <?= debug($teachers) ?>
         <div class="box box-primary">
             <div class="box-header">
                 <h3 class="box-title">Disciplinas já alocadas e não conflitantes</h3>
@@ -27,7 +31,7 @@
                         <?php foreach ($clazzes as $clazz): ?>
                             <tr>
                             	<?php foreach($clazz->intents as $intent): ?>
-                            		<?php if($intent->status == 'APPROVED'): ?>
+                            		<?php if($intent->status == 'SELECTED'): ?>
 		                                <td><?= $this->Number->format($clazz->subject->id) ?></td>
 		                                <td><?= h($clazz->subject->name) ?></td>
 		                                <td><?= $intent->teacher->registry ?></td>
@@ -65,7 +69,7 @@
     <div class="col-xs-6">
         <div class="box box-solid">
             <div class="box-header">
-                <h3 class="box-title">Disciplinas ainda não alocadas ou conflitantes</h3>
+                <h3 class="box-title">Turmas ainda não alocadas ou conflitantes</h3>
             </div>
             <div class="box-body table-responsive no-padding">
                 <table class="table table-striped table-valign-middle">
@@ -78,7 +82,7 @@
                     <?php $subjects = array(); ?>
                     	<?php foreach ($clazzes as $clazz): ?>
                             <?php foreach ($clazz->intents as $intent): ?>
-                                <?php if($intent->status == 'PENDING'): ?>
+                                <?php if($intent->length == 0 || $intent->status == 'PENDING' ): ?>
                                     <?php if (!in_array($clazz->subject->id, $subjects)): ?>
                                         <?php array_push($subjects, $clazz->subject->id); ?>
                                         <tr>

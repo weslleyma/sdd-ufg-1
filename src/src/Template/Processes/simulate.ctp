@@ -28,7 +28,7 @@
                         <?php foreach ($clazzes as $clazz): ?>
                             <tr>
                             	<?php foreach($clazz->intents as $intent): ?>
-                            		<?php if($intent->status == 'APPROVED'): ?>
+                            		<?php if($intent->status == 'SELECTED'): ?>
 		                                <td><?= $this->Number->format($clazz->subject->id) ?></td>
 		                                <td><?= h($clazz->subject->name) ?></td>
 		                                <td><?= $intent->teacher->registry ?></td>
