@@ -697,6 +697,7 @@ class ClazzesController extends AppController
 
 			$data = $this->request->data;
 			$invalidNames = false;
+			$invalidExt = false;
 
 			foreach ($data as $file) {
 				if (!$this->Clazzes->checkName($file['name'])) {
@@ -706,10 +707,19 @@ class ClazzesController extends AppController
 					break;
 				}
 			}
+			
+			foreach ($data as $file) {
+				if ($file['type'] != 'application/pdf') {
+					$this->Flash->error(__('Um ou mais arquivos têm extensão inválida (diferente de .pdf). Verifique e tente novamente. ' .
+							'(Arquivo inválido: ' . $file['name'] .  ')'));
+					$invalidExt = true;
+					break;
+				}
+			}
 
 			$error = false;
 
-			if (!$invalidNames) {
+			if (!$invalidNames && !$invalidExt) {
 				foreach ($data as $file) {
 
 					if (!move_uploaded_file($file['tmp_name'], $dir->pwd() . DS . $file['name'])) {
@@ -720,7 +730,7 @@ class ClazzesController extends AppController
 				}
 			}
 
-			if (!$invalidNames && !$error) {
+			if (!$invalidNames && !$invalidExt && !$error) {
 				$this->Flash->success(__('Arquivos de Finalização de Turma salvos com sucesso!'));
 				return $this->redirect(['action' => 'index']);
 			}
