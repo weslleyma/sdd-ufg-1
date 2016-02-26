@@ -345,5 +345,17 @@ class TeachersController extends AppController
 
 		return $data->all();
 	}
+        
+    public function getSubAllocatedTeachers() {
+            $table_processes = TableRegistry::get('Processes');
+            $processes = $table_processes->find('all')->where(['status' => 'OPEN']);
+            $this->set("processes", $processes->execute()->fetchAll('assoc'));
+            $precess_selected = array_key_exists('process',$_GET);
+            $this->set("precess_selected", $precess_selected);
+            if($precess_selected){
+                $process = $table_processes->get((int)$_GET["process"]);
+                $this->set("teachers", $this->Teachers->getSubAllocated($process));
+            }
+        }
 }
 
