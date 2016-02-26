@@ -53,7 +53,7 @@
     <div class="col-xs-6">
         <div class="box box-solid">
             <div class="box-header">
-                <h3 class="box-title">Turmas ainda não alocadas ou conflitantes</h3>
+                <h3 class="box-title">Turmas ainda não alocadas</h3>
             </div>
             <div class="box-body table-responsive no-padding">
                 <table class="table table-striped table-valign-middle">
@@ -63,10 +63,10 @@
                             <th><?= $this->Paginator->sort('disciplina', __('Disciplina')) ?></th>
                     </thead>
                     <tbody>
-                        <?php foreach ($conflictedAndUnallocatedClazzes as $subjectId => $subjectName): ?>
+                        <?php foreach ($conflictedAndUnallocatedClazzes as $subjectId => $subjectInfo): ?>
                             <tr>
                                 <td> <?= $this->Number->format($subjectId) ?> </td>
-                                <td> <?= h($subjectName) ?></td>
+                                <td> <?= h($subjectInfo['subjectName']) ?></td>
                             </tr>
                         <?php endforeach ?>
                     </tbody>
@@ -84,7 +84,7 @@
     <div class="col-xs-6">
         <div class="box box-solid">
             <div class="box-header">
-                <h3 class="box-title">Docentes sub/super alocados ou conflitantes</h3>
+                <h3 class="box-title">Docentes sub/super alocados</h3>
             </div>
             <div class="box-body table-responsive no-padding">
                 <table class="table table-striped table-valign-middle">
@@ -96,14 +96,12 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <?php foreach ($teachers as $teacher): ?>
-                            <?php if ($resultsResponse[$teacher->id] == 'SUBALOCADO' || $resultsResponse[$teacher->id] == 'SUPERALOCADO'): ?>
-                                <tr>
-                                    <td> <?= h($teacher->registry) ?> </td>
-                                    <td> <?= h($teacher->user->name) ?></td>
-                                    <td> <?= h($resultsResponse[$teacher->id]) ?></td>
-                                </tr>
-                            <?php endif ?>
+                        <?php foreach ($subAndSuperAllocatedTeachers as $teacherId => $teacherInfo): ?>
+                            <tr>
+                                <td> <?= h($teacherInfo['registry']) ?> </td>
+                                <td> <?= h($teacherInfo['userName']) ?></td>
+                                <td> <?= h($teacherId) ?></td>
+                            </tr>
                         <?php endforeach; ?>
                     </tbody>
                 </table>

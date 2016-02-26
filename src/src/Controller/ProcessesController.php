@@ -200,7 +200,7 @@ class ProcessesController extends AppController
         $clazzes = $this->paginate($clazzes);
         $this->set('clazzes', $clazzes);
 
-        $teachers = $this->Processes->Clazzes->ClazzesTeachers->Teachers->find('all')->contain(['Users']);
+        $teachers = $this->Processes->Clazzes->ClazzesTeachers->Teachers->find('all')->contain(['Users', 'Knowledges']);
         $teachers = $this->paginate($teachers);
         $this->set('teachers', $teachers);
 
@@ -228,8 +228,8 @@ class ProcessesController extends AppController
         // ---------------------------- INICIO COMPARANDO CARGA HORÁRIA REAL COM A CARGA HORÁRIA PREVISTA
 
         // Comparando a carga atual do docente com a carga anual total prevista para o docente
-        $resultsResponse = $this->getSubAndSuperAllocatedTeachers($teachers, $clazzes);
-        $this->set('resultsResponse', $resultsResponse);
+        $subAndSuperAllocatedTeachers = $this->getSubAndSuperAllocatedTeachers($teachers, $clazzes);
+        $this->set('subAndSuperAllocatedTeachers', $subAndSuperAllocatedTeachers);
 
         // ---------------------------- FIM COMPARANDO CARGA HORÁRIA REAL COM A CARGA HORÁRIA PREVISTA
     }
@@ -259,11 +259,12 @@ class ProcessesController extends AppController
 
         foreach ($clazzes as $clazz) {
             if (empty($clazz->intents)) {
-                $conflictedAndUnallocatedClazzes[$clazz->subject->id] = $clazz->subject->name;
+                $conflictedAndUnallocatedClazzes[$clazz->subject->id] = ['subjectName' => $clazz->subject->name];
             }
             foreach ($clazz->intents as $intent) {
                 if ($intent->status == 'PENDING') {
-                    $conflictedAndUnallocatedClazzes[$clazz->subject->id] = $clazz->subject->name;
+                    $conflictedAndUnallocatedClazzes[$clazz->subject->id]['subjectName'] = $clazz->subject->name;
+                    $conflictedAndUnallocatedClazzes[$clazz->subject->id]['knowledgeId'] = $clazz->subject->knowledge_id;
                 }
             }
         }
@@ -307,13 +308,20 @@ class ProcessesController extends AppController
         $teachersCurrentWorkload = $this->getTeachersCurrentWorkload($teachers, $clazzes);
 
         foreach ($teachers as $teacher) {
-            // Se a carga atual for maior que a carga total anual - SUPERALOCADO
-            if ($teachersCurrentWorkload[$teacher->id] > $teacher->workload) {
-                $subAndSuperAllocatedTeachers[$teacher->id] = 'SUPERALOCADO';
-            } else if ($teachersCurrentWorkload[$teacher->id] < $teacher->workload) {
-                $subAndSuperAllocatedTeachers[$teacher->id] = 'SUBALOCADO';
-            } else {
-                $subAndSuperAllocatedTeachers[$teacher->id] = 'NA RISCA';
+            if ($teachersCurrentWorkload[$teacher->id] > $teacher->workload || $teachersCurrentWorkload[$teacher->id] < $teacher->workload) {
+                if ($teachersCurrentWorkload[$teacher->id] > $teacher->workload) {
+                    $subAndSuperAllocatedTeachers[$teacher->id]['status'] = 'SUPERALOCADO';
+                } else if ($teachersCurrentWorkload[$teacher->id] < $teacher->workload) {
+                    $subAndSuperAllocatedTeachers[$teacher->id]['status'] = 'SUBALOCADO';
+                } else {
+                    $subAndSuperAllocatedTeachers[$teacher->id]['status'] = 'NA RISCA';
+                }
+                $subAndSuperAllocatedTeachers[$teacher->id]['registry'] = $teacher->registry;
+                $subAndSuperAllocatedTeachers[$teacher->id]['userName'] = $teacher->user->name;
+                foreach ($teacher->knowledges as $knowledges) {
+                    /* Chave = knowledge_id e Valor = level */
+                    $subAndSuperAllocatedTeachers[$teacher->id]['knowledges'][$knowledges->_joinData->knowledge_id] = $knowledges->_joinData->level;
+                }
             }
         }
 
@@ -325,8 +333,17 @@ class ProcessesController extends AppController
         $clazzes = $this->Processes->Clazzes->find('all')->contain(['ClazzesTeachers.Teachers.Users', 'Locals', 'Subjects']);
         $clazzes = $this->paginate($clazzes);
 
+        $teachers = $this->Processes->Clazzes->ClazzesTeachers->Teachers->find('all')->contain(['Users', 'Knowledges']);
+        $teachers = $this->paginate($teachers);
+
         $allocatedAndNonConflictingClazzes = $this->getAllocatedAndNonConflictingClazzes($clazzes);
         $this->set('allocatedAndNonConflictingClazzes', $allocatedAndNonConflictingClazzes);
+
+        $conflictedAndUnallocatedClazzes = $this->getUnallocatedAndConflictingClazzes($clazzes);
+
+        $teachersCurrentWorkload = $this->getTeachersCurrentWorkload($teachers, $clazzes);
+
+        $subAndSuperAllocatedTeachers = $this->getSubAndSuperAllocatedTeachers($teachers, $clazzes);
     }
 
     public function revert()
