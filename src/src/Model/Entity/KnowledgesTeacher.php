@@ -1,20 +1,18 @@
 <?php
 namespace App\Model\Entity;
 
-use App\View\Helper\UtilsHelper;
 use Cake\ORM\Entity;
 
 /**
- * ClazzesSchedulesLocal Entity.
+ * KnowledgesTeacher Entity.
  *
- * @property int $clazz_id
- * @property \App\Model\Entity\Clazze $clazze
- * @property int $schedule_id
- * @property \App\Model\Entity\Schedule $schedule
- * @property int $local_id
- * @property \App\Model\Entity\Local $local
+ * @property int $teacher_id
+ * @property \App\Model\Entity\Teacher $teacher
+ * @property int $knowledge_id
+ * @property \App\Model\Entity\Knowledge $knowledge
+ * @property int $level
  */
-class ClazzesSchedulesLocal extends Entity
+class KnowledgesTeacher extends Entity
 {
 
     /**
@@ -29,9 +27,4 @@ class ClazzesSchedulesLocal extends Entity
     protected $_accessible = [
         '*' => true
     ];
-
-    public function _getName()
-    {
-        return $this->schedule->period . ': ' . $this->local->fullPath;
-    }
 }

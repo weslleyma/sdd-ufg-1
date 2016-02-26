@@ -13,41 +13,19 @@ use Cake\View\Helper\SessionHelper;
  */
 class TeachersController extends AppController
 {
-	
-	private $_userInfo;
-	private $_userRoles;
-
-	public function initialize()
-    {
-        parent::initialize();
-        $this->loadComponent('RequestHandler');
-		
-		$this->_userInfo = $this->request->session()->read('UserInfo');
-		$roles = array();
-		
-		foreach($this->_userInfo->teacher->roles as $r) {
-			$roles[] = $r->type;
-		}
-		
-		$this->_userRoles = $roles;
-    }
-	
 	public function isAuthorized($user)
 	{
-		return true; //remove line on production
-		
 		//Only admin or teacher itself can edit the teacher
 		if (in_array($this->request->action, ['edit', 'allocateClazzes'])) {
 			$teacherId = (int)$this->request->params['pass'][0];
 
-			if ($user['id'] === $teacherId || $user['is_admin'] || in_array('COORDINATOR', $this->_userRoles)) {
+			if ($this->loggedUser->teacher->id === $teacherId || $this->loggedUser->canAdmin()) {
 				return true;
 			}
-			
-			$this->Flash->warning(__('Você não tem permissão para editar esse docente.'));
+
 			return false;
 		}
-		
+
 		return parent::isAuthorized($user);
 	}
 
@@ -57,19 +35,19 @@ class TeachersController extends AppController
      * @return void
      */
     public function index()
-    {		
-	
+    {
+
 		$this->set('teachers', $this->paginate($this->Teachers->find('all')->contain(['Users'])));
-	
-		if (!in_array('COORDINATOR', $this->_userRoles)) {
-			
+
+		if (!$this->loggedUser->isCoordinator()) {
+
 			$this->set('teachers', $this->paginate($this->Teachers->find('all')
 				->contain(['Users' ])
-				->innerJoinWith('Users', function($q) { 
-					return $q->where(['Users.id' => $this->_userInfo->id]);
+				->innerJoinWith('Users', function($q) {
+					return $q->where(['Users.id' => $this->loggedUser->teacher->id]);
 				})
 			));
-		} 
+		}
 
 		$this->set('_serialize', ['teachers']);
     }
@@ -103,7 +81,6 @@ class TeachersController extends AppController
         $knowledges = $this->Knowledges->find('list',array('fields'=>array('id','name')));
 
 		if ($this->request->is('post')) {
-
 			$data = $this->request->data;
 			$data['user']['is_admin'] = isset($this->request->data['user']['is_admin']) ? 1 : 0;
 
@@ -113,14 +90,14 @@ class TeachersController extends AppController
 
             if ($this->Teachers->save($teacher)) {
                 $this->Flash->success(__('The teacher has been saved.'));
-                return $this->redirect(['action' => 'edit', $teacher->id]);
+                return $this->redirect(['action' => 'index']);
             } else {
                 $this->Flash->error(__('The teacher could not be saved. Please, try again.'));
             }
         }
         $this->set(compact('teacher'));
 
-        
+
         $this->set(compact('knowledges'));
         $this->set('_serialize', ['teacher']);
     }
@@ -142,6 +119,9 @@ class TeachersController extends AppController
 				, 'Clazzes.Subjects.Courses'
 			]
         ]);
+
+        $teacher->entry_date = $teacher->entry_date->i18nFormat('dd/MM/yyyy');
+        $teacher->birth_date = $teacher->birth_date->i18nFormat('dd/MM/yyyy');
 
         if ($this->request->is(['patch', 'post', 'put'])) {
 
@@ -167,7 +147,7 @@ class TeachersController extends AppController
 
         $this->loadModel('Knowledges');
         $knowledges = $this->Knowledges->find('list', array('fields' => array('id', 'name')));
-		
+
 		$this->set(compact('knowledges'));
         $this->set(compact('teacher'));
         $this->set('_serialize', ['teacher']);
@@ -215,8 +195,7 @@ class TeachersController extends AppController
         ]);
 
 		$processes = $table_processes->find('list')
-            ->where(['initial_date <= ' => 'CURDATE()', 'final_date >= ' => 'CURDATE()'])
-            ->orWhere(['status' => 'OPENED'])
+            ->where(['status' => 'OPENED'])
             ->toArray();
 
         $processes = array_replace(['' => __('[Selecione]')], $processes);
@@ -310,17 +289,20 @@ class TeachersController extends AppController
      * @return paginated data.
      */
 
-    private function getClazzes($params = null) 
-    {	
-	
+    private function getClazzes($params = null)
+    {
+
 		$this->loadModel('Clazzes');
-	
+
 		$data = $this->Clazzes->find('all')
             ->contain([
                 'Subjects.Courses', 'Subjects.Knowledges',
                 'ClazzesSchedulesLocals.Locals', 'ClazzesSchedulesLocals.Schedules',
                 'Processes'
-        ]);
+			])
+			->innerJoinWith('Processes', function ($q) use ($params) {
+				return $q->where(['Processes.status' => 'OPENED']);
+			});
 
         if($params !== null) {
 
@@ -331,12 +313,12 @@ class TeachersController extends AppController
 					},
 					'Subjects.Courses' => function ($q) use ($params) {
 						return $q->where(['Courses.name LIKE ' => '%' . $params['course_name'] . '%']);
-					}, 
+					},
 					'Subjects.Knowledges' => function ($q) use ($params) {
 						return $q->where(['Knowledges.name LIKE ' => '%' . $params['knowledge_name'] . '%']);
 					},
 					'Processes' => function ($q) use ($params) {
-						return $q->where(['Clazzes.process_id LIKE ' => '%' . $params['process'] . '%']);
+						return $q->where(['Processes.id LIKE ' => '%' . $params['process'] . '%']);
 					},
 					'ClazzesSchedulesLocals.Locals', 'ClazzesSchedulesLocals.Schedules'
 				])
@@ -347,17 +329,20 @@ class TeachersController extends AppController
 				->innerJoinWith('ClazzesSchedulesLocals.Schedules', function ($q) use ($params) {
 						return $q->where(['Schedules.start_time >= ' => $params['start_time']['hour'] . ':' . $params['start_time']['minute'],
 								'Schedules.end_time <= ' => $params['end_time']['hour'] . ':' . $params['end_time']['minute']]);
-					});
-					
+					})
+				->innerJoinWith('Processes', function ($q) use ($params) {
+					return $q->where(['Processes.status' => 'OPENED']);
+				});
+
 			if (!empty($params['week_day'])) {
 				$data->where(['week_day' => $params['week_day']]);
 			}
-					
-				
+
+
 			$data->group(['Clazzes.id']);
 
         }
-		
+
 		return $data->all();
 	}
 }

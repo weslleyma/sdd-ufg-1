@@ -60,15 +60,17 @@ class RolesTable extends Table
         $validator
             ->add('teacher_id','custom',[
                 'rule'=>  function($value, $context){
-                    $roles = $this->find('all', [
-                        'conditions' => ['type' => 'COORDINATOR', 'teacher_id' => $context['data']['teacher_id']]
-                    ]);
-                    if ($roles) {
-                        return false;
+                    if ($context['data']['type'] == 'COORDINATOR') {
+                        $roles = $this->find('all', [
+                            'conditions' => ['type' => 'COORDINATOR', 'teacher_id' => $context['data']['teacher_id']]
+                        ]);
+                        if ($roles && count($roles->toArray()) > 0) {
+                            return false;
+                        }
                     }
                     return true;
                 },
-                'message'=> __('Professor já vinculado como coordenador!')
+                'message'=>'Professor já vinculado como coordenador!',
             ]);
 
         return $validator;
