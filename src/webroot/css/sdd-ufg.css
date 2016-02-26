@@ -279,3 +279,22 @@
 tr[data-clazz-schedule] {
     background-color: #eee;
 }
+
+.ellipsis-menu {
+    margin-top: 2px;
+    padding: 6.5px 14.5px;
+    border-radius: 5px;
+    background-color: #f4f4f4;
+    color: #444;
+    border: 1px solid #ddd;
+}
+
+.ellipsis-menu:hover {
+    cursor: pointer;
+    background-color: #e7e7e7;
+    border-color: #adadad;
+}
+
+.select2-search {
+    width: 100%;
+}

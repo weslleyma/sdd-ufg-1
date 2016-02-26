@@ -18,10 +18,24 @@ class ProcessesController extends AppController
     public function isAuthorized($user)
     {
         // Need to be logged
-        $loggedActions = ['index'];
+        $loggedActions = ['index', 'view'];
         if (in_array($this->request->action, $loggedActions) && $this->loggedUser !== false) {
             return true;
         }
+		
+		//Only allowed to clone closed process
+		if (in_array($this->request->action, ['reuseProcess'])) {
+			$processId = (int)$this->request->params['pass'][0];
+
+			$process = $this->Processes->get($processId);
+
+			if ($this->loggedUser !== false && $this->loggedUser->canAdmin() 
+					&& $process->status == 'CLOSED') {
+				return true;
+			}
+			
+			return false;
+		}
 
         return parent::isAuthorized($user);
     }
@@ -93,6 +107,7 @@ class ProcessesController extends AppController
         $process = $this->Processes->get($id, [
             'contain' => ['ProcessConfigurations', 'Clazzes']
         ]);
+
         if ($this->request->is(['patch', 'post', 'put'])) {
             $process = $this->Processes->patchEntity($process, $this->request->data);
             if ($this->Processes->save($process)) {

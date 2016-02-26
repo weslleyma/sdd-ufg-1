@@ -72,6 +72,29 @@ class User extends Entity
         return False;
     }
 
+    public function _getTitle()
+    {
+        if($this->canAdmin()) {
+            return __('Administrador');
+        } elseif($this->isCoordinator()) {
+            return __('Coordenador');
+        }
+
+        if(isset($this->teacher) && isset($this->teacher->roles)) {
+            foreach($this->teacher->roles as $role) {
+                if($role->type == 'FACILITATOR') {
+                    return __('Facilitador');
+                }
+            }
+        }
+
+        if(isset($this->teacher) && $this->teacher != null) {
+            return __('Docente');
+        }
+
+        return __('Usuário');
+    }
+
     public function levelOf($knowledgeId)
     {
         if(!isset($this->teacher) || $this->teacher == null) {

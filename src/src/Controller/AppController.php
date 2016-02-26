@@ -15,6 +15,7 @@
 namespace App\Controller;
 
 use App\Model\Entity\User;
+use App\Model\Table\NotificationsTable;
 use Cake\Controller\Controller;
 use Cake\Event\Event;
 
@@ -119,7 +120,7 @@ class AppController extends Controller
         $userModel = $this->loadModel('Users');
 
         $this->loggedUser = $userModel->get($authUser['id'], [
-            'contain' => ['Teachers.Roles']
+            'contain' => ['Teachers.Roles', 'Notifications']
         ]);
 
         $this->set('loggedUser', $this->loggedUser);
