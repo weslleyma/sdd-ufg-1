@@ -298,3 +298,11 @@ tr[data-clazz-schedule] {
 .select2-search {
     width: 100%;
 }
+
+.table-notification tbody tr {
+    cursor: pointer;
+}
+
+.table-notification tbody tr:hover {
+    background-color: #fef8c5 !important;
+}
