@@ -31,6 +31,9 @@ Ex: `./bin/cake server -H 192.168.13.37 -p 5673`
 
 # [Ambiente de testes](http://45.55.63.226/users/login)
 
-Servidor: http://45.55.63.226/
+Servidor: [http://45.55.63.226/](http://45.55.63.226/users/login)
+
 Usuário administrador: admin
+
 Senha administrador: senha123
+
