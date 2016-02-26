@@ -3,6 +3,7 @@ namespace App\Model\Table;
 
 use App\Model\Entity\Teacher;
 use App\Model\Entity\Process;
+use Cake\Datasource\ConnectionManager;
 use Cake\ORM\Query;
 use Cake\ORM\RulesChecker;
 use Cake\ORM\Rule\IsUnique;
