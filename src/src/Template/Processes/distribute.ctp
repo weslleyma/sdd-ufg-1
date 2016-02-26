@@ -7,10 +7,6 @@
 <!-- FIRST TABLE -->
 <div class="row">
     <div class="col-xs-12">
-        <?= debug($resultsResponse) ?>
-        <?= debug($teachersCurrentWorkload) ?>
-        <?= debug($clazzes) ?>
-        <?= debug($teachers) ?>
         <div class="box box-primary">
             <div class="box-header">
                 <h3 class="box-title">Disciplinas já alocadas e não conflitantes</h3>
@@ -28,26 +24,14 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <?php foreach ($clazzes as $clazz): ?>
+                        <?php foreach ($allocatedAndNonConflictingClazzes as $clazzId => $clazzInfo): ?>
                             <tr>
-                            	<?php foreach($clazz->intents as $intent): ?>
-                            		<?php if($intent->status == 'SELECTED'): ?>
-		                                <td><?= $this->Number->format($clazz->subject->id) ?></td>
-		                                <td><?= h($clazz->subject->name) ?></td>
-		                                <td><?= $intent->teacher->registry ?></td>
-										<td><?= $intent->teacher->user->name ?></td>
-										<td>
-											<?php foreach($clazz->locals as $local): ?>
-		                                		<?php echo ($local->name .' ['. $local->address .']') ?><br>
-		                                	<?php endforeach; ?>
-										</td>
-										<td>
-											<?php foreach($clazz->locals as $local): ?>
-		                                		<?php echo ($local->_joinData->schedule_id) ?><br>
-		                                	<?php endforeach; ?>
-										</td>
-									<?php endif; ?>
-	                            <?php endforeach; ?>
+                                <td><?= $this->Number->format($clazzId) ?></td>
+                                <td><?= h($clazzInfo['subjectName']) ?></td>
+                                <td><?= h($clazzInfo['teacherRegistry']) ?></td>
+                                <td><?= h($clazzInfo['userName']) ?></td>
+                                <td><?= h($clazzInfo['locals']) ?></td>
+                                <td><?= h($clazzInfo['schedules']) ?></td>
                             </tr>
                         <?php endforeach; ?>
                     </tbody>
@@ -79,19 +63,11 @@
                             <th><?= $this->Paginator->sort('disciplina', __('Disciplina')) ?></th>
                     </thead>
                     <tbody>
-                    <?php $subjects = array(); ?>
-                    	<?php foreach ($clazzes as $clazz): ?>
-                            <?php foreach ($clazz->intents as $intent): ?>
-                                <?php if($intent->length == 0 || $intent->status == 'PENDING' ): ?>
-                                    <?php if (!in_array($clazz->subject->id, $subjects)): ?>
-                                        <?php array_push($subjects, $clazz->subject->id); ?>
-                                        <tr>
-                                            <td> <?= $this->Number->format($clazz->subject->id) ?> </td>
-                                            <td> <?= h($clazz->subject->name) ?></td>
-                                        </tr>
-                                    <?php endif ?>
-                                <?php endif ?>
-                            <?php endforeach ?>
+                        <?php foreach ($conflictedAndUnallocatedClazzes as $subjectId => $subjectName): ?>
+                            <tr>
+                                <td> <?= $this->Number->format($subjectId) ?> </td>
+                                <td> <?= h($subjectName) ?></td>
+                            </tr>
                         <?php endforeach ?>
                     </tbody>
                 </table>
@@ -116,22 +92,18 @@
                         <tr>
                             <th><?= $this->Paginator->sort('matricula', __('Matrícula')) ?></th>
                             <th><?= $this->Paginator->sort('docente', __('Docente')) ?></th>
+                            <th><?= $this->Paginator->sort('status', __('Status')) ?></th>
                         </tr>
                     </thead>
                     <tbody>
-                        <?php $teachers = array(); ?>
-                        <?php foreach ($clazzes as $clazz): ?>
-                    		<?php foreach($clazz->intents as $intent): ?>
-                    			<?php if($intent->status == 'PENDING'): ?>
-                                    <?php if (!in_array($intent->teacher->registry, $teachers)): ?>
-                                        <?php array_push($teachers, $intent->teacher->registry); ?>
-                                        <tr>
-                                            <td> <?= h($intent->teacher->registry) ?> </td>
-                                            <td> <?= h($intent->teacher->user->name) ?></td>
-                                        </tr>
-                                    <?php endif ?>
-                                <?php endif ?>
-                			<?php endforeach; ?>
+                        <?php foreach ($teachers as $teacher): ?>
+                            <?php if ($resultsResponse[$teacher->id] == 'SUBALOCADO' || $resultsResponse[$teacher->id] == 'SUPERALOCADO'): ?>
+                                <tr>
+                                    <td> <?= h($teacher->registry) ?> </td>
+                                    <td> <?= h($teacher->user->name) ?></td>
+                                    <td> <?= h($resultsResponse[$teacher->id]) ?></td>
+                                </tr>
+                            <?php endif ?>
                         <?php endforeach; ?>
                     </tbody>
                 </table>

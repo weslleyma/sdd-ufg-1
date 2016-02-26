@@ -15,38 +15,26 @@
             <div class="box-body table-responsive no-padding">
                 <table class="table table-striped table-valign-middle">
                     <thead>
-                        <tr>
-                            <th><?= $this->Paginator->sort('codDisciplina', __('#CodDisciplina')) ?></th>
-                            <th><?= $this->Paginator->sort('disciplina', __('Disciplina')) ?></th>
-                            <th><?= $this->Paginator->sort('matricula', __('Matrícula')) ?></th>
-                            <th><?= $this->Paginator->sort('docente', __('Docente')) ?></th>
-							<th><?= $this->Paginator->sort('local', __('Local')) ?></th>
-							<th><?= $this->Paginator->sort('codHorario', __('#CodHorario')) ?></th>
-                        </tr>
+                    <tr>
+                        <th><?= $this->Paginator->sort('codDisciplina', __('#CodDisciplina')) ?></th>
+                        <th><?= $this->Paginator->sort('disciplina', __('Disciplina')) ?></th>
+                        <th><?= $this->Paginator->sort('matricula', __('Matrícula')) ?></th>
+                        <th><?= $this->Paginator->sort('docente', __('Docente')) ?></th>
+                        <th><?= $this->Paginator->sort('local', __('Local')) ?></th>
+                        <th><?= $this->Paginator->sort('codHorario', __('#CodHorario')) ?></th>
+                    </tr>
                     </thead>
                     <tbody>
-                        <?php foreach ($clazzes as $clazz): ?>
-                            <tr>
-                            	<?php foreach($clazz->intents as $intent): ?>
-                            		<?php if($intent->status == 'SELECTED'): ?>
-		                                <td><?= $this->Number->format($clazz->subject->id) ?></td>
-		                                <td><?= h($clazz->subject->name) ?></td>
-		                                <td><?= $intent->teacher->registry ?></td>
-										<td><?= $intent->teacher->user->name ?></td>
-										<td>
-											<?php foreach($clazz->locals as $local): ?>
-		                                		<?php echo ($local->name .' ['. $local->address .']') ?><br>
-		                                	<?php endforeach; ?>
-										</td>
-										<td>
-											<?php foreach($clazz->locals as $local): ?>
-		                                		<?php echo ($local->_joinData->schedule_id) ?><br>
-		                                	<?php endforeach; ?>
-										</td>
-									<?php endif; ?>
-	                            <?php endforeach; ?>
-                            </tr>
-                        <?php endforeach; ?>
+                    <?php foreach ($allocatedAndNonConflictingClazzes as $clazzId => $clazzInfo): ?>
+                        <tr>
+                            <td><?= $this->Number->format($clazzId) ?></td>
+                            <td><?= h($clazzInfo['subjectName']) ?></td>
+                            <td><?= h($clazzInfo['teacherRegistry']) ?></td>
+                            <td><?= h($clazzInfo['userName']) ?></td>
+                            <td><?= h($clazzInfo['locals']) ?></td>
+                            <td><?= h($clazzInfo['schedules']) ?></td>
+                        </tr>
+                    <?php endforeach; ?>
                     </tbody>
                 </table>
             </div>
@@ -81,28 +69,6 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <?php foreach ($clazzes as $clazz): ?>
-                            <tr>
-                            	<?php foreach($clazz->intents as $intent): ?>
-                            		<?php if($intent->status == 'AUTOMATIC DISTRIBUTION - PENDING'): ?>
-		                                <td><?= $this->Number->format($clazz->subject->id) ?></td>
-		                                <td><?= h($clazz->subject->name) ?></td>
-		                                <td><?= $intent->teacher->registry ?></td>
-										<td><?= $intent->teacher->user->name ?></td>
-										<td>
-											<?php foreach($clazz->locals as $local): ?>
-		                                		<?php echo ($local->name .' ['. $local->address .']') ?><br>
-		                                	<?php endforeach; ?>
-										</td>
-										<td>
-											<?php foreach($clazz->locals as $local): ?>
-		                                		<?php echo ($local->_joinData->schedule_id) ?><br>
-		                                	<?php endforeach; ?>
-										</td>
-									<?php endif; ?>
-	                            <?php endforeach; ?>
-                            </tr>
-                        <?php endforeach; ?>
                     </tbody>
                 </table>
             </div>
