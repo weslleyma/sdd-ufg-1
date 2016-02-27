@@ -204,34 +204,22 @@ class ProcessesController extends AppController
         $teachers = $this->paginate($teachers);
         $this->set('teachers', $teachers);
 
-        // ---------------------------- INICIO PEGAR TURMAS JÁ ALOCADAS E NÃO CONFLITANTES
-
+        // PEGA AS TURMAS JÁ ALOCADAS E NÃO CONFLITANTES
         $allocatedAndNonConflictingClazzes = $this->getAllocatedAndNonConflictingClazzes($clazzes);
         $this->set('allocatedAndNonConflictingClazzes', $allocatedAndNonConflictingClazzes);
 
-        // ---------------------------- FIM PEGAR TURMAS JÁ ALOCADAS E NÃO CONFLITANTES
-
-        // ---------------------------- INICIO PEGAR TURMAS NAO ALOCADAS OU CONFLITANTES
-
+        // PEGA AS TURMAS NAO ALOCADAS OU CONFLITANTES
         $conflictedAndUnallocatedClazzes = $this->getUnallocatedAndConflictingClazzes($clazzes);
         $this->set('conflictedAndUnallocatedClazzes', $conflictedAndUnallocatedClazzes);
 
-        // ---------------------------- FIM PEGAR TURMAS NAO ALOCADAS OU CONFLITANTES
-
-        // ---------------------------- INICIO PEGAR CARGA HORÁRIA
-
+        // PEGAR CARGA HORÁRIA ATUAL
         $teachersCurrentWorkload = $this->getTeachersCurrentWorkload($teachers, $clazzes);
         $this->set('teachersCurrentWorkload', $teachersCurrentWorkload);
 
-        // ---------------------------- FIM PEGAR CARGA HORÁRIA
-
-        // ---------------------------- INICIO COMPARANDO CARGA HORÁRIA REAL COM A CARGA HORÁRIA PREVISTA
-
-        // Comparando a carga atual do docente com a carga anual total prevista para o docente
+        // COMPARA CARGA HORÁRIA ATUAL COM A CARGA HORÁRIA PREVISTA
         $subAndSuperAllocatedTeachers = $this->getSubAndSuperAllocatedTeachers($teachers, $clazzes);
         $this->set('subAndSuperAllocatedTeachers', $subAndSuperAllocatedTeachers);
 
-        // ---------------------------- FIM COMPARANDO CARGA HORÁRIA REAL COM A CARGA HORÁRIA PREVISTA
     }
 
     private function getAllocatedAndNonConflictingClazzes($clazzes) {
@@ -259,12 +247,23 @@ class ProcessesController extends AppController
 
         foreach ($clazzes as $clazz) {
             if (empty($clazz->intents)) {
-                $conflictedAndUnallocatedClazzes[$clazz->subject->id] = ['subjectName' => $clazz->subject->name];
+                $conflictedAndUnallocatedClazzes[$clazz->id]['clazzeName'] = $clazz->name;
+                $conflictedAndUnallocatedClazzes[$clazz->id]['subjectId'] = $clazz->subject->id;
+                $conflictedAndUnallocatedClazzes[$clazz->id]['subjectName'] = $clazz->subject->name;
+                $conflictedAndUnallocatedClazzes[$clazz->id]['knowledgeId'] = $clazz->subject->knowledge_id;
+                $conflictedAndUnallocatedClazzes[$clazz->id]['totalSubjectWorkload'] = ($clazz->subject->theoretical_workload + $clazz->subject->practical_workload);
+                $conflictedAndUnallocatedClazzes[$clazz->id]['intents'] = $clazz->intents;
+
             }
             foreach ($clazz->intents as $intent) {
                 if ($intent->status == 'PENDING') {
-                    $conflictedAndUnallocatedClazzes[$clazz->subject->id]['subjectName'] = $clazz->subject->name;
-                    $conflictedAndUnallocatedClazzes[$clazz->subject->id]['knowledgeId'] = $clazz->subject->knowledge_id;
+                    $conflictedAndUnallocatedClazzes[$clazz->id]['clazzeName'] = $clazz->name;
+                    $conflictedAndUnallocatedClazzes[$clazz->id]['subjectId'] = $clazz->subject->id;
+                    $conflictedAndUnallocatedClazzes[$clazz->id]['subjectName'] = $clazz->subject->name;
+                    $conflictedAndUnallocatedClazzes[$clazz->id]['knowledgeId'] = $clazz->subject->knowledge_id;
+                    $conflictedAndUnallocatedClazzes[$clazz->id]['totalSubjectWorkload'] = ($clazz->subject->theoretical_workload + $clazz->subject->practical_workload);
+                    $conflictedAndUnallocatedClazzes[$clazz->id]['intents'] = $clazz->intents;
+
                 }
             }
         }
@@ -288,7 +287,7 @@ class ProcessesController extends AppController
                     if ($teacher->id == $intent->teacher_id) {
 
                         // Pega a soma da carga prática e teórica da disciplina
-                        $sumTheoreticalPratical = ($clazz->subject->theoretical_workload + $clazz->subject->practical_workload);
+                        $sumTheoreticalPratical = ($clazz->subject->theoretical_workload + $clazz->subject->practical_workload)/16;
 
                         // Pega a quantidade atual de horas que o professor já dá de aulas
                         $currentWorkload = $teachersCurrentWorkload[$teacher->id];
@@ -322,6 +321,7 @@ class ProcessesController extends AppController
                     /* Chave = knowledge_id e Valor = level */
                     $subAndSuperAllocatedTeachers[$teacher->id]['knowledges'][$knowledges->_joinData->knowledge_id] = $knowledges->_joinData->level;
                 }
+                $subAndSuperAllocatedTeachers[$teacher->id]['entryDate'] = $teacher->entry_date;
             }
         }
 
@@ -336,14 +336,124 @@ class ProcessesController extends AppController
         $teachers = $this->Processes->Clazzes->ClazzesTeachers->Teachers->find('all')->contain(['Users', 'Knowledges']);
         $teachers = $this->paginate($teachers);
 
+        // NÃO SOFRERAM A DISTRIBUIÇÃO AUTOMÁTICA
         $allocatedAndNonConflictingClazzes = $this->getAllocatedAndNonConflictingClazzes($clazzes);
         $this->set('allocatedAndNonConflictingClazzes', $allocatedAndNonConflictingClazzes);
 
         $conflictedAndUnallocatedClazzes = $this->getUnallocatedAndConflictingClazzes($clazzes);
-
         $teachersCurrentWorkload = $this->getTeachersCurrentWorkload($teachers, $clazzes);
-
         $subAndSuperAllocatedTeachers = $this->getSubAndSuperAllocatedTeachers($teachers, $clazzes);
+
+        // Hashmap com key=ClazzId e Value=array de teacherId com os possíveis cadidatos para aquela turma
+        $candidateTeachers = [];
+
+        foreach ($conflictedAndUnallocatedClazzes as $clazzeId => $clazzeInfo) {
+
+            // PASSO 1 - TRATANDO AS TURMAS QUE AINDA NÃO POSSUEM NENHUM INTENT
+            if (empty($clazzeInfo['intents'])) {
+                $aux = array();
+
+                foreach ($subAndSuperAllocatedTeachers as $teacherId => $teacherInfo) {
+                    foreach ($teacherInfo['knowledges'] as $knowledgeId => $knowledgeLevel) {
+
+                        // Se o núcleo de conhecimento da turma for igual ao núcleo de conhecimento do professor e o mesmo não estiver superalocado, ele pode ministrar
+                        if (($clazzeInfo['knowledgeId'] == $knowledgeId) && ($teacherInfo['status'] != 'SUPERALOCADO')){
+
+                            array_push($aux, $teacherId);
+
+                        }
+                    }
+                }
+
+                // Setando o mapa $candidateTeachers
+                $candidateTeachers[$clazzeId] = $aux;
+
+            }
+            else // PASSO 2 - TRATANDO AS TURMAS COM MAIS DE UMA INTENT (CONFLITO)
+            {
+
+            }
+
+        }
+
+        // DEFININDO A PRIORIDADE ENTRE OS CANDIDATOS - A PARTIR DO LEVEL E DA DATA DE ENTRADA DO DOCENTE
+        foreach ($candidateTeachers as $clazzeId => $teacherInfo){
+            if (empty($teacherInfo)) {
+                //$this->set('selectedTeacherId', 1);
+            } else if (count($teacherInfo) == 1) {
+                //$this->set('selectedTeacherId', 2);
+                // PERSISTE COMO ACEITO PARA A TURMA
+            } else {
+                $selectedTeacherId = $this->calculateTeacherPriorityForTheClazz($clazzeId, $teacherInfo, $teachersCurrentWorkload, $conflictedAndUnallocatedClazzes, $subAndSuperAllocatedTeachers);
+                $this->set('selectedTeacherId', $selectedTeacherId);
+
+                // PERSISTE O DOCENTE COM MÍNIMUMWORKLOAD COMO ACEITO PARA A TURMA
+            }
+        }
+
+
+        $this->set('candidateTeachers', $candidateTeachers);
+    }
+
+    private function calculateTeacherPriorityForTheClazz($clazzeId, $teacherInfo, $teachersCurrentWorkload, $conflictedAndUnallocatedClazzes, $subAndSuperAllocatedTeachers) {
+
+        // Professor com maior ponto, é alocado pra turma
+        // Key = teacherId e Value=Priority for the clazz
+        $priority = [];
+
+        // INICIALIZANDO O VETOR DE PRIORIDADES
+        foreach ($teacherInfo as $teacherId) {
+            $priority[$teacherId] = 0;
+        }
+
+        // Valores de prioridade:
+        //      MinimumWorkload = 1 ponto
+        //      BestLevel = 1 ponto
+        //      OldestEntryDate = 1 ponto
+
+        // RECEBE O ID DO PROFESSOR
+        $minWorkloadTeacherId = null;
+        $minWorkload = 9999;
+
+        $bestLevelTeacherId = null;
+        $bestLevel = -1;
+
+        //$oldestEntryDate = null;
+
+        $knowledgeId = null;
+
+        foreach ($teacherInfo as $teacherId) {
+            if ($teachersCurrentWorkload[$teacherId] < $minWorkload) {
+                $minWorkload = $teachersCurrentWorkload[$teacherId];
+                $minWorkloadTeacherId = $teacherId;
+            }
+
+            $knowledgeId = $conflictedAndUnallocatedClazzes[$clazzeId]['knowledgeId'];
+            if ($subAndSuperAllocatedTeachers[$teacherId]['knowledges'][$knowledgeId] > $bestLevel) {
+                $bestLevel = $subAndSuperAllocatedTeachers[$teacherId]['knowledges'][$knowledgeId];
+                $bestLevelTeacherId = $teacherId;
+            }
+        }
+
+        // Vasculhando hashmap de prioridades e selecionando o professor a ser retornado
+        $priority[$minWorkloadTeacherId] += 1;
+        $priority[$bestLevelTeacherId] += 1;
+
+        $selectedTeacherId = -1;
+        $maximumPoints = -1;
+
+        foreach ($priority as $teacherId => $teacherPoints) {
+            if ($teacherPoints > $maximumPoints) {
+                $selectedTeacherId = $teacherId;
+                $maximumPoints = $teacherPoints;
+            }
+        }
+
+        $this->set('priority', $priority);
+        $this->set('workload', $minWorkloadTeacherId);
+        $this->set('level', $bestLevelTeacherId);
+
+        return $selectedTeacherId;
     }
 
     public function revert()

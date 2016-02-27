@@ -5,6 +5,12 @@
     <li class="active">Simulação</li>
 <?php $this->end(); ?>
 
+<?= debug($candidateTeachers); ?>
+<?= debug($selectedTeacherId); ?>
+<?= debug($priority); ?>
+<?= debug($workload); ?>
+<?= debug($level); ?>
+
 <!-- FIRST TABLE -->
 <div class="row">
     <div class="col-xs-12">

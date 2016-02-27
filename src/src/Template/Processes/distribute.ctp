@@ -4,6 +4,12 @@
     <li class="active">Distribuição automática - Página Inicial</li>
 <?php $this->end(); ?>
 
+<?= debug($clazzes); ?>
+<?= debug($teachers); ?>
+<?= debug($conflictedAndUnallocatedClazzes); ?>
+<?= debug($teachersCurrentWorkload); ?>
+<?= debug($subAndSuperAllocatedTeachers); ?>
+
 <!-- FIRST TABLE -->
 <div class="row">
     <div class="col-xs-12">
@@ -27,6 +33,8 @@
                 <table class="table table-striped table-valign-middle">
                     <thead>
                         <tr>
+                            <th><?= $this->Paginator->sort('codTurma', __('#CodTurma')) ?></th>
+                            <th><?= $this->Paginator->sort('turma', __('Turma')) ?></th>
                             <th><?= $this->Paginator->sort('codDisciplina', __('#CodDisciplina')) ?></th>
                             <th><?= $this->Paginator->sort('disciplina', __('Disciplina')) ?></th>
                     </thead>
@@ -34,6 +42,8 @@
                         <?php foreach ($conflictedAndUnallocatedClazzes as $subjectId => $subjectInfo): ?>
                             <tr>
                                 <td> <?= $this->Number->format($subjectId) ?> </td>
+                                <td> <?= h($subjectInfo['clazzeName']) ?></td>
+                                <td> <?= h($subjectInfo['subjectId']) ?></td>
                                 <td> <?= h($subjectInfo['subjectName']) ?></td>
                             </tr>
                         <?php endforeach ?>
@@ -68,7 +78,7 @@
                             <tr>
                                 <td> <?= h($teacherInfo['registry']) ?> </td>
                                 <td> <?= h($teacherInfo['userName']) ?></td>
-                                <td> <?= h($teacherId) ?></td>
+                                <td> <?= h($teacherInfo['status']) ?></td>
                             </tr>
                         <?php endforeach; ?>
                     </tbody>
