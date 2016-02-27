@@ -31,6 +31,9 @@
                                 echo $this->Form->input('about', ['label' => 'Sobre', 'placeholder' => 'Sobre']);
                                 echo $this->Form->input('situation', ['label' => 'Situação', 'placeholder' => 'Situação']);
                                 echo $this->Form->input('knowledges._ids', ['label' => 'Núcleos de conhecimento', 'type' => 'select', 'multiple' => true, 'options' => $knowledges]);
+                                echo $this->Form->input('probation', ['label' => 'Estágio probatório', 'placeholder' => 'A1','maxlength' => 2]);
+                                echo $this->Form->input('exclusive_dedication', ['label' => 'Deticação exclusiva', 'type' => 'checkbox']);
+                                echo $this->Form->input('nde_member', ['label' => 'Membro NDE', 'type' => 'checkbox']);
                             ?>
                         </fieldset>
                     </div>
