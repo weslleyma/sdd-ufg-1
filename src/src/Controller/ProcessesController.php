@@ -2,6 +2,7 @@
 namespace App\Controller;
 
 use App\Controller\AppController;
+use Cake\I18n\Time;
 use Cake\ORM\TableRegistry;
 use App\Lib\Distribution\PriorityIndex;
 use App\Lib\Distribution\Distribution;
@@ -200,7 +201,7 @@ class ProcessesController extends AppController
         $clazzes = $this->paginate($clazzes);
         $this->set('clazzes', $clazzes);
 
-        $teachers = $this->Processes->Clazzes->ClazzesTeachers->Teachers->find('all')->contain(['Users', 'Knowledges']);
+        $teachers = $this->Processes->Clazzes->ClazzesTeachers->Teachers->find('all')->contain(['Users', 'KnowledgesTeachers']);
         $teachers = $this->paginate($teachers);
         $this->set('teachers', $teachers);
 
@@ -317,9 +318,9 @@ class ProcessesController extends AppController
                 }
                 $subAndSuperAllocatedTeachers[$teacher->id]['registry'] = $teacher->registry;
                 $subAndSuperAllocatedTeachers[$teacher->id]['userName'] = $teacher->user->name;
-                foreach ($teacher->knowledges as $knowledges) {
+                foreach ($teacher->knowledges_teachers as $knowledges) {
                     /* Chave = knowledge_id e Valor = level */
-                    $subAndSuperAllocatedTeachers[$teacher->id]['knowledges'][$knowledges->_joinData->knowledge_id] = $knowledges->_joinData->level;
+                    $subAndSuperAllocatedTeachers[$teacher->id]['knowledges'][$knowledges->knowledge_id] = $knowledges->level;
                 }
                 $subAndSuperAllocatedTeachers[$teacher->id]['entryDate'] = $teacher->entry_date;
             }
@@ -333,7 +334,7 @@ class ProcessesController extends AppController
         $clazzes = $this->Processes->Clazzes->find('all')->contain(['ClazzesTeachers.Teachers.Users', 'Locals', 'Subjects']);
         $clazzes = $this->paginate($clazzes);
 
-        $teachers = $this->Processes->Clazzes->ClazzesTeachers->Teachers->find('all')->contain(['Users', 'Knowledges']);
+        $teachers = $this->Processes->Clazzes->ClazzesTeachers->Teachers->find('all')->contain(['Users', 'KnowledgesTeachers']);
         $teachers = $this->paginate($teachers);
 
         // NÃO SOFRERAM A DISTRIBUIÇÃO AUTOMÁTICA
@@ -355,7 +356,6 @@ class ProcessesController extends AppController
 
                 foreach ($subAndSuperAllocatedTeachers as $teacherId => $teacherInfo) {
                     foreach ($teacherInfo['knowledges'] as $knowledgeId => $knowledgeLevel) {
-
                         // Se o núcleo de conhecimento da turma for igual ao núcleo de conhecimento do professor e o mesmo não estiver superalocado, ele pode ministrar
                         if (($clazzeInfo['knowledgeId'] == $knowledgeId) && ($teacherInfo['status'] != 'SUPERALOCADO')){
 
@@ -379,9 +379,8 @@ class ProcessesController extends AppController
         // DEFININDO A PRIORIDADE ENTRE OS CANDIDATOS - A PARTIR DO LEVEL E DA DATA DE ENTRADA DO DOCENTE
         foreach ($candidateTeachers as $clazzeId => $teacherInfo){
             if (empty($teacherInfo)) {
-                //$this->set('selectedTeacherId', 1);
+
             } else if (count($teacherInfo) == 1) {
-                //$this->set('selectedTeacherId', 2);
                 // PERSISTE COMO ACEITO PARA A TURMA
             } else {
                 $selectedTeacherId = $this->calculateTeacherPriorityForTheClazz($clazzeId, $teacherInfo, $teachersCurrentWorkload, $conflictedAndUnallocatedClazzes, $subAndSuperAllocatedTeachers);
@@ -418,7 +417,8 @@ class ProcessesController extends AppController
         $bestLevelTeacherId = null;
         $bestLevel = -1;
 
-        //$oldestEntryDate = null;
+        $oldestEntryDateTeacherId = null;
+        $oldestEntryDate = new Time('now', 'UTC');
 
         $knowledgeId = null;
 
@@ -433,11 +433,17 @@ class ProcessesController extends AppController
                 $bestLevel = $subAndSuperAllocatedTeachers[$teacherId]['knowledges'][$knowledgeId];
                 $bestLevelTeacherId = $teacherId;
             }
+
+            if ($subAndSuperAllocatedTeachers[$teacherId]['entryDate'] < $oldestEntryDate) {
+                $oldestEntryDate = $subAndSuperAllocatedTeachers[$teacherId]['entryDate'];
+                $oldestEntryDateTeacherId = $teacherId;
+            }
         }
 
         // Vasculhando hashmap de prioridades e selecionando o professor a ser retornado
         $priority[$minWorkloadTeacherId] += 1;
         $priority[$bestLevelTeacherId] += 1;
+        $priority[$oldestEntryDateTeacherId] += 1;
 
         $selectedTeacherId = -1;
         $maximumPoints = -1;
@@ -452,6 +458,7 @@ class ProcessesController extends AppController
         $this->set('priority', $priority);
         $this->set('workload', $minWorkloadTeacherId);
         $this->set('level', $bestLevelTeacherId);
+        $this->set('oldestEntryDate', $oldestEntryDate);
 
         return $selectedTeacherId;
     }

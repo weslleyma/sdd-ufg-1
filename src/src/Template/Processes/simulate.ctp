@@ -5,11 +5,18 @@
     <li class="active">Simulação</li>
 <?php $this->end(); ?>
 
+<h1>Candidate teachers:</h1>
 <?= debug($candidateTeachers); ?>
+<h1>Selected teacherId:</h1>
 <?= debug($selectedTeacherId); ?>
+<h1>Priority:</h1>
 <?= debug($priority); ?>
+<h1>Workload:</h1>
 <?= debug($workload); ?>
+<h1>Level:</h1>
 <?= debug($level); ?>
+<h1>Oldest entry date:</h1>
+<?= debug($oldestEntryDate); ?>
 
 <!-- FIRST TABLE -->
 <div class="row">
