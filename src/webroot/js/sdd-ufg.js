@@ -14,4 +14,10 @@ $(document).ready(function() {
         var used = $('.sidebar-menu').children().eq(menuTree);
         used.children().first().trigger('click');
     }
+
+    $(".timepicker").timepicker({
+      showInputs: false,
+      minuteStep: 5,
+      showMeridian: false
+    });
 });

@@ -40,11 +40,8 @@ class KnowledgesTable extends Table
         $this->hasMany('Subjects', [
             'foreignKey' => 'knowledge_id'
         ]);
-
-        $this->belongsToMany('Teachers', [
-            'foreignKey' => 'knowledge_id',
-            'targetForeignKey' => 'teacher_id',
-            'joinTable' => 'knowledges_teachers'
+        $this->hasMany('KnowledgesTeachers', [
+            'foreignKey' => 'knowledge_id'
         ]);
     }
 

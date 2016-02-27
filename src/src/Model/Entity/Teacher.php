@@ -38,7 +38,7 @@ class Teacher extends Entity
     protected $_accessible = [
         '*' => true,
         'id' => false,
-		'knowledges' => true
+		'knowledgesTeachers' => true
     ];
 
     public function _getDisplayField() {
