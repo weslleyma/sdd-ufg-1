@@ -47,10 +47,8 @@ class TeachersTable extends Table
             'targetForeignKey' => 'clazz_id',
             'joinTable' => 'clazzes_teachers'
         ]);
-        $this->belongsToMany('Knowledges', [
-            'foreignKey' => 'teacher_id',
-            'targetForeignKey' => 'knowledge_id',
-            'joinTable' => 'knowledges_teachers'
+        $this->hasMany('KnowledgesTeachers', [
+            'foreignKey' => 'teacher_id'
         ]);
 
         $this->belongsTo('Users', [
@@ -184,7 +182,7 @@ class TeachersTable extends Table
 		return $this
 			->find('all')
 			->contain([
-				'Knowledges' => function($q) {
+				'KnowledgesTeachers' => function($q) {
 					return $q->select(['id']);
 				}
 			])

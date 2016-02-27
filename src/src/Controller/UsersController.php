@@ -3,6 +3,7 @@ namespace App\Controller;
 
 use App\Controller\AppController;
 use App\Model\Entity\User;
+use Cake\ORM\TableRegistry;
 use Cake\Event\Event;
 
 /**
@@ -96,9 +97,21 @@ class UsersController extends AppController
 
         $user = $this->Users->newEntity();
         if ($this->request->is('post')) {
+
+
+            $knowledges = TableRegistry::get('Knowledges')->find('all');
+            $knowledgesTeachers = [];
+            foreach($knowledges as $knowledge) {
+                $user->teacher->knowledges_teachers[] = [
+                    "knowledge_id" => $knowledge->id,
+                    "level" => 3
+                ];
+            }
+            $user->teacher->knowledges_teachers = $knowledgesTeachers;
+
             $user = $this->Users->patchEntity($user, $this->request->data(), [
-                'associated' => ['Teachers']
-            ]);
+                            'associated' => ['Teachers.KnowledgesTeachers']
+                        ]);
 
             if($this->Users->save($user)) {
                 $this->Flash->success(__('Conta solicitada com sucesso.'));
