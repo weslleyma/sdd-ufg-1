@@ -1,6 +1,7 @@
 <?php
 namespace App\Model\Entity;
 
+use App\Model\Table\ClazzesTable;
 use Cake\Auth\DefaultPasswordHasher;
 use Cake\ORM\Entity;
 use Cake\ORM\TableRegistry;
@@ -71,6 +72,29 @@ class User extends Entity
         return False;
     }
 
+    public function _getTitle()
+    {
+        if($this->canAdmin()) {
+            return __('Administrador');
+        } elseif($this->isCoordinator()) {
+            return __('Coordenador');
+        }
+
+        if(isset($this->teacher) && isset($this->teacher->roles)) {
+            foreach($this->teacher->roles as $role) {
+                if($role->type == 'FACILITATOR') {
+                    return __('Facilitador');
+                }
+            }
+        }
+
+        if(isset($this->teacher) && $this->teacher != null) {
+            return __('Docente');
+        }
+
+        return __('Usuário');
+    }
+
     public function levelOf($knowledgeId)
     {
         if(!isset($this->teacher) || $this->teacher == null) {
@@ -101,14 +125,21 @@ class User extends Entity
             return false;
         }
 
+        /** @var ClazzesTable $clazzModel */
         $clazzModel = TableRegistry::get('Clazzes');
-        $subscribed = $clazzModel->find('all')
-            ->matching('ClazzesTeachers')
-            ->where([
-                'ClazzesTeachers.teacher_id' => $this->teacher->id,
-                'ClazzesTeachers.clazz_id' => $clazzId
-            ])->toArray();
+        return $clazzModel->isTeacherSubscribed($this->teacher->id, $clazzId);
+    }
 
-        return !empty($subscribed);
+    public function isClazzAdmin($clazz)
+    {
+        $knowledge = (isset($clazz->subject) && isset($clazz->subject->knowledge_id)) ?
+            $clazz->subject->knowledge_id : 0;
+
+        return ($this->is_admin === true || $this->isCoordinator() || $this->isFacilitatorOf($knowledge));
+    }
+
+    public function canAdmin()
+    {
+        return ($this->is_admin === true || $this->isCoordinator());
     }
 }

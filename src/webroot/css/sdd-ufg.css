@@ -17,7 +17,7 @@
     background-color: #e5e5e5;
 }
 
-.simple-table{
+.simple-table {
 	border-collapse:collapse
 }
 
@@ -25,7 +25,7 @@
 	border:1px solid #000
 }
 
-.simple-table thead{
+.simple-table thead {
 	font-weight:bold;
 	background-color:#855E42
 }
@@ -58,6 +58,7 @@
 }
 
 .week-day {
+    background-color: #fff;
     min-height: 100px;
     padding: 5px 5px 27px;
 }
@@ -158,15 +159,24 @@
     color: #000;
 }
 
-.profile-username-box .profile-username:after {
+.profile-username-box .profile-username:after, .teachers-names:after {
     margin: 0 5px;
     content: "/";
     visibility: visible;
+    color: #000;
 }
 
-.profile-username-box .profile-username:last-child:after {
+.profile-username-box .profile-username:last-child:after, .teachers-names:last-child:after {
     visibility: hidden;
     margin: 0;
+}
+
+.teachers-names {
+    display: inline-block;
+}
+
+.teachers-names:not([href]) {
+    color: #000;
 }
 
 .table-responsive {
@@ -251,4 +261,48 @@
     cursor: default;
     background-color: #337ab7;
     border-color: #337ab7;
+}
+
+.fa-glyph {
+    padding: 6px 9px;
+    margin-top: 2px;
+}
+
+.table-second-hidden tbody tr:nth-child(4n+1) {
+    background-color: #f9f9f9;
+}
+
+.table-second-hidden tbody tr:nth-child(4n+3) {
+    background-color: #fff;
+}
+
+tr[data-clazz-schedule] {
+    background-color: #eee;
+}
+
+.ellipsis-menu {
+    margin-top: 2px;
+    padding: 6.5px 14.5px;
+    border-radius: 5px;
+    background-color: #f4f4f4;
+    color: #444;
+    border: 1px solid #ddd;
+}
+
+.ellipsis-menu:hover {
+    cursor: pointer;
+    background-color: #e7e7e7;
+    border-color: #adadad;
+}
+
+.select2-search {
+    width: 100%;
+}
+
+.table-notification tbody tr {
+    cursor: pointer;
+}
+
+.table-notification tbody tr:hover {
+    background-color: #fef8c5 !important;
 }

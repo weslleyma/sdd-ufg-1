@@ -1,10 +1,10 @@
 <?php
 namespace App\Controller;
 
-use App\Controller\AppController;
-use Cake\Datasource\ConnectionManager;
 use Cake\ORM\TableRegistry;
-
+use Cake\Filesystem\Folder;
+use Cake\Filesystem\File;
+use Cake\ORM\Query;
 
 /**
  * Clazzes Controller
@@ -13,19 +13,29 @@ use Cake\ORM\TableRegistry;
  */
 class ClazzesController extends AppController
 {
-
 	public function isAuthorized($user)
 	{
-		if (in_array($this->request->action, ['edit', 'delete', 'add'])) {
-            if($this->loggedUser !== false && $this->loggedUser->isCoordinator()) {
-                return True;
-            }
+		// Need to be logged
+        $loggedActions = ['listOpenedClazzes', 'view', 'index'];
+        if (in_array($this->request->action, $loggedActions) && $this->loggedUser !== false) {
+            return True;
 		}
 
-		if (in_array($this->request->action, ['listOpenedClazzes'])) {
-            if($this->loggedUser !== false) {
-                return True;
-            }
+		// Need to be logged as admin or coordinator/facilitator
+        $adminOrCoordinator = ['allocateTeacher'];
+        if (in_array($this->request->action, $adminOrCoordinator) && ($this->loggedUser !== false)) {
+			$clazzId = (int)$this->request->params['pass'][0];
+			$clazz = $this->Clazzes->get($clazzId, [
+				'contain' => [
+					'Subjects'
+				]
+			]);
+			$knowledgeId = $clazz->subject->knowledge_id;
+
+			if($this->loggedUser->canAdmin() || $this->loggedUser->isFacilitatorOf($knowledgeId)) {
+				return True;
+			}
+			return false;
 		}
 
         // Need to be logged ONLY by a teacher
@@ -36,6 +46,26 @@ class ClazzesController extends AppController
 
             return False;
         }
+
+		//Only teacher can finish his/her clazz
+		if (in_array($this->request->action, ['finishClazze'])) {
+			$clazzId = (int)$this->request->params['pass'][0];
+
+			$teacherIds = array();
+
+			$teachers = $this->Clazzes->ClazzesTeachers->find('all',
+				['conditions' => ['clazz_id' => $clazzId, 'status' => 'SELECTED']])->toArray();
+
+			foreach($teachers as $t) {
+				$teacherIds[] = $t['teacher_id'];
+			}
+
+			if (in_array($this->loggedUser->teacher->id, $teacherIds)) {
+				return true;
+			}
+
+			return false;
+		}
 
 		return parent::isAuthorized($user);
 	}
@@ -48,13 +78,28 @@ class ClazzesController extends AppController
     public function index()
     {
         $this->paginate = [
-            'contain' => ['Processes', 'Subjects', 'ClazzesTeachers.Teachers.Users']
+            'limit' => 25,
+            'order' => [
+                'Clazzes.id' => 'DESC'
+            ]
         ];
-        $this->set('clazzes', $this->paginate($this->Clazzes));
+
+        $this->request->data = $this->request->query;
+        $clazzes = $this->Clazzes->findByFilters($this->request->query);
+
+        $this->set('isFiltered', !empty($clazzes->__debugInfo()['params']));
+        $this->set('status', ['' => __('[Selecione]'), 'OPENED' => __('Aberto'), 'CONFLICT' => _('Em conflito'), 'CLOSED' => __('Fechado')]);
+        $this->set('subjects', array_replace([0 => __('[Selecione]')], $this->Clazzes->Subjects->find('list')->toArray()));
+        $this->set('processes', array_replace([0 => __('[Selecione]')], $this->Clazzes->Processes->find('list')->toArray()));
+        $this->set('knowledges', array_replace([0 => __('[Selecione]')], $this->Clazzes->Subjects->Knowledges->find('list')->toArray()));
+
+        $this->Clazzes->ClazzesTeachers->Teachers->displayField('user.name');
+        $this->set('teachers', $this->Clazzes->ClazzesTeachers->Teachers->find('list')->contain(['Users'])->toArray());
+        $this->set('schedules', $this->Clazzes->ClazzesSchedulesLocals->find('list')->contain(['Schedules', 'Locals'])->group(['schedule_id', 'local_id'])->toArray());
+
+        $this->set('clazzes', $this->paginate($clazzes));
         $this->set('_serialize', ['clazzes']);
-
     }
-
 
     /**
      * View method
@@ -71,6 +116,38 @@ class ClazzesController extends AppController
                 'ClazzesSchedulesLocals.Locals', 'ClazzesSchedulesLocals.Schedules'
             ]
         ]);
+
+        if ($this->request->is('post') && $this->loggedUser->isClazzAdmin($clazz)) {
+            $selectedTeachers = isset($this->request->data['selected_teachers']) ?
+                $this->request->data['selected_teachers'] : [];
+
+            if(empty($selectedTeachers)) {
+                $this->Flash->error(__('Nenhum docente foi selecionado para ser alocado a turma.'));
+                return $this->redirect(['action' => 'view', $id]);
+            }
+
+            $this->Clazzes->ClazzesTeachers->updateAll([
+                'status' => 'REJECTED'
+            ], [
+                'clazz_id' => $id
+            ]);
+
+            $this->Clazzes->ClazzesTeachers->updateAll([
+                'status' => 'SELECTED'
+            ], [
+                'teacher_id IN' => $selectedTeachers,
+                'clazz_id' => $id
+            ]);
+
+            $this->Flash->success(__('Docentes alocados à turma com sucesso.'));
+            $clazz = $this->Clazzes->get($id, [
+                'contain' => [
+                    'Processes', 'Subjects.Knowledges', 'ClazzesTeachers.Teachers.Users',
+                    'ClazzesSchedulesLocals.Locals', 'ClazzesSchedulesLocals.Schedules'
+                ]
+            ]);
+        }
+
         $this->set('clazz', $clazz);
         $this->set('_serialize', ['clazz']);
     }
@@ -286,6 +363,7 @@ class ClazzesController extends AppController
         return $this->redirect(['action' => 'view', $id]);
     }
 
+    /** END Basics */
 
 	/**
 	*
@@ -293,11 +371,11 @@ class ClazzesController extends AppController
 	*/
 	public function myIntents()
     {
-		$clazzes = $this->Clazzes->ClazzesTeachers->getIntentsByTeacher($this->_userInfo->teacher->id);
+		$clazzes = $this->Clazzes->ClazzesTeachers->getIntentsByTeacher($this->loggedUser->teacher->id);
 
 		$this->set('clazzes', $this->paginate($clazzes));
 		$this->set('_serialize', ['clazzes']);
-		$this->set('teacherId', $this->_userInfo->teacher->id);
+		$this->set('teacherId', $this->loggedUser->teacher->id);
     }
 
 
@@ -369,13 +447,14 @@ class ClazzesController extends AppController
 
         }
 
-		if (!in_array('COORDINATOR', $this->_userRoles) && in_array('FACILITATOR', $this->_userRoles)) {
+		$roles = array();
+		foreach ($this->loggedUser->teacher->roles as $r) {
+			$roles[] = $r->type;
+		}
 
-			if (count($this->_userKnowledges) < 1) {
-				return;
-			}
+		if (!in_array('COORDINATOR', $roles) && in_array('FACILITATOR', $roles)) {
 			$data->innerJoinWith('Subjects.Knowledges', function($q) {
-				return $q->where(['Knowledges.id IN ' => $this->_userKnowledges]);
+				return $q->where(['Knowledges.id IN ' => $roles]);
 			});
 		}
 
@@ -405,10 +484,20 @@ class ClazzesController extends AppController
 				, 'Subjects.Knowledges'
 				, 'Subjects.Courses'
 				, 'ClazzesSchedulesLocals'
+				, 'ClazzesTeachers'
 			]
         ]);
 
 		$teachers = $this->getTeachers();
+
+		$recomendedTeacher = null;
+		$maior = 0;
+		foreach ($clazzesTeachers->all() as $c) {
+			if ($maior < $c->priority) {
+				$maior = $c->priority;
+				$recomendedTeacher = $c->teacher_id;
+			}
+		}
 
 		if ($clazz_id != null && $teacher_id != null) {
 
@@ -423,7 +512,8 @@ class ClazzesController extends AppController
 							->set(['status' => 'REJECTED'])
 							->where([
 							'clazz_id' => $clazz_id,
-							'teacher_id != ' => $teacher_id
+							'teacher_id != ' => $teacher_id,
+							'status' => 'PENDING'
 					])->execute();
 
 					$query = $table_clazzes_teachers->query();
@@ -448,12 +538,30 @@ class ClazzesController extends AppController
 					die();
 				} else if ($teacher_id != null && $clazz_id != null && $allocate == 'deallocate') {
 
-					$query = $table_clazzes_teachers->query();
-					$query->update()
-							->set(['status' => 'PENDING'])
-							->where([
-							'clazz_id' => $clazz_id
-					])->execute();
+					if (count($clazz->selectedTeachersIds) >= 1) {
+						$query = $table_clazzes_teachers->query();
+						$query->update()
+								->set(['status' => 'REJECTED'])
+								->where([
+								'clazz_id' => $clazz_id,
+								'teacher_id' => $teacher_id
+						])->execute();
+						
+						$query->update()
+								->set(['status' => 'REJECTED'])
+								->where([
+								'clazz_id' => $clazz_id,
+								'status' => 'PENDING'
+						])->execute();
+					} else {
+						$query = $table_clazzes_teachers->query();
+						$query->update()
+								->set(['status' => 'PENDING'])
+								->where([
+								'clazz_id' => $clazz_id,
+								'status != ' => 'SELECTED'
+						])->execute();
+					}
 
 					if ($query) {
 						echo 'success';
@@ -486,6 +594,7 @@ class ClazzesController extends AppController
 		$this->set('_serialize', ['teachers']);
 		$this->set('clazzesTeachers', $clazzesTeachers);
 		$this->set('_serialize', ['clazzesTeachers']);
+		$this->set('recomendedTeacher', $recomendedTeacher);
 	}
 
 	private function getTeachers($params = null) {
@@ -560,6 +669,77 @@ class ClazzesController extends AppController
 			return $query->all();
 
 		}
-
 	}
+
+	/**
+     * Finish the selected clazze
+     *
+     * @param string|null $id Clazze id.
+     * @return void
+     */
+	public function finishClazze($id = null)
+	{
+        $clazze = $this->Clazzes->get($id, [
+            'contain' => []
+        ]);
+
+		$clazzes_dir = $this->Clazzes->checkDirectory(WWW_ROOT.'/finishedClazzes');
+		$dir = $this->Clazzes->checkDirectory(WWW_ROOT.'/finishedClazzes/clazz-' . $id);
+
+		$files = $dir->find();
+
+		if ($this->request->is('post')) {
+			foreach ($files as $file) {
+				$file = new File($dir->pwd() . DS . $file);
+				$file->delete();
+				$file->close();
+			}
+
+			$data = $this->request->data;
+			$invalidNames = false;
+			$invalidExt = false;
+
+			foreach ($data as $file) {
+				if (!$this->Clazzes->checkName($file['name'])) {
+					$this->Flash->error(__('Um ou mais nomes de arquivos são inválidos. Verifique e tente novamente. ' .
+							'(Nome inválido: ' . $file['name'] .  ')'));
+					$invalidNames = true;
+					break;
+				}
+			}
+			
+			foreach ($data as $file) {
+				if ($file['type'] != 'application/pdf') {
+					$this->Flash->error(__('Um ou mais arquivos têm extensão inválida (diferente de .pdf). Verifique e tente novamente. ' .
+							'(Arquivo inválido: ' . $file['name'] .  ')'));
+					$invalidExt = true;
+					break;
+				}
+			}
+
+			$error = false;
+
+			if (!$invalidNames && !$invalidExt) {
+				foreach ($data as $file) {
+
+					if (!move_uploaded_file($file['tmp_name'], $dir->pwd() . DS . $file['name'])) {
+						$this->Flash->error(__('Ocorreu um erro ao fazer o upload de um ou mais arquivos. Tente novamente.'));
+						$error = true;
+						break;
+					}
+				}
+			}
+
+			if (!$invalidNames && !$invalidExt && !$error) {
+				$this->Flash->success(__('Arquivos de Finalização de Turma salvos com sucesso!'));
+				return $this->redirect(['action' => 'index']);
+			}
+
+		}
+
+		$this->set('files', $files);
+        $this->set('clazze', $clazze);
+        $this->set('_serialize', ['clazze']);
+	}
+
 }

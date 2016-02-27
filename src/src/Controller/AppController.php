@@ -15,6 +15,7 @@
 namespace App\Controller;
 
 use App\Model\Entity\User;
+use App\Model\Table\NotificationsTable;
 use Cake\Controller\Controller;
 use Cake\Event\Event;
 
@@ -60,6 +61,9 @@ class AppController extends Controller
             ],
             'authorize' => ['Controller'],
             'authError' => __('Você não possui permissão para acessar esta página'),
+            'flash' => [
+                'element' => 'Elements/Flash/warning'
+            ],
             'loginRedirect' => '/',
             'logoutRedirect' => [
                 'controller' => 'Users',
@@ -93,10 +97,8 @@ class AppController extends Controller
      */
     public function isAuthorized($user)
     {
-        return true;
-
-        // Admin can access every action
-        if (isset($user['is_admin']) && $user['is_admin'] === true) {
+        // Admin can access all actions
+        if ($this->loggedUser !== false && $this->loggedUser->canAdmin()) {
             return true;
         }
 
@@ -118,7 +120,7 @@ class AppController extends Controller
         $userModel = $this->loadModel('Users');
 
         $this->loggedUser = $userModel->get($authUser['id'], [
-            'contain' => ['Teachers.Roles']
+            'contain' => ['Teachers.Roles', 'Notifications']
         ]);
 
         $this->set('loggedUser', $this->loggedUser);
