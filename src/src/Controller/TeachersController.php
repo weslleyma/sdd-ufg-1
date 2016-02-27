@@ -38,14 +38,13 @@ class TeachersController extends AppController
     public function index()
     {
 
-		$this->set('teachers', $this->paginate($this->Teachers->find('all')->contain(['Users'])));
-
-		if (!$this->loggedUser->isCoordinator()) {
-
+		if ($this->loggedUser->canAdmin()) {
+		    $this->set('teachers', $this->paginate($this->Teachers->find('all')->contain(['Users'])));
+        } else {
 			$this->set('teachers', $this->paginate($this->Teachers->find('all')
 				->contain(['Users' ])
-				->innerJoinWith('Users', function($q) {
-					return $q->where(['Users.id' => $this->loggedUser->teacher->id]);
+				->where('Users', function($q) {
+					return $q->where(['Teachers.id' => $this->loggedUser->teacher->id]);
 				})
 			));
 		}
@@ -161,7 +160,7 @@ class TeachersController extends AppController
 
             $i = 0;
 			foreach ($this->request->data['knowledgeTeacher']['level'] as $level) {
-			    if ($level != '') {
+			    if ($level == 1 || $level == 2 || $level == 3) {
                     $teacher->knowledges_teachers[$i]->level = $level;
 			    }
 			    $i++;
@@ -375,7 +374,7 @@ class TeachersController extends AppController
 
 		return $data->all();
 	}
-        
+
     public function getSubAllocatedTeachers() {
             $table_processes = TableRegistry::get('Processes');
             $processes = $table_processes->find('all')->where(['status' => 'OPEN']);
