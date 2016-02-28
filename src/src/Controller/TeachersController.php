@@ -67,6 +67,35 @@ class TeachersController extends AppController
 			, 'KnowledgesTeachers', 'KnowledgesTeachers.Teachers', 'KnowledgesTeachers.Knowledges']
         ]);
 
+        if ($teacher->entry_date) {
+            $teacher->entry_date = $teacher->entry_date->i18nFormat('dd/MM/yyyy');
+        }
+        if ($teacher->birth_date) {
+            $teacher->birth_date = $teacher->birth_date->i18nFormat('dd/MM/yyyy');
+        }
+
+        if ($this->request->is(['patch', 'post', 'put'])) {
+            $i = 0;
+            foreach ($this->request->data['knowledgeTeacher']['level'] as $level) {
+                if ($level == 1 || $level == 2 || $level == 3) {
+                    $teacher->knowledges_teachers[$i]->level = $level;
+                }
+                $i++;
+            }
+            $teacher->dirty('knowledges_teachers', true);
+            unset($this->request->data['knowledgeTeacher']);
+
+            $teacher = $this->Teachers->patchEntity($teacher, $this->request->data(), [
+                'associated' => ['Users' => ['validate' => 'default'], 'KnowledgesTeachers']
+            ]);
+
+            if ($this->Teachers->save($teacher)) {
+                $this->Flash->success(__('The teacher has been saved.'));
+            } else {
+                $this->Flash->error(__('The teacher could not be saved. Please, try again.'));
+            }
+        }
+
         $clazzes = TableRegistry::get('Clazzes')->find()->innerJoinWith(
             'Teachers', function ($q) use ($id) {
                 return $q->where(['Teachers.id' => $id]);

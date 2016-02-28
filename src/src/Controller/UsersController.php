@@ -103,11 +103,10 @@ class UsersController extends AppController
 
             if($this->Users->save($user)) {
                 $teacher = $this->Users->Teachers->newEntity($this->request->data['teacher'], [
-                        'associated' => ['KnowledgesTeachers']]);
-
+                    'associated' => ['KnowledgesTeachers']]);
                 $teacher->user_id = $user->id;
-                if ($this->Users->Teachers->save($teacher)) {
 
+                if ($this->Users->Teachers->save($teacher)) {
                     $knowledges = TableRegistry::get('Knowledges')->find('all');
                     foreach($knowledges as $knowledge) {
                         $knowledgeTeacher = $this->Users->Teachers->KnowledgesTeachers->newEntity();
@@ -115,12 +114,13 @@ class UsersController extends AppController
                         $knowledgeTeacher->knowledge_id = $knowledge->id;
                         $knowledgeTeacher->level = 3;
 
-                        if (!$this->Users->Teachers->KnowledgesTeachers->save($knowledgeTeacher)) {
-                            $this->Flash->error(__('Não foi possível solicitar sua conta, cheque os campos abaixos ou tente novamente mais tarde.'));
-                        }
+                        $this->Users->Teachers->KnowledgesTeachers->save($knowledgeTeacher);
                     }
                     $this->Flash->success(__('Conta solicitada com sucesso.'));
                     return $this->redirect(['action' => 'login']);
+                } else {
+                    $this->Users->delete($user);
+                    $this->Flash->error(__('Não foi possível solicitar sua conta, cheque os campos abaixos ou tente novamente mais tarde.'));
                 }
             } else {
                 $this->Flash->error(__('Não foi possível solicitar sua conta, cheque os campos abaixos ou tente novamente mais tarde.'));
