@@ -5,6 +5,7 @@
     <li class="active"><?= $teacher->displayField ?></li>
 <?php $this->end(); ?>
 
+<?= $this->Form->create($teacher) ?>
 <div class="row">
     <div class="col-sm-5 col-md-4 col-lg-3">
         <div class="box box-primary">
@@ -39,28 +40,28 @@
                 <div class="table-responsive no-padding">
                     <table class="table-profile">
                         <tr>
-                            <td width="170px"><b><?= __('ID') ?></b></td></td>
+                            <td width="130px"><b><?= __('ID') ?></b></td></td>
                             <td><?= $this->Number->format($teacher->id) ?></td>
                         </tr>
                         <?php if(isset($loggedUser->teacher) && $loggedUser->teacher->id == $teacher->id): ?>
                             <tr>
                                 <td><b><?= __('Login') ?></b></td>
-
                                 <td><?= $this->Html->link(
                                     $teacher->user->login,
                                     ['controller' => 'Users','action' => 'edit', $teacher->user->id]) ?></td>
                             </tr>
                         <?php endif; ?>
                         <tr>
-                            <th><?= __('Email') ?></th>
-                            <td><?= h($teacher->user->email) ?></td>
-                        </tr>
-                        <tr>
                             <th><?= __('Administrador') ?></th>
                             <td><?= h($teacher->user->is_admin ? 'Sim' : 'Não') ?></td>
                         </tr>
                     </table>
                 </div>
+                <?php if(isset($loggedUser->teacher) && $loggedUser->teacher->id == $teacher->id): ?>
+                    <div class="box-footer clearfix">
+                        <?= $this->Form->button(__('Salvar'), ['class' => 'btn btn-success', 'controller' => 'teachers', 'action' => 'edit', $teacher->id]) ?>
+                    </div>
+                <?php endif; ?>
             </div>
         </div>
     </div>
@@ -80,38 +81,96 @@
                         <div class="box-body table-responsive no-padding">
                             <table class="table table-striped table-valign-middle">
                                 <tr>
+                                    <th><?= __('Email') ?></th>
+                                    <?php if(isset($loggedUser->teacher) && $loggedUser->teacher->id == $teacher->id): ?>
+                                        <td><?= $this->Form->input('user.email', ['default' => $teacher->user->email, 'label' => false, 'placeholder' => 'Email', 'style' => '150px']) ?></td>
+                                    <?php else: ?>
+                                        <td><?= h($teacher->user->email) ?></td>
+                                    <?php endif; ?>
+                                </tr>
+                                <tr>
                                     <th><?= __('Formação') ?></th>
-                                    <td><?= h($teacher->formation) ?></td>
+                                    <?php if(isset($loggedUser->teacher) && $loggedUser->teacher->id == $teacher->id): ?>
+                                        <td><?= $this->Form->input('formation', ['label' => false, 'placeholder' => 'Formação']) ?></td>
+                                    <?php else: ?>
+                                        <td><?= h($teacher->formation) ?></td>
+                                    <?php endif; ?>
                                 </tr>
                                 <tr>
                                     <td><b><?= __('Registro') ?></b></td>
-                                    <td><?= h($teacher->registry) ?></td>
+                                    <?php if(isset($loggedUser->teacher) && $loggedUser->teacher->id == $teacher->id): ?>
+                                        <td><?= $this->Form->input('registry', ['default' => $teacher->registry, 'label' => false, 'placeholder' => 'Matrícula']); ?></td>
+                                    <?php else: ?>
+                                        <td><?= h($teacher->registry) ?></td>
+                                    <?php endif; ?>
                                 </tr>
                                 <tr>
                                     <th><?= __('Link do Lattes') ?></th>
-                                    <td><?= h($teacher->url_lattes) ?></td>
+                                    <?php if(isset($loggedUser->teacher) && $loggedUser->teacher->id == $teacher->id): ?>
+                                        <td><?= $this->Form->input('url_lattes', ['default' => $teacher->url_lattes, 'label' => false, 'placeholder' => 'URL Lattes']) ?></td>
+                                    <?php else: ?>
+                                        <td><?= h($teacher->url_lattes) ?></td>
+                                    <?php endif; ?>
+
                                 </tr>
                                 <tr>
-                                <th><?= __('RG') ?></th>
-                                    <td><?= h($teacher->rg) ?></td>
+                                    <th><?= __('RG') ?></th>
+                                    <?php if(isset($loggedUser->teacher) && $loggedUser->teacher->id == $teacher->id): ?>
+                                        <td><?= $this->Form->input('rg', ['default' => $teacher->rg, 'label' => false, 'placeholder' => 'RG']); ?></td>
+                                    <?php else: ?>
+                                        <td><?= h($teacher->rg) ?></td>
+                                    <?php endif; ?>
                                 </tr>
                                 <tr>
                                     <th><?= __('CPF') ?></th>
-                                    <td><?= h($teacher->cpf) ?></td>
+                                    <?php if(isset($loggedUser->teacher) && $loggedUser->teacher->id == $teacher->id): ?>
+                                        <td><?= $this->Form->input('cpf', ['default' => $teacher->cpf, 'label' => false, 'placeholder' => 'CPF']) ?></td>
+                                    <?php else: ?>
+                                        <td><?= h($teacher->cpf) ?></td>
+                                    <?php endif; ?>
                                 </tr>
                                 <tr>
                                     <th><?= __('Carga Horária') ?></th>
-                                    <td><?= $this->Number->format($teacher->workload) ?></td>
+                                    <?php if(isset($loggedUser->teacher) && $loggedUser->teacher->id == $teacher->id): ?>
+                                        <td><?= $this->Form->input('workload', ['default' => $teacher->workload, 'label' => false, 'placeholder' => 'Carga Horária'])  ?></td>
+                                    <?php else: ?>
+                                        <td><?= $this->Number->format($teacher->workload) ?></td>
+                                    <?php endif; ?>
                                 </tr>
                                 <tr>
                                     <th><?= __('Data de Ingresso') ?></th>
-                                    <td><?= h($teacher->entry_date ?
-                                        $teacher->entry_date->i18nFormat('dd/MM/yyyy') : '') ?></td>
+                                    <?php if(isset($loggedUser->teacher) && $loggedUser->teacher->id == $teacher->id): ?>
+                                        <td><?= $this->Form->input('entry_date', ['default' => $teacher->entry_date, 'label' => false, 'placeholder' => 'Data de Ingresso',
+                                            'type' => 'text', 'class' => 'datepicker', 'data-date-format' => 'dd/mm/yyyy']) ?></td>
+                                    <?php else: ?>
+                                        <td><?= h($teacher->entry_date ? $teacher->entry_date->i18nFormat('dd/MM/yyyy') : '') ?></td>
+                                    <?php endif; ?>
                                 </tr>
                                 <tr>
                                     <th><?= __('Data de Nascimento') ?></th>
-                                    <td><?= h($teacher->birth_date ?
-                                        $teacher->birth_date->i18nFormat('dd/MM/yyyy') : '') ?></td>
+                                    <?php if(isset($loggedUser->teacher) && $loggedUser->teacher->id == $teacher->id): ?>
+                                        <td><?= $this->Form->input('birth_date', ['default' => $teacher->birth_date,  'label' => false, 'placeholder' => 'Data de Nascimento',
+                                            'type' => 'text', 'class' => 'datepicker', 'data-date-format' => 'dd/mm/yyyy']) ?></td>
+                                    <?php else: ?>
+                                        <td><?= h($teacher->birth_date ?
+                                            $teacher->birth_date->i18nFormat('dd/MM/yyyy') : '') ?></td>
+                                    <?php endif; ?>
+                                </tr>
+                                <tr>
+                                    <th><?= __('Situação') ?></th>
+                                    <?php if(isset($loggedUser->teacher) && $loggedUser->teacher->id == $teacher->id): ?>
+                                        <td><?= $this->Form->input('situation', ['default' => $teacher->situation, 'label' => false, 'placeholder' => 'Situação']); ?></td>
+                                    <?php else: ?>
+                                        <td><?=  h($teacher->situation) ?></td>
+                                    <?php endif; ?>
+                                </tr>
+                                <tr>
+                                    <th><?= __('Sobre') ?></th>
+                                    <?php if(isset($loggedUser->teacher) && $loggedUser->teacher->id == $teacher->id): ?>
+                                        <td><?= $this->Form->input('about', ['default' => $teacher->about, 'label' => false, 'placeholder' => 'Sobre']); ?></td>
+                                    <?php else: ?>
+                                        <td><?=  h($teacher->about) ?></td>
+                                    <?php endif; ?>
                                 </tr>
                             </table>
                         </div>
@@ -184,7 +243,13 @@
                             <tr>
                                 <td><?= $this->Number->format($knowledgeTeacher->knowledge->id) ?></td>
                                 <td><?= h($knowledgeTeacher->knowledge->name) ?></td>
-                                <td><?= h($knowledgeTeacher->level) ?></td>
+
+                                <?php if(isset($loggedUser->teacher) && $loggedUser->teacher->id == $teacher->id): ?>
+                                    <td><?= $this->Form->input('knowledgeTeacher.level[]', ['default' => $knowledgeTeacher->level, 'label' => false, 'style' => 'width:60px']); ?></td>
+                                <?php else: ?>
+                                    <td><?= h($knowledgeTeacher->level) ?></td>
+                                <?php endif; ?>
+
                                 <td>
                                     <?= $this->Html->link(
                                         '',
@@ -297,3 +362,4 @@
         </div>
     </div>
 </div>
+<?= $this->Form->end() ?>

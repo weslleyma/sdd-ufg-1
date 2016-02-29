@@ -38,14 +38,13 @@ class TeachersController extends AppController
     public function index()
     {
 
-		$this->set('teachers', $this->paginate($this->Teachers->find('all')->contain(['Users'])));
-
-		if (!$this->loggedUser->isCoordinator()) {
-
+		if ($this->loggedUser->canAdmin()) {
+		    $this->set('teachers', $this->paginate($this->Teachers->find('all')->contain(['Users'])));
+        } else {
 			$this->set('teachers', $this->paginate($this->Teachers->find('all')
 				->contain(['Users' ])
-				->innerJoinWith('Users', function($q) {
-					return $q->where(['Users.id' => $this->loggedUser->teacher->id]);
+				->where('Users', function($q) {
+					return $q->where(['Teachers.id' => $this->loggedUser->teacher->id]);
 				})
 			));
 		}
@@ -67,6 +66,35 @@ class TeachersController extends AppController
 			, 'Clazzes.Locals', 'Clazzes.Processes', 'Roles', 'Roles.Knowledges'
 			, 'KnowledgesTeachers', 'KnowledgesTeachers.Teachers', 'KnowledgesTeachers.Knowledges']
         ]);
+
+        if ($teacher->entry_date) {
+            $teacher->entry_date = $teacher->entry_date->i18nFormat('dd/MM/yyyy');
+        }
+        if ($teacher->birth_date) {
+            $teacher->birth_date = $teacher->birth_date->i18nFormat('dd/MM/yyyy');
+        }
+
+        if ($this->request->is(['patch', 'post', 'put'])) {
+            $i = 0;
+            foreach ($this->request->data['knowledgeTeacher']['level'] as $level) {
+                if ($level == 1 || $level == 2 || $level == 3) {
+                    $teacher->knowledges_teachers[$i]->level = $level;
+                }
+                $i++;
+            }
+            $teacher->dirty('knowledges_teachers', true);
+            unset($this->request->data['knowledgeTeacher']);
+
+            $teacher = $this->Teachers->patchEntity($teacher, $this->request->data(), [
+                'associated' => ['Users' => ['validate' => 'default'], 'KnowledgesTeachers']
+            ]);
+
+            if ($this->Teachers->save($teacher)) {
+                $this->Flash->success(__('The teacher has been saved.'));
+            } else {
+                $this->Flash->error(__('The teacher could not be saved. Please, try again.'));
+            }
+        }
 
         $clazzes = TableRegistry::get('Clazzes')->find()->innerJoinWith(
             'Teachers', function ($q) use ($id) {
@@ -161,7 +189,7 @@ class TeachersController extends AppController
 
             $i = 0;
 			foreach ($this->request->data['knowledgeTeacher']['level'] as $level) {
-			    if ($level != '') {
+			    if ($level == 1 || $level == 2 || $level == 3) {
                     $teacher->knowledges_teachers[$i]->level = $level;
 			    }
 			    $i++;
@@ -375,7 +403,7 @@ class TeachersController extends AppController
 
 		return $data->all();
 	}
-        
+
     public function getSubAllocatedTeachers() {
             $table_processes = TableRegistry::get('Processes');
             $processes = $table_processes->find('all')->where(['status' => 'OPEN']);
