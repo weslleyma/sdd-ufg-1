@@ -17,6 +17,8 @@
 <?= debug($level); ?>
 <h1>Oldest entry date:</h1>
 <?= debug($oldestEntryDate); ?>
+<h1>Recovered Clazzes:</h1>
+<?= debug($recoveredClazzes); ?>
 
 <!-- FIRST TABLE -->
 <div class="row">

@@ -383,6 +383,7 @@ class ProcessesController extends AppController
 
         $priority = [];
         $selectedTeacherId = [];
+        $recoveredClazzes = [];
 
         // DEFININDO A PRIORIDADE ENTRE OS CANDIDATOS E TRATANDO QUANDO NÃO HÁ NENHUM CANDIDATO
         foreach ($candidateTeachers as $clazzeId => $teacherInfo){
@@ -398,21 +399,26 @@ class ProcessesController extends AppController
                 }
                 $selectedTeacherId[$clazzeId] = $auxMinWorkloadTeacherId;
                 // PERSISTE COMO ACEITO PARA A TURMA
+                $this->allocateTeacherForTheClazz($clazzeId, $selectedTeacherId[$clazzeId], $recoveredClazzes);
                 // INCREMENTA O CURRENT WORKLOAD DO DOCENTE ACEITO
             } else if (count($teacherInfo) == 1) {
                 // --------- SE TEM SOMENTE UM DOCENTE APTO PRA DAR AQUELA TURMA, ALOCA ELE PRÓPRIO
                 $priority[$clazzeId] = $teacherInfo[0];
                 $selectedTeacherId[$clazzeId] = $teacherInfo[0];
                 // PERSISTE COMO ACEITO PARA A TURMA
+                $this->allocateTeacherForTheClazz($clazzeId, $selectedTeacherId[$clazzeId], $recoveredClazzes);
                 // INCREMENTA O CURRENT WORKLOAD DO DOCENTE ACEITO
             } else {
                 // --------- SE TEM MAIS DE UM DOCENTE APTO PRA DAR AQUELA TURMA, CALCULA A PRIORIDADE ENTRE AQUELES DOCENTES
                 $selectedTeacherId[$clazzeId] = $this->calculateTeacherPriorityForTheClazz($priority, $clazzeId, $teacherInfo, $teachersCurrentWorkload, $conflictedAndUnallocatedClazzes, $subAndSuperAllocatedTeachers);
                 // PERSISTE COMO ACEITO PARA A TURMA
+                $this->allocateTeacherForTheClazz($clazzeId, $selectedTeacherId[$clazzeId], $recoveredClazzes);
                 // INCREMENTA O CURRENT WORKLOAD DO DOCENTE ACEITO
             }
         }
 
+        // Debug
+        $this->set('recoveredClazzes', $recoveredClazzes);
         $this->set('selectedTeacherId', $selectedTeacherId);
         $this->set('candidateTeachers', $candidateTeachers);
         $this->set('priority', $priority);
@@ -497,6 +503,78 @@ class ProcessesController extends AppController
         $this->set('oldestEntryDate', $oldestEntryDateTeacherId);
 
         return $selectedTeacherId;
+    }
+
+    private function allocateTeacherForTheClazz ($clazzeId, $teacherId, &$recoveredClazzes) {
+
+        if ($clazzeId != null && $teacherId != null) {
+
+            // ------------------ PEGANDO AS TABELAS NECESSÁRIAS
+            $table_clazzes_teachers = TableRegistry::get('ClazzesTeachers');
+
+            // ------------------ ENCONTRANDO A CLAZZE
+            $clazz = $this->Processes->Clazzes->get($clazzeId, [
+                'contain' => [
+                    'Subjects'
+                    , 'Subjects.Knowledges'
+                    , 'Subjects.Courses'
+                    , 'ClazzesSchedulesLocals'
+                    , 'ClazzesTeachers.Teachers.Users'
+                ]
+            ]);
+
+            // ------------------ VERIFICANDO QUANTOS INTENTS TEM A CLAZZ
+            // usado somente para debug
+            $recoveredClazzes[$clazzeId] = $clazz;
+
+
+            // ------------------ EXECUTANDO AS QUERIES PARA CADA UM DOS CASOS
+
+            // CASO 1: SE NÃO HOUVER NENHUM INTENT PRA CLASSE - CRIA UM NOVO INTENT E PERSISTE O PROFESSOR ESCOLHIDO
+            if (count($clazz->intents) == 0) {
+                $query = $table_clazzes_teachers->query();
+                $query->insert(['clazz_id', 'teacher_id', 'status'])->values([
+                    'clazz_id' => $clazzeId,
+                    'teacher_id' => $teacherId,
+                    'status' => 'SELECTED'
+                ])->execute();
+            }
+            // CASO 2: SE HOUVER SOMENTE UM INTENT PRA CLASSE - SIMPLESMENTE TROCA ELE DE STATUS PENDING PRA SELECTED
+            else if (count($clazz->intents) == 1) {
+                $query = $table_clazzes_teachers->query();
+                $query->update()
+                    ->set(['status' => 'SELECTED'])
+                    ->where([
+                        'clazz_id' => $clazzeId,
+                        'teacher_id != ' => $teacherId,
+                        'status' => 'PENDING'
+                    ])->execute();
+            }
+            // CASO 3: SE HOUVER MAIS DE UMA INTENT PRA CLASSE - COLOCA UMA DAS INTENTS COMO SELECTED E TODAS AS OUTRAS PASSA PRA REJECTED
+            else {
+                $query = $table_clazzes_teachers->query();
+                $query->update()
+                    ->set(['status' => 'REJECTED'])
+                    ->where([
+                        'clazz_id' => $clazzeId,
+                        'teacher_id != ' => $teacherId,
+                        'status' => 'PENDING'
+                    ])->execute();
+
+                $query = $table_clazzes_teachers->query();
+                $query->delete()->where([
+                    'clazz_id' => $clazzeId,
+                    'teacher_id' => $teacherId
+                ])->execute();
+
+                $query = $table_clazzes_teachers->query();
+                $query->insert(['clazz_id', 'teacher_id', 'status'])->values([
+                    'clazz_id' => $clazzeId,
+                    'teacher_id' => $teacherId,
+                    'status' => 'SELECTED'
+                ])->execute();
+            }
+        }
     }
 
     public function revert()
