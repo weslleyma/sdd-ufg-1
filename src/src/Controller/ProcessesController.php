@@ -357,7 +357,7 @@ class ProcessesController extends AppController
                 foreach ($subAndSuperAllocatedTeachers as $teacherId => $teacherInfo) {
                     foreach ($teacherInfo['knowledges'] as $knowledgeId => $knowledgeLevel) {
                         // Se o núcleo de conhecimento da turma for igual ao núcleo de conhecimento do professor e o mesmo não estiver superalocado, ele pode ministrar
-                        if ( ($clazzeInfo['knowledgeId'] == $knowledgeId) && ($knowledgeLevel != 3) && ($teacherInfo['status'] != 'SUPERALOCADO')){
+                        if ( ($clazzeInfo['knowledgeId'] == $knowledgeId) && ($knowledgeLevel != 3) && ($teacherInfo['status'] != 'SUPERALOCADO') ){
 
                             array_push($aux, $teacherId);
 
@@ -384,18 +384,29 @@ class ProcessesController extends AppController
         $priority = [];
         $selectedTeacherId = [];
 
-        // DEFININDO A PRIORIDADE ENTRE OS CANDIDATOS - A PARTIR DO LEVEL E DA DATA DE ENTRADA DO DOCENTE
+        // DEFININDO A PRIORIDADE ENTRE OS CANDIDATOS E TRATANDO QUANDO NÃO HÁ NENHUM CANDIDATO
         foreach ($candidateTeachers as $clazzeId => $teacherInfo){
             if (empty($teacherInfo)) {
-                // SE NÃO TIVER NENHUM DOCENTE APTO PRA DAR AQUELA MATÉRIA, ALOCA O COM MENOR CURRENT WORKLOAD
+                // --------- SE NÃO TIVER NENHUM DOCENTE APTO PRA DAR AQUELA TURMA, ALOCA O COM MENOR CURRENT WORKLOAD
+                $auxMinWorkload = 9999;
+                $auxMinWorkloadTeacherId = -1;
+                foreach ($teachersCurrentWorkload as $teacherId => $teacherCurrentWorkload) {
+                    if ($teachersCurrentWorkload[$teacherId] < $auxMinWorkload) {
+                        $auxMinWorkload = $teachersCurrentWorkload[$teacherId];
+                        $auxMinWorkloadTeacherId = $teacherId;
+                    }
+                }
+                $selectedTeacherId[$clazzeId] = $auxMinWorkloadTeacherId;
                 // PERSISTE COMO ACEITO PARA A TURMA
                 // INCREMENTA O CURRENT WORKLOAD DO DOCENTE ACEITO
             } else if (count($teacherInfo) == 1) {
+                // --------- SE TEM SOMENTE UM DOCENTE APTO PRA DAR AQUELA TURMA, ALOCA ELE PRÓPRIO
                 $priority[$clazzeId] = $teacherInfo[0];
                 $selectedTeacherId[$clazzeId] = $teacherInfo[0];
                 // PERSISTE COMO ACEITO PARA A TURMA
                 // INCREMENTA O CURRENT WORKLOAD DO DOCENTE ACEITO
             } else {
+                // --------- SE TEM MAIS DE UM DOCENTE APTO PRA DAR AQUELA TURMA, CALCULA A PRIORIDADE ENTRE AQUELES DOCENTES
                 $selectedTeacherId[$clazzeId] = $this->calculateTeacherPriorityForTheClazz($priority, $clazzeId, $teacherInfo, $teachersCurrentWorkload, $conflictedAndUnallocatedClazzes, $subAndSuperAllocatedTeachers);
                 // PERSISTE COMO ACEITO PARA A TURMA
                 // INCREMENTA O CURRENT WORKLOAD DO DOCENTE ACEITO
