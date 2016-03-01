@@ -76,6 +76,11 @@ class CreateClazzes extends AbstractMigration
                 'limit' => 50,
                 'null' => false,
             ])
+            ->addColumn('simulation_id', 'integer', [
+                'default' => null,
+                'limit' => 11,
+                'null' => true,
+            ])
             ->addIndex(
                 [
                     'clazz_id', 'teacher_id'
