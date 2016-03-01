@@ -4,10 +4,15 @@
     <li class="active">Distribuição automática - Página Inicial</li>
 <?php $this->end(); ?>
 
+<h1>Clazzes:</h1>
 <?= debug($clazzes); ?>
+<h1>Teachers:</h1>
 <?= debug($teachers); ?>
+<h1>Conflicted and unallocated clazzes:</h1>
 <?= debug($conflictedAndUnallocatedClazzes); ?>
+<h1>Teachers current workload:</h1>
 <?= debug($teachersCurrentWorkload); ?>
+<h1>Sub and suoper allocated teachers:</h1>
 <?= debug($subAndSuperAllocatedTeachers); ?>
 
 <!-- FIRST TABLE -->

@@ -357,7 +357,7 @@ class ProcessesController extends AppController
                 foreach ($subAndSuperAllocatedTeachers as $teacherId => $teacherInfo) {
                     foreach ($teacherInfo['knowledges'] as $knowledgeId => $knowledgeLevel) {
                         // Se o núcleo de conhecimento da turma for igual ao núcleo de conhecimento do professor e o mesmo não estiver superalocado, ele pode ministrar
-                        if (($clazzeInfo['knowledgeId'] == $knowledgeId) && ($teacherInfo['status'] != 'SUPERALOCADO')){
+                        if ( ($clazzeInfo['knowledgeId'] == $knowledgeId) && ($knowledgeLevel != 3) && ($teacherInfo['status'] != 'SUPERALOCADO')){
 
                             array_push($aux, $teacherId);
 
@@ -367,42 +367,55 @@ class ProcessesController extends AppController
 
                 // Setando o mapa $candidateTeachers
                 $candidateTeachers[$clazzeId] = $aux;
-
             }
-            else // PASSO 2 - TRATANDO AS TURMAS COM MAIS DE UMA INTENT (CONFLITO)
+            else // PASSO 2 - TRATANDO AS TURMAS COM UMA OU MAIS DE UMA INTENT
             {
+                $aux = array();
 
+                foreach ($clazzeInfo['intents'] as $intent) {
+                    array_push($aux, $intent->teacher_id);
+                }
+
+                // Setando o mapa $candidateTeachers
+                $candidateTeachers[$clazzeId] = $aux;
             }
-
         }
+
+        $priority = [];
+        $selectedTeacherId = [];
 
         // DEFININDO A PRIORIDADE ENTRE OS CANDIDATOS - A PARTIR DO LEVEL E DA DATA DE ENTRADA DO DOCENTE
         foreach ($candidateTeachers as $clazzeId => $teacherInfo){
             if (empty($teacherInfo)) {
-
-            } else if (count($teacherInfo) == 1) {
+                // SE NÃO TIVER NENHUM DOCENTE APTO PRA DAR AQUELA MATÉRIA, ALOCA O COM MENOR CURRENT WORKLOAD
                 // PERSISTE COMO ACEITO PARA A TURMA
+                // INCREMENTA O CURRENT WORKLOAD DO DOCENTE ACEITO
+            } else if (count($teacherInfo) == 1) {
+                $priority[$clazzeId] = $teacherInfo[0];
+                $selectedTeacherId[$clazzeId] = $teacherInfo[0];
+                // PERSISTE COMO ACEITO PARA A TURMA
+                // INCREMENTA O CURRENT WORKLOAD DO DOCENTE ACEITO
             } else {
-                $selectedTeacherId = $this->calculateTeacherPriorityForTheClazz($clazzeId, $teacherInfo, $teachersCurrentWorkload, $conflictedAndUnallocatedClazzes, $subAndSuperAllocatedTeachers);
-                $this->set('selectedTeacherId', $selectedTeacherId);
-
-                // PERSISTE O DOCENTE COM MÍNIMUMWORKLOAD COMO ACEITO PARA A TURMA
+                $selectedTeacherId[$clazzeId] = $this->calculateTeacherPriorityForTheClazz($priority, $clazzeId, $teacherInfo, $teachersCurrentWorkload, $conflictedAndUnallocatedClazzes, $subAndSuperAllocatedTeachers);
+                // PERSISTE COMO ACEITO PARA A TURMA
+                // INCREMENTA O CURRENT WORKLOAD DO DOCENTE ACEITO
             }
         }
 
-
+        $this->set('selectedTeacherId', $selectedTeacherId);
         $this->set('candidateTeachers', $candidateTeachers);
+        $this->set('priority', $priority);
     }
 
-    private function calculateTeacherPriorityForTheClazz($clazzeId, $teacherInfo, $teachersCurrentWorkload, $conflictedAndUnallocatedClazzes, $subAndSuperAllocatedTeachers) {
+    private function calculateTeacherPriorityForTheClazz(&$priority, $clazzeId, $teacherInfo, $teachersCurrentWorkload, $conflictedAndUnallocatedClazzes, $subAndSuperAllocatedTeachers) {
 
         // Professor com maior ponto, é alocado pra turma
         // Key = teacherId e Value=Priority for the clazz
-        $priority = [];
+        $priority[$clazzeId] = [];
 
         // INICIALIZANDO O VETOR DE PRIORIDADES
         foreach ($teacherInfo as $teacherId) {
-            $priority[$teacherId] = 0;
+            $priority[$clazzeId][$teacherId] = 0;
         }
 
         // Valores de prioridade:
@@ -415,7 +428,7 @@ class ProcessesController extends AppController
         $minWorkload = 9999;
 
         $bestLevelTeacherId = null;
-        $bestLevel = -1;
+        $bestLevel = 4;
 
         $oldestEntryDateTeacherId = null;
         $oldestEntryDate = new Time('now', 'UTC');
@@ -429,7 +442,7 @@ class ProcessesController extends AppController
             }
 
             $knowledgeId = $conflictedAndUnallocatedClazzes[$clazzeId]['knowledgeId'];
-            if ($subAndSuperAllocatedTeachers[$teacherId]['knowledges'][$knowledgeId] > $bestLevel) {
+            if ($subAndSuperAllocatedTeachers[$teacherId]['knowledges'][$knowledgeId] < $bestLevel) {
                 $bestLevel = $subAndSuperAllocatedTeachers[$teacherId]['knowledges'][$knowledgeId];
                 $bestLevelTeacherId = $teacherId;
             }
@@ -441,24 +454,36 @@ class ProcessesController extends AppController
         }
 
         // Vasculhando hashmap de prioridades e selecionando o professor a ser retornado
-        $priority[$minWorkloadTeacherId] += 1;
-        $priority[$bestLevelTeacherId] += 1;
-        $priority[$oldestEntryDateTeacherId] += 1;
+        $priority[$clazzeId][$minWorkloadTeacherId] += 1;
+        $priority[$clazzeId][$bestLevelTeacherId] += 1;
+        $priority[$clazzeId][$oldestEntryDateTeacherId] += 1;
 
         $selectedTeacherId = -1;
         $maximumPoints = -1;
 
-        foreach ($priority as $teacherId => $teacherPoints) {
+        foreach ($priority[$clazzeId] as $teacherId => $teacherPoints) {
             if ($teacherPoints > $maximumPoints) {
                 $selectedTeacherId = $teacherId;
                 $maximumPoints = $teacherPoints;
             }
         }
 
-        $this->set('priority', $priority);
+        // SE CADA PONTO FOR ATRIBUIDO A UM DOCENTE DIFERENTE (EMPATE) - PEGA O COM MENOR CARGA HORÁRIA
+        $count = 0;
+        foreach ($priority[$clazzeId] as $teacherId => $teacherPoints) {
+            if ($priority[$clazzeId][$teacherId] == 1) {
+                $count++;
+            }
+        }
+
+        if($count == count($priority[$clazzeId])){
+            $selectedTeacherId = $minWorkloadTeacherId;
+        }
+
+        //$this->set('priority', $priority[$clazzeId]);
         $this->set('workload', $minWorkloadTeacherId);
         $this->set('level', $bestLevelTeacherId);
-        $this->set('oldestEntryDate', $oldestEntryDate);
+        $this->set('oldestEntryDate', $oldestEntryDateTeacherId);
 
         return $selectedTeacherId;
     }
