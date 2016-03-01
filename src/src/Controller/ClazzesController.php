@@ -546,7 +546,7 @@ class ClazzesController extends AppController
 								'clazz_id' => $clazz_id,
 								'teacher_id' => $teacher_id
 						])->execute();
-						
+
 						$query->update()
 								->set(['status' => 'REJECTED'])
 								->where([
@@ -707,7 +707,7 @@ class ClazzesController extends AppController
 					break;
 				}
 			}
-			
+
 			foreach ($data as $file) {
 				if ($file['type'] != 'application/pdf') {
 					$this->Flash->error(__('Um ou mais arquivos têm extensão inválida (diferente de .pdf). Verifique e tente novamente. ' .
