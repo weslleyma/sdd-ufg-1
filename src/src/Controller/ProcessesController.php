@@ -533,20 +533,21 @@ class ProcessesController extends AppController
             // CASO 1: SE NÃO HOUVER NENHUM INTENT PRA CLASSE - CRIA UM NOVO INTENT E PERSISTE O PROFESSOR ESCOLHIDO
             if (count($clazz->intents) == 0) {
                 $query = $table_clazzes_teachers->query();
-                $query->insert(['clazz_id', 'teacher_id', 'status'])->values([
+                $query->insert(['clazz_id', 'teacher_id', 'status', 'simulation_id'])->values([
                     'clazz_id' => $clazzeId,
                     'teacher_id' => $teacherId,
-                    'status' => 'SELECTED'
+                    'status' => 'SELECTED',
+                    'simulation_id' => $clazz->process_id
                 ])->execute();
             }
             // CASO 2: SE HOUVER SOMENTE UM INTENT PRA CLASSE - SIMPLESMENTE TROCA ELE DE STATUS PENDING PRA SELECTED
             else if (count($clazz->intents) == 1) {
                 $query = $table_clazzes_teachers->query();
                 $query->update()
-                    ->set(['status' => 'SELECTED'])
+                    ->set(['status' => 'SELECTED', 'simulation_id' => $clazz->process_id])
                     ->where([
                         'clazz_id' => $clazzeId,
-                        'teacher_id != ' => $teacherId,
+                        'teacher_id' => $teacherId,
                         'status' => 'PENDING'
                     ])->execute();
             }
@@ -554,7 +555,7 @@ class ProcessesController extends AppController
             else {
                 $query = $table_clazzes_teachers->query();
                 $query->update()
-                    ->set(['status' => 'REJECTED'])
+                    ->set(['status' => 'REJECTED', 'simulation_id' => $clazz->process_id])
                     ->where([
                         'clazz_id' => $clazzeId,
                         'teacher_id != ' => $teacherId,
@@ -562,17 +563,14 @@ class ProcessesController extends AppController
                     ])->execute();
 
                 $query = $table_clazzes_teachers->query();
-                $query->delete()->where([
-                    'clazz_id' => $clazzeId,
-                    'teacher_id' => $teacherId
-                ])->execute();
+                $query->update()
+                    ->set(['status' => 'SELECTED', 'simulation_id' => $clazz->process_id])
+                    ->where([
+                        'clazz_id' => $clazzeId,
+                        'teacher_id' => $teacherId,
+                        'status' => 'PENDING'
+                    ])->execute();
 
-                $query = $table_clazzes_teachers->query();
-                $query->insert(['clazz_id', 'teacher_id', 'status'])->values([
-                    'clazz_id' => $clazzeId,
-                    'teacher_id' => $teacherId,
-                    'status' => 'SELECTED'
-                ])->execute();
             }
         }
     }
