@@ -207,7 +207,7 @@ class ProcessesController extends AppController
 
     public function distribute($processId = null)
     {
-        $clazzes = $this->Processes->Clazzes->find('all')->contain(['ClazzesTeachers.Teachers.Users', 'Locals', 'Subjects']);
+        $clazzes = $this->Processes->Clazzes->find('all')->where(['process_id' => $processId])->contain(['ClazzesTeachers.Teachers.Users', 'Locals', 'Subjects']);
         $clazzes = $this->paginate($clazzes);
         $this->set('clazzes', $clazzes);
 
@@ -342,7 +342,7 @@ class ProcessesController extends AppController
 
     public function simulate($processId = null)
     {
-        $clazzes = $this->Processes->Clazzes->find('all')->contain(['ClazzesTeachers.Teachers.Users', 'Locals', 'Subjects']);
+        $clazzes = $this->Processes->Clazzes->find('all')->where(['process_id' => $processId])->contain(['ClazzesTeachers.Teachers.Users', 'Locals', 'Subjects']);
         $clazzes = $this->paginate($clazzes);
 
         $teachers = $this->Processes->Clazzes->ClazzesTeachers->Teachers->find('all')->contain(['Users', 'KnowledgesTeachers']);
