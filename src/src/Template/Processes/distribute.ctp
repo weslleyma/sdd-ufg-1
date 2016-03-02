@@ -105,7 +105,7 @@
 	<div class="col-xs-12 text-center">
 		<?= $this->Html->link(
             '<i class="fa fa-magic"></i> ' . __('Simular Distribuição Automática'),
-            ['action' => 'simulate'],
+            ['action' => 'simulate', $processId],
             [
                 'escape' => false,
                 'class' => 'btn btn-sm btn-primary'

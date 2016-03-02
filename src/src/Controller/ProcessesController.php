@@ -205,7 +205,7 @@ class ProcessesController extends AppController
         $this->response->body(json_encode($clazzes, JSON_PRETTY_PRINT));
     }
 
-    public function distribute()
+    public function distribute($processId = null)
     {
         $clazzes = $this->Processes->Clazzes->find('all')->contain(['ClazzesTeachers.Teachers.Users', 'Locals', 'Subjects']);
         $clazzes = $this->paginate($clazzes);
@@ -231,6 +231,7 @@ class ProcessesController extends AppController
         $subAndSuperAllocatedTeachers = $this->getSubAndSuperAllocatedTeachers($teachers, $clazzes);
         $this->set('subAndSuperAllocatedTeachers', $subAndSuperAllocatedTeachers);
 
+        $this->set('processId', $processId);
     }
 
     private function getAllocatedAndNonConflictingClazzes($clazzes) {
@@ -339,7 +340,7 @@ class ProcessesController extends AppController
         return $subAndSuperAllocatedTeachers;
     }
 
-    public function simulate()
+    public function simulate($processId = null)
     {
         $clazzes = $this->Processes->Clazzes->find('all')->contain(['ClazzesTeachers.Teachers.Users', 'Locals', 'Subjects']);
         $clazzes = $this->paginate($clazzes);
@@ -423,7 +424,7 @@ class ProcessesController extends AppController
             $teachersCurrentWorkload[$selectedTeacherId[$clazzeId]] += $conflictedAndUnallocatedClazzes[$clazzeId]['totalSubjectWorkload'];
         }
 
-        $distributedClazzes = $this->getDistributedClazzes(1);
+        $distributedClazzes = $this->getDistributedClazzes($processId);
 
         // Debug
         $this->set('recoveredClazzes', $recoveredClazzes);
@@ -601,6 +602,13 @@ class ProcessesController extends AppController
         }
 
         return $distributedClazzesIntents;
+    }
+
+    public function preDistribute()
+    {
+        $openProcesses = $this->Processes->find('all')->where(['status' => 'OPENED']);
+        $this->set('openProcesses', $this->paginate($openProcesses));
+        $this->set('_serialize', ['openProcesses']);
     }
 
     public function revert()
