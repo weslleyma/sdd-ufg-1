@@ -612,13 +612,22 @@ class ProcessesController extends AppController
         $this->set('_serialize', ['openProcesses']);
     }
 
-    public function revert()
+    public function preRevert()
     {
-        $this->paginate = [
-            'contain' => []
-        ];
-        $this->set('processes', $this->paginate($this->Processes));
-        $this->set('_serialize', ['processes']);
+        $openProcesses = $this->Processes->find('all')->where(['status' => 'OPENED']);
+        $this->set('openProcesses', $this->paginate($openProcesses));
+        $this->set('_serialize', ['openProcesses']);
+    }
+
+    public function revert($processId = null)
+    {
+        $distributedClazzes = $this->getDistributedClazzes($processId);
+        $this->set('distributedClazzes', $distributedClazzes);
+        $this->set('processId', $processId);
+    }
+
+    public function effectivateRevert($processId = null) {
+
     }
 
 
@@ -664,7 +673,6 @@ class ProcessesController extends AppController
         $this->set(compact('$process'));
         $this->set('_serialize', ['$process']);
     }
-
 
     public function reuseProcess($id)
     {
