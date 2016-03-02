@@ -16,9 +16,10 @@ use Cake\Event\Event;
 
 /**
  * TODO
+ * - Criar tela para seleção de processo antes da distribuição automática
  * - Incrementa currentWorkload (OK)
  * - Reverter processo
- * - Mostrar alocadas dinamicamente
+ * - Mostrar alocadas dinamicamente (OK)
  * - Testar até deadline do projeto
  */
 
@@ -237,7 +238,7 @@ class ProcessesController extends AppController
 
         foreach ($clazzes as $clazz) {
             foreach ($clazz->intents as $intent) {
-                if ($intent->status == 'SELECTED') {
+                if ($intent->status == 'SELECTED' && $intent->simulation_id == null) {
                     $allocatedAndNonConflictingClazzes[$clazz->id] = ['subjectName' => $clazz->subject->name,
                         'teacherRegistry' => $intent->teacher->registry, 'userName' => $intent->teacher->user->name];
                     foreach ($clazz->locals as $local) {
@@ -422,12 +423,15 @@ class ProcessesController extends AppController
             $teachersCurrentWorkload[$selectedTeacherId[$clazzeId]] += $conflictedAndUnallocatedClazzes[$clazzeId]['totalSubjectWorkload'];
         }
 
+        $distributedClazzes = $this->getDistributedClazzes(1);
+
         // Debug
         $this->set('recoveredClazzes', $recoveredClazzes);
         $this->set('selectedTeacherId', $selectedTeacherId);
         $this->set('candidateTeachers', $candidateTeachers);
         $this->set('priority', $priority);
         $this->set('teachersCurrentWorkload', $teachersCurrentWorkload);
+        $this->set('distributedClazzes', $distributedClazzes);
     }
 
     private function calculateTeacherPriorityForTheClazz(&$priority, $clazzeId, $teacherInfo, $teachersCurrentWorkload, $conflictedAndUnallocatedClazzes, $subAndSuperAllocatedTeachers) {
@@ -503,7 +507,6 @@ class ProcessesController extends AppController
             $selectedTeacherId = $minWorkloadTeacherId;
         }
 
-        //$this->set('priority', $priority[$clazzeId]);
         $this->set('workload', $minWorkloadTeacherId);
         $this->set('level', $bestLevelTeacherId);
         $this->set('oldestEntryDate', $oldestEntryDateTeacherId);
@@ -579,6 +582,25 @@ class ProcessesController extends AppController
 
             }
         }
+    }
+
+    private function getDistributedClazzes($processId)
+    {
+        $distributedClazzesIntents = $this->Processes->Clazzes->ClazzesTeachers->find('all')->where(['simulation_id' => $processId])->contain(['Teachers.Users', 'Clazzes.Locals', 'Clazzes.Subjects']);
+        $distributedClazzesIntents = $this->paginate($distributedClazzesIntents);
+
+        foreach ($distributedClazzesIntents as $clazzIntent) {
+            $clazzIntent['subjectName'] = $clazzIntent->clazze->subject->name;
+            $clazzIntent['teacherRegistry'] = $clazzIntent->teacher->registry;
+            $clazzIntent['userName'] = $clazzIntent->teacher->user->name;
+            $clazzIntent['status'] = $clazzIntent->status;
+            foreach ($clazzIntent->clazze->locals as $local) {
+                $clazzIntent['locals'] = $local->name . ' [' . $local->address . ']';
+                $clazzIntent['schedules'] = $local->_joinData->schedule_id;
+            }
+        }
+
+        return $distributedClazzesIntents;
     }
 
     public function revert()
@@ -677,11 +699,6 @@ class ProcessesController extends AppController
             $this->Flash->error(__('Ocorreu um erro ao tentar clonar o Processo. Por favor, tente novamente.'));
         }
         return $this->redirect(['action' => 'index']);
-
-    }
-
-    private function sub_or_super_allocated_teachers()
-    {
 
     }
 

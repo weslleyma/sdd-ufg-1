@@ -21,6 +21,8 @@
 <?= debug($recoveredClazzes); ?>
 <h1>Teachers Current Workload:</h1>
 <?= debug($teachersCurrentWorkload); ?>
+<h1>Distributed clazzes:</h1>
+<?= debug($distributedClazzes); ?>
 
 <!-- FIRST TABLE -->
 <div class="row">
@@ -51,9 +53,21 @@
                             <th><?= $this->Paginator->sort('docente', __('Docente')) ?></th>
 							<th><?= $this->Paginator->sort('local', __('Local')) ?></th>
 							<th><?= $this->Paginator->sort('codHorario', __('#CodHorario')) ?></th>
+							<th><?= $this->Paginator->sort('status', __('Status')) ?></th>
                         </tr>
                     </thead>
                     <tbody>
+                    <?php foreach ($distributedClazzes as $clazzId => $clazzInfo): ?>
+                        <tr>
+                            <td><?= $this->Number->format($clazzId) ?></td>
+                            <td><?= h($clazzInfo['subjectName']) ?></td>
+                            <td><?= h($clazzInfo['teacherRegistry']) ?></td>
+                            <td><?= h($clazzInfo['userName']) ?></td>
+                            <td><?= h($clazzInfo['locals']) ?></td>
+                            <td><?= h($clazzInfo['schedules']) ?></td>
+                            <td><?= h($clazzInfo['status']) ?></td>
+                        </tr>
+                    <?php endforeach; ?>
                     </tbody>
                 </table>
             </div>
