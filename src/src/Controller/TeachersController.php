@@ -96,11 +96,23 @@ class TeachersController extends AppController
             }
         }
 
-        $clazzes = TableRegistry::get('Clazzes')->find()->innerJoinWith(
-            'Teachers', function ($q) use ($id) {
-                return $q->where(['Teachers.id' => $id]);
-            }
-        );
+        $currentProcess = TableRegistry::get('Processes')->find('all', [
+            'conditions' => ['Processes.initial_date <=' => new \DateTime()],
+            'order' => ['Processes.initial_date' => 'DESC']
+        ])->first();
+
+        $clazzes = TableRegistry::get('Clazzes')->find()
+                ->innerJoinWith(
+                    'Teachers', function ($q) use ($id) {
+                        return $q->where(['Teachers.id' => $id]);
+                    }
+                )
+                ->innerJoinWith(
+                      'Processes', function ($q) use ($currentProcess) {
+                          return $q->where(['Processes.id' => $currentProcess->id, 'Processes.status != ' => 'CANCELLED']);
+                      }
+                  )
+                ->contain(['ClazzesSchedulesLocals.Locals', 'ClazzesSchedulesLocals.Schedules'])->all();
 
         $scheduleLocals = [];
         foreach ($clazzes as $clazze) {
