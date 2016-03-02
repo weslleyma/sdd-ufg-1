@@ -59,7 +59,7 @@
                     <tbody>
                     <?php foreach ($distributedClazzes as $clazzId => $clazzInfo): ?>
                         <tr>
-                            <td><?= $this->Number->format($clazzId) ?></td>
+                            <td><?= $this->Number->format($clazzInfo['clazzeId']) ?></td>
                             <td><?= h($clazzInfo['subjectName']) ?></td>
                             <td><?= h($clazzInfo['teacherRegistry']) ?></td>
                             <td><?= h($clazzInfo['userName']) ?></td>

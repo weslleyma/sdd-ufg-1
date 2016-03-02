@@ -591,6 +591,7 @@ class ProcessesController extends AppController
         $distributedClazzesIntents = $this->paginate($distributedClazzesIntents);
 
         foreach ($distributedClazzesIntents as $clazzIntent) {
+            $clazzIntent['clazzeId'] = $clazzIntent->clazz_id;
             $clazzIntent['subjectName'] = $clazzIntent->clazze->subject->name;
             $clazzIntent['teacherRegistry'] = $clazzIntent->teacher->registry;
             $clazzIntent['userName'] = $clazzIntent->teacher->user->name;
