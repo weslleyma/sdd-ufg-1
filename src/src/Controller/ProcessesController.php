@@ -13,6 +13,15 @@ use Cake\Event\Event;
  *
  * @property \App\Model\Table\ProcessesTable $Processes
  */
+
+/**
+ * TODO
+ * - Incrementa currentWorkload (OK)
+ * - Reverter processo
+ * - Mostrar alocadas dinamicamente
+ * - Testar até deadline do projeto
+ */
+
 class ProcessesController extends AppController
 {
 
@@ -252,7 +261,7 @@ class ProcessesController extends AppController
                 $conflictedAndUnallocatedClazzes[$clazz->id]['subjectId'] = $clazz->subject->id;
                 $conflictedAndUnallocatedClazzes[$clazz->id]['subjectName'] = $clazz->subject->name;
                 $conflictedAndUnallocatedClazzes[$clazz->id]['knowledgeId'] = $clazz->subject->knowledge_id;
-                $conflictedAndUnallocatedClazzes[$clazz->id]['totalSubjectWorkload'] = ($clazz->subject->theoretical_workload + $clazz->subject->practical_workload);
+                $conflictedAndUnallocatedClazzes[$clazz->id]['totalSubjectWorkload'] = ($clazz->subject->theoretical_workload + $clazz->subject->practical_workload) / 16;
                 $conflictedAndUnallocatedClazzes[$clazz->id]['intents'] = $clazz->intents;
 
             }
@@ -262,7 +271,7 @@ class ProcessesController extends AppController
                     $conflictedAndUnallocatedClazzes[$clazz->id]['subjectId'] = $clazz->subject->id;
                     $conflictedAndUnallocatedClazzes[$clazz->id]['subjectName'] = $clazz->subject->name;
                     $conflictedAndUnallocatedClazzes[$clazz->id]['knowledgeId'] = $clazz->subject->knowledge_id;
-                    $conflictedAndUnallocatedClazzes[$clazz->id]['totalSubjectWorkload'] = ($clazz->subject->theoretical_workload + $clazz->subject->practical_workload);
+                    $conflictedAndUnallocatedClazzes[$clazz->id]['totalSubjectWorkload'] = ($clazz->subject->theoretical_workload + $clazz->subject->practical_workload) / 16;
                     $conflictedAndUnallocatedClazzes[$clazz->id]['intents'] = $clazz->intents;
 
                 }
@@ -288,7 +297,7 @@ class ProcessesController extends AppController
                     if ($teacher->id == $intent->teacher_id) {
 
                         // Pega a soma da carga prática e teórica da disciplina
-                        $sumTheoreticalPratical = ($clazz->subject->theoretical_workload + $clazz->subject->practical_workload)/16;
+                        $sumTheoreticalPratical = ($clazz->subject->theoretical_workload + $clazz->subject->practical_workload) / 16;
 
                         // Pega a quantidade atual de horas que o professor já dá de aulas
                         $currentWorkload = $teachersCurrentWorkload[$teacher->id];
@@ -398,23 +407,19 @@ class ProcessesController extends AppController
                     }
                 }
                 $selectedTeacherId[$clazzeId] = $auxMinWorkloadTeacherId;
-                // PERSISTE COMO ACEITO PARA A TURMA
-                $this->allocateTeacherForTheClazz($clazzeId, $selectedTeacherId[$clazzeId], $recoveredClazzes);
-                // INCREMENTA O CURRENT WORKLOAD DO DOCENTE ACEITO
             } else if (count($teacherInfo) == 1) {
                 // --------- SE TEM SOMENTE UM DOCENTE APTO PRA DAR AQUELA TURMA, ALOCA ELE PRÓPRIO
                 $priority[$clazzeId] = $teacherInfo[0];
                 $selectedTeacherId[$clazzeId] = $teacherInfo[0];
-                // PERSISTE COMO ACEITO PARA A TURMA
-                $this->allocateTeacherForTheClazz($clazzeId, $selectedTeacherId[$clazzeId], $recoveredClazzes);
-                // INCREMENTA O CURRENT WORKLOAD DO DOCENTE ACEITO
             } else {
                 // --------- SE TEM MAIS DE UM DOCENTE APTO PRA DAR AQUELA TURMA, CALCULA A PRIORIDADE ENTRE AQUELES DOCENTES
                 $selectedTeacherId[$clazzeId] = $this->calculateTeacherPriorityForTheClazz($priority, $clazzeId, $teacherInfo, $teachersCurrentWorkload, $conflictedAndUnallocatedClazzes, $subAndSuperAllocatedTeachers);
-                // PERSISTE COMO ACEITO PARA A TURMA
-                $this->allocateTeacherForTheClazz($clazzeId, $selectedTeacherId[$clazzeId], $recoveredClazzes);
-                // INCREMENTA O CURRENT WORKLOAD DO DOCENTE ACEITO
             }
+
+            // PERSISTE COMO ACEITO PARA A TURMA
+            $this->allocateTeacherForTheClazz($clazzeId, $selectedTeacherId[$clazzeId], $recoveredClazzes);
+            // INCREMENTA O CURRENT WORKLOAD DO DOCENTE ACEITO
+            $teachersCurrentWorkload[$selectedTeacherId[$clazzeId]] += $conflictedAndUnallocatedClazzes[$clazzeId]['totalSubjectWorkload'];
         }
 
         // Debug
@@ -422,6 +427,7 @@ class ProcessesController extends AppController
         $this->set('selectedTeacherId', $selectedTeacherId);
         $this->set('candidateTeachers', $candidateTeachers);
         $this->set('priority', $priority);
+        $this->set('teachersCurrentWorkload', $teachersCurrentWorkload);
     }
 
     private function calculateTeacherPriorityForTheClazz(&$priority, $clazzeId, $teacherInfo, $teachersCurrentWorkload, $conflictedAndUnallocatedClazzes, $subAndSuperAllocatedTeachers) {

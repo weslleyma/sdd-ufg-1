@@ -19,6 +19,8 @@
 <?= debug($oldestEntryDate); ?>
 <h1>Recovered Clazzes:</h1>
 <?= debug($recoveredClazzes); ?>
+<h1>Teachers Current Workload:</h1>
+<?= debug($teachersCurrentWorkload); ?>
 
 <!-- FIRST TABLE -->
 <div class="row">
