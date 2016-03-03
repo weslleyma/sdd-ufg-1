@@ -52,6 +52,9 @@ class TeachersTable extends Table
             'targetForeignKey' => 'knowledge_id',
             'joinTable' => 'knowledges_teachers'
         ]);
+        $this->hasMany('KnowledgesTeachers', [
+            'foreignKey' => 'teacher_id'
+        ]);
 
         $this->belongsTo('Users', [
             'foreignKey' => 'user_id'
@@ -184,28 +187,28 @@ class TeachersTable extends Table
 		return $this
 			->find('all')
 			->contain([
-				'Knowledges' => function($q) {
+				'KnowledgesTeachers' => function($q) {
 					return $q->select(['id']);
 				}
 			])
 			->hydrate(false)->toArray();
 	}
-    
+
     public function getSubAllocated(Process $process) {
 
         $connection = ConnectionManager::get('default');
         $sql = "
-            select 
+            select
     (select users.name from users where users.id = t.user_id) name,
     t.workload,
-     (select COALESCE(SUM(subject_workload), 0) from (select c.id, COALESCE(SUM(s.theoretical_workload)+SUM(s.practical_workload),0) subject_workload from 
+     (select COALESCE(SUM(subject_workload), 0) from (select c.id, COALESCE(SUM(s.theoretical_workload)+SUM(s.practical_workload),0) subject_workload from
     (clazzes c inner join subjects s on s.id = c.subject_id) group by c.id) ch inner join clazzes_teachers ct on ct.clazz_id = ch.id where ct.teacher_id = t.id) as subject_workload,
     clazzes.process_id
 from teachers t
 left join (clazzes_teachers inner join clazzes on clazzes.id = clazzes_teachers.clazz_id) on clazzes_teachers.teacher_id = t.id
-where (t.workload - (select COALESCE(SUM(subject_workload), 0) from (select c.id, COALESCE(SUM(s.theoretical_workload)+SUM(s.practical_workload),0) subject_workload from 
+where (t.workload - (select COALESCE(SUM(subject_workload), 0) from (select c.id, COALESCE(SUM(s.theoretical_workload)+SUM(s.practical_workload),0) subject_workload from
     (clazzes c inner join subjects s on s.id = c.subject_id) group by c.id) ch inner join clazzes_teachers ct on ct.clazz_id = ch.id where ct.teacher_id = t.id)) > 0 and (clazzes.process_id is null or clazzes.process_id = :id)";
-        
+
         $results = $connection->execute($sql,[ "id" => $process->id])->fetchAll('assoc');
         return $results;
     }
