@@ -88,7 +88,7 @@ class ClazzesController extends AppController
         $clazzes = $this->Clazzes->findByFilters($this->request->query);
 
         $this->set('isFiltered', !empty($clazzes->__debugInfo()['params']));
-        $this->set('status', ['' => __('[Selecione]'), 'OPENED' => __('Aberto'), 'CONFLICT' => _('Em conflito'), 'CLOSED' => __('Fechado')]);
+        $this->set('status', ['' => __('[Selecione]'), 'OPENED' => __('Aberto'), 'CONFLICT' => __('Em conflito'), 'CLOSED' => __('Fechado')]);
         $this->set('subjects', array_replace([0 => __('[Selecione]')], $this->Clazzes->Subjects->find('list')->toArray()));
         $this->set('processes', array_replace([0 => __('[Selecione]')], $this->Clazzes->Processes->find('list')->toArray()));
         $this->set('knowledges', array_replace([0 => __('[Selecione]')], $this->Clazzes->Subjects->Knowledges->find('list')->toArray()));
@@ -484,6 +484,7 @@ class ClazzesController extends AppController
 				, 'Subjects.Knowledges'
 				, 'Subjects.Courses'
 				, 'ClazzesSchedulesLocals'
+				, 'ClazzesTeachers'
 			]
         ]);
 
@@ -511,7 +512,8 @@ class ClazzesController extends AppController
 							->set(['status' => 'REJECTED'])
 							->where([
 							'clazz_id' => $clazz_id,
-							'teacher_id != ' => $teacher_id
+							'teacher_id != ' => $teacher_id,
+							'status' => 'PENDING'
 					])->execute();
 
 					$query = $table_clazzes_teachers->query();
@@ -536,12 +538,30 @@ class ClazzesController extends AppController
 					die();
 				} else if ($teacher_id != null && $clazz_id != null && $allocate == 'deallocate') {
 
-					$query = $table_clazzes_teachers->query();
-					$query->update()
-							->set(['status' => 'PENDING'])
-							->where([
-							'clazz_id' => $clazz_id
-					])->execute();
+					if (count($clazz->selectedTeachersIds) >= 1) {
+						$query = $table_clazzes_teachers->query();
+						$query->update()
+								->set(['status' => 'REJECTED'])
+								->where([
+								'clazz_id' => $clazz_id,
+								'teacher_id' => $teacher_id
+						])->execute();
+
+						$query->update()
+								->set(['status' => 'REJECTED'])
+								->where([
+								'clazz_id' => $clazz_id,
+								'status' => 'PENDING'
+						])->execute();
+					} else {
+						$query = $table_clazzes_teachers->query();
+						$query->update()
+								->set(['status' => 'PENDING'])
+								->where([
+								'clazz_id' => $clazz_id,
+								'status != ' => 'SELECTED'
+						])->execute();
+					}
 
 					if ($query) {
 						echo 'success';
@@ -677,6 +697,7 @@ class ClazzesController extends AppController
 
 			$data = $this->request->data;
 			$invalidNames = false;
+			$invalidExt = false;
 
 			foreach ($data as $file) {
 				if (!$this->Clazzes->checkName($file['name'])) {
@@ -687,9 +708,18 @@ class ClazzesController extends AppController
 				}
 			}
 
+			foreach ($data as $file) {
+				if ($file['type'] != 'application/pdf') {
+					$this->Flash->error(__('Um ou mais arquivos têm extensão inválida (diferente de .pdf). Verifique e tente novamente. ' .
+							'(Arquivo inválido: ' . $file['name'] .  ')'));
+					$invalidExt = true;
+					break;
+				}
+			}
+
 			$error = false;
 
-			if (!$invalidNames) {
+			if (!$invalidNames && !$invalidExt) {
 				foreach ($data as $file) {
 
 					if (!move_uploaded_file($file['tmp_name'], $dir->pwd() . DS . $file['name'])) {
@@ -700,7 +730,7 @@ class ClazzesController extends AppController
 				}
 			}
 
-			if (!$invalidNames && !$error) {
+			if (!$invalidNames && !$invalidExt && !$error) {
 				$this->Flash->success(__('Arquivos de Finalização de Turma salvos com sucesso!'));
 				return $this->redirect(['action' => 'index']);
 			}
