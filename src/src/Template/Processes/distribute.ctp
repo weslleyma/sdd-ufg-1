@@ -4,7 +4,7 @@
     <li class="active">Distribuição automática - Página Inicial</li>
 <?php $this->end(); ?>
 
-<h1>Clazzes:</h1>
+<!--<h1>Clazzes:</h1>
 <?= debug($clazzes); ?>
 <h1>Teachers:</h1>
 <?= debug($teachers); ?>
@@ -13,7 +13,7 @@
 <h1>Teachers current workload:</h1>
 <?= debug($teachersCurrentWorkload); ?>
 <h1>Sub and suoper allocated teachers:</h1>
-<?= debug($subAndSuperAllocatedTeachers); ?>
+<?= debug($subAndSuperAllocatedTeachers); ?>-->
 
 <!-- FIRST TABLE -->
 <div class="row">

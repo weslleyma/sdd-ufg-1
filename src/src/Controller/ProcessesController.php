@@ -16,7 +16,7 @@ use Cake\Event\Event;
 
 /**
  * TODO
- * - Criar tela para seleção de processo antes da distribuição automática
+ * - Criar tela para seleção de processo antes da distribuição automática (OK)
  * - Incrementa currentWorkload (OK)
  * - Reverter processo
  * - Mostrar alocadas dinamicamente (OK)
@@ -433,6 +433,7 @@ class ProcessesController extends AppController
         $this->set('priority', $priority);
         $this->set('teachersCurrentWorkload', $teachersCurrentWorkload);
         $this->set('distributedClazzes', $distributedClazzes);
+        $this->set('processId', $processId);
     }
 
     private function calculateTeacherPriorityForTheClazz(&$priority, $clazzeId, $teacherInfo, $teachersCurrentWorkload, $conflictedAndUnallocatedClazzes, $subAndSuperAllocatedTeachers) {
@@ -543,18 +544,19 @@ class ProcessesController extends AppController
             // CASO 1: SE NÃO HOUVER NENHUM INTENT PRA CLASSE - CRIA UM NOVO INTENT E PERSISTE O PROFESSOR ESCOLHIDO
             if (count($clazz->intents) == 0) {
                 $query = $table_clazzes_teachers->query();
-                $query->insert(['clazz_id', 'teacher_id', 'status', 'simulation_id'])->values([
+                $query->insert(['clazz_id', 'teacher_id', 'status', 'simulation_id', 'previous_status'])->values([
                     'clazz_id' => $clazzeId,
                     'teacher_id' => $teacherId,
                     'status' => 'SELECTED',
-                    'simulation_id' => $clazz->process_id
+                    'simulation_id' => $clazz->process_id,
+                    'previous_status' => 'NONE'
                 ])->execute();
             }
             // CASO 2: SE HOUVER SOMENTE UM INTENT PRA CLASSE - SIMPLESMENTE TROCA ELE DE STATUS PENDING PRA SELECTED
             else if (count($clazz->intents) == 1) {
                 $query = $table_clazzes_teachers->query();
                 $query->update()
-                    ->set(['status' => 'SELECTED', 'simulation_id' => $clazz->process_id])
+                    ->set(['status' => 'SELECTED', 'simulation_id' => $clazz->process_id, 'previous_status' => 'PENDING'])
                     ->where([
                         'clazz_id' => $clazzeId,
                         'teacher_id' => $teacherId,
@@ -565,7 +567,7 @@ class ProcessesController extends AppController
             else {
                 $query = $table_clazzes_teachers->query();
                 $query->update()
-                    ->set(['status' => 'REJECTED', 'simulation_id' => $clazz->process_id])
+                    ->set(['status' => 'REJECTED', 'simulation_id' => $clazz->process_id, 'previous_status' => 'PENDING'])
                     ->where([
                         'clazz_id' => $clazzeId,
                         'teacher_id != ' => $teacherId,
@@ -574,7 +576,7 @@ class ProcessesController extends AppController
 
                 $query = $table_clazzes_teachers->query();
                 $query->update()
-                    ->set(['status' => 'SELECTED', 'simulation_id' => $clazz->process_id])
+                    ->set(['status' => 'SELECTED', 'simulation_id' => $clazz->process_id, 'previous_status' => 'PENDING'])
                     ->where([
                         'clazz_id' => $clazzeId,
                         'teacher_id' => $teacherId,
@@ -627,6 +629,33 @@ class ProcessesController extends AppController
     }
 
     public function effectivateRevert($processId = null) {
+
+        $table_clazzes_teachers = TableRegistry::get('ClazzesTeachers');
+        $intents = $table_clazzes_teachers->find('all');
+
+        foreach ($intents as $intent) {
+            if($intent->previous_status == 'NONE') {
+                $query = $table_clazzes_teachers->query();
+                $query->delete()->where(['simulation_id' => $processId, 'previous_status' => 'NONE'])->execute();
+            } else {
+                $query = $table_clazzes_teachers->query();
+                $query->update()
+                    ->set(['status' => $intent->previous_status, 'simulation_id' => null, 'previous_status' => 'NONE'])
+                    ->where([
+                        'simulation_id' => $processId
+                    ])->execute();
+            }
+        }
+
+        $this->Flash->success(__('A distribuição automática foi revertida com sucesso!'));
+        $this->redirect( ['controller' => 'processes', 'action' => 'index'] );
+
+    }
+
+    public function effectivateDistribution() {
+
+        $this->Flash->success(__('A distribuição automática foi realizada com sucesso!'));
+        $this->redirect( ['controller' => 'processes', 'action' => 'index'] );
 
     }
 
@@ -718,5 +747,6 @@ class ProcessesController extends AppController
         return $this->redirect(['action' => 'index']);
 
     }
+
 
 }

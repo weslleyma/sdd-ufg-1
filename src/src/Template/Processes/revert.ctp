@@ -5,6 +5,9 @@
     <li class="active">Reverter</li>
 <?php $this->end(); ?>
 
+<!--<h1>Simulated Intents:</h1>
+<?= debug($simulatedIntents); ?>-->
+
 <!-- RADIO -->
 <div class="row">
     <div class="col-xs-12">

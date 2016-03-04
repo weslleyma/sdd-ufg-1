@@ -5,7 +5,7 @@
     <li class="active">Simulação</li>
 <?php $this->end(); ?>
 
-<h1>Candidate teachers:</h1>
+<!--<h1>Candidate teachers:</h1>
 <?= debug($candidateTeachers); ?>
 <h1>Selected teacherId:</h1>
 <?= debug($selectedTeacherId); ?>
@@ -22,7 +22,7 @@
 <h1>Teachers Current Workload:</h1>
 <?= debug($teachersCurrentWorkload); ?>
 <h1>Distributed clazzes:</h1>
-<?= debug($distributedClazzes); ?>
+<?= debug($distributedClazzes); ?>-->
 
 <!-- FIRST TABLE -->
 <div class="row">
@@ -87,7 +87,7 @@
 	<div class="col-xs-12 text-center">
 		<?= $this->Html->link(
             '<i class="fa fa-times-circle"></i> ' . __('Cancelar'),
-            '#',
+            ['action' => 'effectivateRevert', $processId],
             [
                 'escape' => false,
                 'class' => 'btn btn-sm btn-danger'
@@ -96,7 +96,7 @@
         ?>
 		<?= $this->Html->link(
             '<i class="fa  fa-check-circle"></i> ' . __('Efetivar Distribuição Automática'),
-            '#',
+            ['action' => 'effectivateDistribution'],
             [
                 'escape' => false,
                 'class' => 'btn btn-sm btn-success'
